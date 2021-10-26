@@ -1,0 +1,428 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#nuevoConvenio')
+</script>
+
+<div class="content-section mx-4">
+  <!-- Select Convenios -->
+  <select autofocus class="form-control form-control-lg form-select mb-5" id="convenio" name="convenio">
+    {% for convenio in convenios %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+
+  <!-- Formulario Nuevo convenio -->
+  <form id="formConvenio" method="POST" novalidate>
+    {{ form_convenio.hidden_tag() }}
+    {{ form_convenio.id_convenio()}}
+    <fieldset>
+      <div class="row form-group mb-3">
+        <!-- Legenda -->
+        <div class="col-lg-8">
+          <legend>
+            Agregar nuevo convenio
+          </legend>
+        </div>
+        <!-- Botón eliminar convenio -->
+        <div class="col-lg-4">
+          <a id="btn-eliminar" class="eliminar-btn float-end" href="#" style='display: none'>
+            <i class="fas fa-trash-alt"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Institución -->
+      <div class="form-group mb-4">
+        {{ form_convenio.institucion.label(class='form-control-label mb-1') }}
+        {% if form_convenio.institucion.errors %}
+          {{ form_convenio.institucion(class='form-control form-control-lg form-select is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_convenio.institucion.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_convenio.institucion(class="form-control form-control-lg form-select") }}
+        {% endif %}
+      </div>
+      <!-- Nombre -->
+      <div class="form-group mb-3">
+        {{ form_convenio.nombre.label(class='form-control-label mb-1') }}
+        {% if form_convenio.nombre.errors %}
+          {{ form_convenio.nombre(class='form-control form-control-lg is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_convenio.nombre.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_convenio.nombre(class="form-control form-control-lg") }}
+        {% endif %}
+      </div>
+      <div class="row form-group mb-3">
+        <!-- Tipo de documento -->
+        <div class="col-lg-4">
+          {{ form_convenio.tipo.label(class='form-control-label mb-1') }}
+          {% if form_convenio.tipo.errors %}
+            {{ form_convenio.tipo(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.tipo.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.tipo(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+        <!-- Documento padre del adendum -->
+        <div id='convenioPadre' class="col-lg-8" style='display: none'>
+          {{ form_convenio.convenio_padre.label(class='form-control-label mb-1') }}
+          {% if form_convenio.convenio_padre.errors %}
+            {{ form_convenio.convenio_padre(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.convenio_padre.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.convenio_padre(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+      </div>
+      <div class="row form-group mb-3">
+        <!-- Coordinador SII -->
+        <div class="col-lg-4">
+          {{ form_convenio.coord_sii.label(class='form-control-label mb-1') }}
+          {% if form_convenio.coord_sii.errors %}
+            {{ form_convenio.coord_sii(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.coord_sii.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.coord_sii(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+        <!-- Suplente SII -->
+        <div class="col-lg-4">
+          {{ form_convenio.sup_sii.label(class='form-control-label mb-1') }}
+          {% if form_convenio.sup_sii.errors %}
+            {{ form_convenio.sup_sii(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.sup_sii.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.sup_sii(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+      </div>
+      <div class="row form-grop mb-3">
+        <!-- Coordinador IE -->
+        <div class="col-lg-4">
+          {{ form_convenio.coord_ie.label(class='form-control-label mb-1') }}
+          {% if form_convenio.coord_ie.errors %}
+            {{ form_convenio.coord_ie(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.coord_ie.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.coord_ie(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+        <!-- Suplente IE -->
+        <div class="col-lg-4">
+          {{ form_convenio.sup_ie.label(class='form-control-label mb-1') }}
+          {% if form_convenio.sup_ie.errors %}
+            {{ form_convenio.sup_ie(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.sup_ie.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.sup_ie(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+        <!-- Responsable IE -->
+        <div class="col-lg-4">
+          {{ form_convenio.responsable_convenio_ie.label(class='form-control-label mb-1') }}
+          {% if form_convenio.responsable_convenio_ie.errors %}
+            {{ form_convenio.responsable_convenio_ie(class='form-control form-control-lg form-select is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_convenio.responsable_convenio_ie.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_convenio.responsable_convenio_ie(class="form-control form-control-lg form-select") }}
+          {% endif %}
+        </div>
+      </div>
+      <!-- Subdirecciones involucradas -->
+      <div class="form-group mb-4">
+        {{ form_convenio.sd_involucradas.label(class='form-control-label mb-1') }}
+        {% if form_convenio.sd_involucradas.errors %}
+          {{ form_convenio.sd_involucradas(class='form-select form-select-sm is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_convenio.sd_involucradas.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_convenio.sd_involucradas(class="form-control form-control-lg form-select") }}
+        {% endif %}
+      </div>
+
+
+      <!-- Mostrar estos campos solo si se está editando el convenio -->
+      <div id='infoEditar' style='display: none'>
+        <div class="row form-grop mb-3">
+          <!-- Número de proyecto -->
+          <div class="col-lg-4">
+            {{ form_convenio.proyecto.label(class='form-control-label mb-1') }}
+            {% if form_convenio.proyecto.errors %}
+              {{ form_convenio.proyecto(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_convenio.proyecto.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_convenio.proyecto(class="form-control form-control-lg") }}
+            {% endif %}
+          </div>
+          <!-- Número Gabinete Electrónico -->
+          <div class="col-lg-4">
+            {{ form_convenio.gabinete_electronico.label(class='form-control-label mb-1') }}
+            {% if form_convenio.gabinete_electronico.errors %}
+              {{ form_convenio.gabinete_electronico(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_convenio.gabinete_electronico.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_convenio.gabinete_electronico(class="form-control form-control-lg") }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="row form-grop mb-3">
+          <!-- Estado -->
+          <div class="col-lg-4">
+            {{ form_convenio.estado.label(class='form-control-label mb-1') }}
+            {% if form_convenio.estado.errors %}
+              {{ form_convenio.estado(class='form-control form-control-lg form-select is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_convenio.estado.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_convenio.estado(class="form-control form-control-lg form-select") }}
+            {% endif %}
+          </div>
+          <!-- Convenio que reemplaza -->
+          <div id='convenioReemplazo' class="col-lg-8" style='display: none' >
+            {{ form_convenio.convenio_reemplazo.label(class='form-control-label mb-1') }}
+            {% if form_convenio.convenio_reemplazo.errors %}
+              {{ form_convenio.convenio_reemplazo(class='form-control form-control-lg form-select is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_convenio.convenio_reemplazo.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_convenio.convenio_reemplazo(class="form-control form-control-lg form-select") }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+
+    </fieldset>
+    <div class="form-group">
+      <!-- Botón Agregar lanza el modal -->
+      <button id='boton-form' type="button" class="btn btn-outline-primary float-end mb-5" data-bs-toggle="modal" data-bs-target="#confirmarModal">
+        Agregar
+      </button>
+    </div>
+    <!-- Modal Confirmar -->
+    <div class="modal fade" id="confirmarModal" tabindex="-1" role="dialog" aria-labelledby="confirmarModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmarModalLabel">Confirmar acción</h5>
+          </div>
+          <div class="modal-body">
+            Por favor, verifique que los datos están correctos.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+            <form action="">{{ form_convenio.submit(class="btn btn-primary") }}</form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  </div>
+
+
+
+  </form>
+</div>
+
+<script type="text/javascript">
+  // Cuando se selecciona Adendum como tipo de documento
+  const tipoDocumento = document.querySelector('#tipo');
+  const convenioPadre = document.querySelector('#convenioPadre');
+  tipoDocumento.addEventListener('change', function(e) {
+    if (tipoDocumento.value === 'Adendum'){
+      convenioPadre.style.display = 'block';
+    }
+    else {
+      convenioPadre.style.display = 'none';
+      document.querySelector('#convenio_padre').value = 0;
+    }});
+
+  // Llenar select personas IE cuando se selecciona institución
+  const institucion = document.querySelector('#institucion');
+  institucion.addEventListener('change', function(e) {
+    fetch(Flask.url_for('bitacoras.obtener_personas_ie', {'id_institucion': institucion.value}))
+    .then(response => response.json())
+    .then(data => {
+      // COORDINADOR IE
+      const select_coord_ie = document.createElement('option');
+      select_coord_ie.value = 0;
+      select_coord_ie.innerHTML = 'Seleccionar';
+      const coord_ie = document.querySelector('#coord_ie');
+      // Borrar las opciones del select field
+      var coord_ie_options = document.querySelectorAll('#coord_ie option');
+      for (option in coord_ie_options) {
+        coord_ie.remove(coord_ie_options[option]);
+      }
+      // Llenar lista con personas de la IE
+      coord_ie.appendChild(select_coord_ie);
+      for (persona in data) {
+        var opt = document.createElement('option');
+        opt.value = data[persona].id;
+        opt.innerHTML = data[persona].nombre;
+        coord_ie.appendChild(opt);
+      }
+
+      // SUPLENTE IE
+      const select_sup_ie = document.createElement('option');
+      select_sup_ie.value = 0;
+      select_sup_ie.innerHTML = 'Seleccionar';
+      const sup_ie = document.querySelector('#sup_ie');
+      // Borrar las opciones del select field
+      var sup_ie_options = document.querySelectorAll('#sup_ie option');
+      for (option in sup_ie_options) {
+        sup_ie.remove(sup_ie_options[option]);
+      }
+      // Llenar lista con personas de la IE
+      sup_ie.appendChild(select_sup_ie);
+      for (persona in data) {
+        var opt = document.createElement('option');
+        opt.value = data[persona].id;
+        opt.innerHTML = data[persona].nombre;
+        sup_ie.appendChild(opt);
+      }
+
+      // Responsable IE
+      const select_resp_ie = document.createElement('option');
+      select_resp_ie.value = 0;
+      select_resp_ie.innerHTML = 'Seleccionar';
+      const responsable_convenio_ie = document.querySelector('#responsable_convenio_ie');
+      // Borrar las opciones del select field
+      var responsable_convenio_ie_options = document.querySelectorAll('#responsable_convenio_ie option');
+      for (option in responsable_convenio_ie_options) {
+        responsable_convenio_ie.remove(responsable_convenio_ie_options[option]);
+      }
+      // Llenar lista con personas de la IE
+      responsable_convenio_ie.appendChild(select_resp_ie);
+      for (persona in data) {
+        var opt = document.createElement('option');
+        opt.value = data[persona].id;
+        opt.innerHTML = data[persona].nombre;
+        responsable_convenio_ie.appendChild(opt);
+      }})});
+
+  // Mostrar Convenio que reeplaza si se elige Reemplazado como Estado
+  const estado = document.querySelector('#estado');
+  const convenioReemplazo = document.querySelector('#convenioReemplazo');
+  estado.addEventListener('change', function(e) {
+    if (estado.value === 'Reemplazado'){
+      convenioReemplazo.style.display = 'block';
+    }
+    else {
+      convenioReemplazo.style.display = 'none';
+      document.querySelector('#convenio_reemplazo').value = 0;
+    }});
+
+  // Precargar datos cuando se selecciona conveio para editar
+  const selection = document.querySelector('#convenio');
+  selection.addEventListener('change', function(e) {
+    // Si no se ha seleccionado convenio limpiar el form
+    if (selection.value == 0) {
+      // Ocultar botón de eliminar y cambiar textos
+      document.querySelector('legend').innerHTML = 'Agregar nuevo convenio';
+      document.querySelector('#boton-form').innerHTML = 'Agregar';
+      document.querySelector('#btn-eliminar').style.display = 'none';
+      document.querySelector('#infoEditar').style.display = 'none';
+
+      document.querySelector('#id_convenio').value = 0;
+      document.querySelector('#nombre').value = "";
+      document.querySelector('#estado').value = 'En proceso' ;
+      document.querySelector('#tipo').value = 'Seleccionar';
+      document.querySelector('#convenio_padre').value = 0;
+      document.querySelector('#convenio_reemplazo').value = 0;
+      document.querySelector('#gabinete_electronico').value = "";
+      document.querySelector('#proyecto').value = "";
+      document.querySelector('#institucion').value = 0;
+      document.querySelector('#coord_sii').value = 0;
+      document.querySelector('#sup_sii').value = 0;
+      document.querySelector('#coord_ie').value = 0;
+      document.querySelector('#sup_ie').value = 0;
+      document.querySelector('#responsable_convenio_ie').value = 0;
+      document.querySelector('#sd_involucradas').value = 0;
+
+      // Generar eventos change
+      var cambioTipo = new Event('change');
+      tipoDocumento.dispatchEvent(cambioTipo);
+      var cambioEstado = new Event('change');
+      estado.dispatchEvent(cambioEstado);
+      var cambioInstitucion = new Event('change');
+      institucion.dispatchEvent(cambioInstitucion);
+
+    }
+
+    // Si se seleccionó convenio para editar, precargar el formulario
+    else {
+      // Mostrar botón de eliminar y cambiar textos
+      document.querySelector('legend').innerHTML = 'Editar convenio';
+      document.querySelector('#boton-form').innerHTML = 'Actualizar';
+      document.querySelector('#btn-eliminar').style.display = 'block';
+      document.querySelector('#btn-eliminar').href = Flask.url_for('bitacoras.eliminar_convenio', {'id_convenio': selection.value});
+      document.querySelector('#infoEditar').style.display = 'block';
+
+
+      // Seleccionar SDs involucradas
+      const sdInvolucradas = document.querySelector('#sd_involucradas');
+      var sd_seleccionadas = ['1', '2', '3'];
+      for (var i = 0; i < sdInvolucradas.options.length; i++) {
+        sdInvolucradas.options[i].selected = sd_seleccionadas.indexOf(sdInvolucradas.options[i].value) >= 0;
+      }
+
+  }});
+
+</script>
+
+{% endblock content %}
