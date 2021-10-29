@@ -26,13 +26,13 @@
             Agregar nuevo convenio
           </legend>
         </div>
-        <!-- Botón eliminar convenio -->
+        <!-- Botón eliminar convenio
         <div class="col-lg-4">
           <a id="btn-eliminar" class="eliminar-btn float-end" href="#" style='display: none'>
             <i class="fas fa-trash-alt"></i>
           </a>
         </div>
-      </div>
+      </div> -->
 
       <!-- Institución -->
       <div class="form-group mb-4">
@@ -179,6 +179,18 @@
         {% else %}
           {{ form_convenio.sd_involucradas(class="form-control form-control-lg form-select") }}
         {% endif %}
+
+        <!-- Errores Proyecto y Estado(Reemplazado) -->
+        <div class="invalid-feedback mt-3" style='display: block'>
+          {% for error in form_convenio.proyecto.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="invalid-feedback" style='display: block'>
+          {% for error in form_convenio.estado.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
       </div>
 
 
@@ -274,8 +286,6 @@
   </form>
   </div>
 
-
-
   </form>
 </div>
 
@@ -283,77 +293,139 @@
   // Cuando se selecciona Adendum como tipo de documento
   const tipoDocumento = document.querySelector('#tipo');
   const convenioPadre = document.querySelector('#convenioPadre');
+  const convenio_padre_0 = document.createElement('option');
+  convenio_padre_0.value = 0;
+  convenio_padre_0.innerHTML = 'Seleccione una institución para ver los convenios';
+  const select_convenio_padre = document.querySelector('#convenio_padre');
+
+  const institucion = document.querySelector('#institucion');
+  const selection = document.querySelector('#convenio');
+
   tipoDocumento.addEventListener('change', function(e) {
     if (tipoDocumento.value === 'Adendum'){
       convenioPadre.style.display = 'block';
+
+
+      // Seleccionar el convenio convenio convenio padre
+      fetch(Flask.url_for('bitacoras.obtener_convenio_padre', {'id_convenio': selection.value}))
+      .then(response => response.json())
+      .then(data => {
+        select_convenio_padre.value = data.id_convenio_padre});
+
+
     }
     else {
       convenioPadre.style.display = 'none';
       document.querySelector('#convenio_padre').value = 0;
+
     }});
 
-  // Llenar select personas IE cuando se selecciona institución
-  const institucion = document.querySelector('#institucion');
-  institucion.addEventListener('change', function(e) {
-    fetch(Flask.url_for('bitacoras.obtener_personas_ie', {'id_institucion': institucion.value}))
-    .then(response => response.json())
-    .then(data => {
-      // COORDINADOR IE
-      const select_coord_ie = document.createElement('option');
-      select_coord_ie.value = 0;
-      select_coord_ie.innerHTML = 'Seleccionar';
-      const coord_ie = document.querySelector('#coord_ie');
-      // Borrar las opciones del select field
-      var coord_ie_options = document.querySelectorAll('#coord_ie option');
-      for (option in coord_ie_options) {
-        coord_ie.remove(coord_ie_options[option]);
+  // Llenar select personas IE cuando se selecciona institución y cargar los convenios de esa institución
+    institucion.addEventListener('change', function(e) {
+
+      // Añadir los convenios en el select de convenio padre
+      if (institucion.value === 0) {
+        // Borrar todos los convenios y dejar solo opcion 0
+        var convenio_padre_options = document.querySelectorAll("#convenio_padre option");
+        for (option in convenio_padre_options) {
+          select_convenio_padre.remove(convenio_padre_options[option]);
+        }
+        select_convenio_padre.appendChild(convenio_padre_0);
+        document.querySelector('#convenio_padre').value = 0;
       }
-      // Llenar lista con personas de la IE
-      coord_ie.appendChild(select_coord_ie);
-      for (persona in data) {
-        var opt = document.createElement('option');
-        opt.value = data[persona].id;
-        opt.innerHTML = data[persona].nombre;
-        coord_ie.appendChild(opt);
+      else {
+        // Borrar todos los convenios y dejar solo opcion 0
+        var convenio_padre_options = document.querySelectorAll("#convenio_padre option");
+        for (option in convenio_padre_options) {
+          select_convenio_padre.remove(convenio_padre_options[option]);
+        }
+        select_convenio_padre.appendChild(convenio_padre_0);
+        document.querySelector('#convenio_padre').value = 0;
+        // Agregar los convenios en proceso y en producción de la institucion
+        fetch(Flask.url_for('bitacoras.obtener_convenios_institucion', {'id_institucion': institucion.value}))
+        .then(response => response.json())
+        .then(data => {
+          for (convenio in data) {
+            var opt = document.createElement('option');
+            opt.value = data[convenio].id;
+            opt.innerHTML = data[convenio].nombre;
+            select_convenio_padre.appendChild(opt);
+
+          }
+        });
+
       }
 
-      // SUPLENTE IE
-      const select_sup_ie = document.createElement('option');
-      select_sup_ie.value = 0;
-      select_sup_ie.innerHTML = 'Seleccionar';
-      const sup_ie = document.querySelector('#sup_ie');
-      // Borrar las opciones del select field
-      var sup_ie_options = document.querySelectorAll('#sup_ie option');
-      for (option in sup_ie_options) {
-        sup_ie.remove(sup_ie_options[option]);
-      }
-      // Llenar lista con personas de la IE
-      sup_ie.appendChild(select_sup_ie);
-      for (persona in data) {
-        var opt = document.createElement('option');
-        opt.value = data[persona].id;
-        opt.innerHTML = data[persona].nombre;
-        sup_ie.appendChild(opt);
-      }
+      fetch(Flask.url_for('bitacoras.obtener_personas_ie', {'id_institucion': institucion.value}))
+      .then(response => response.json())
+      .then(data => {
+        // COORDINADOR IE
+        const select_coord_ie = document.createElement('option');
+        select_coord_ie.value = 0;
+        select_coord_ie.innerHTML = 'Seleccionar';
+        var coord_ie = document.querySelector('#coord_ie');
+        // Borrar las opciones del select field
+        var coord_ie_options = document.querySelectorAll('#coord_ie option');
+        for (option in coord_ie_options) {
+          coord_ie.remove(coord_ie_options[option]);
+        }
+        // Llenar lista con personas de la IE
+        coord_ie.appendChild(select_coord_ie);
+        for (persona in data) {
+          var opt = document.createElement('option');
+          opt.value = data[persona].id;
+          opt.innerHTML = data[persona].nombre;
+          coord_ie.appendChild(opt);
+        }
 
-      // Responsable IE
-      const select_resp_ie = document.createElement('option');
-      select_resp_ie.value = 0;
-      select_resp_ie.innerHTML = 'Seleccionar';
-      const responsable_convenio_ie = document.querySelector('#responsable_convenio_ie');
-      // Borrar las opciones del select field
-      var responsable_convenio_ie_options = document.querySelectorAll('#responsable_convenio_ie option');
-      for (option in responsable_convenio_ie_options) {
-        responsable_convenio_ie.remove(responsable_convenio_ie_options[option]);
-      }
-      // Llenar lista con personas de la IE
-      responsable_convenio_ie.appendChild(select_resp_ie);
-      for (persona in data) {
-        var opt = document.createElement('option');
-        opt.value = data[persona].id;
-        opt.innerHTML = data[persona].nombre;
-        responsable_convenio_ie.appendChild(opt);
-      }})});
+        // SUPLENTE IE
+        const select_sup_ie = document.createElement('option');
+        select_sup_ie.value = 0;
+        select_sup_ie.innerHTML = 'Seleccionar';
+        const sup_ie = document.querySelector('#sup_ie');
+        // Borrar las opciones del select field
+        var sup_ie_options = document.querySelectorAll('#sup_ie option');
+        for (option in sup_ie_options) {
+          sup_ie.remove(sup_ie_options[option]);
+        }
+        // Llenar lista con personas de la IE
+        sup_ie.appendChild(select_sup_ie);
+        for (persona in data) {
+          var opt = document.createElement('option');
+          opt.value = data[persona].id;
+          opt.innerHTML = data[persona].nombre;
+          sup_ie.appendChild(opt);
+        }
+
+        // Responsable IE
+        const select_resp_ie = document.createElement('option');
+        select_resp_ie.value = 0;
+        select_resp_ie.innerHTML = 'Seleccionar';
+        const responsable_convenio_ie = document.querySelector('#responsable_convenio_ie');
+        // Borrar las opciones del select field
+        var responsable_convenio_ie_options = document.querySelectorAll('#responsable_convenio_ie option');
+        for (option in responsable_convenio_ie_options) {
+          responsable_convenio_ie.remove(responsable_convenio_ie_options[option]);
+        }
+        // Llenar lista con personas de la IE
+        responsable_convenio_ie.appendChild(select_resp_ie);
+        for (persona in data) {
+          var opt = document.createElement('option');
+          opt.value = data[persona].id;
+          opt.innerHTML = data[persona].nombre;
+          responsable_convenio_ie.appendChild(opt);
+        }
+
+        // Seleccionar personas si se está editando un convenio
+        if (document.querySelector('#convenio').value != 0) {
+          fetch(Flask.url_for('bitacoras.obtener_personas_convenio', {'id_convenio': selection.value}))
+          .then(response => response.json())
+          .then(data => {
+            coord_ie.value = data.coord_ie;
+            sup_ie.value = data.sup_ie;
+            responsable_convenio_ie.value = data.responsable_convenio_ie;
+
+  })}})});
 
   // Mostrar Convenio que reeplaza si se elige Reemplazado como Estado
   const estado = document.querySelector('#estado');
@@ -368,7 +440,6 @@
     }});
 
   // Precargar datos cuando se selecciona conveio para editar
-  const selection = document.querySelector('#convenio');
   selection.addEventListener('change', function(e) {
     // Si no se ha seleccionado convenio limpiar el form
     if (selection.value == 0) {
@@ -413,16 +484,50 @@
       document.querySelector('#btn-eliminar').href = Flask.url_for('bitacoras.eliminar_convenio', {'id_convenio': selection.value});
       document.querySelector('#infoEditar').style.display = 'block';
 
+      // Precargar formulario con datos del convenio
+      fetch(Flask.url_for('bitacoras.obtener_convenio', {'id_convenio': selection.value}))
+      .then(response => response.json())
+      .then(data => {
+        document.querySelector('#id_convenio').value = data.id;
+        document.querySelector('#institucion').value = data.id_institucion;
+        var cambioInstitucion = new Event('change');
+        document.querySelector('#institucion').dispatchEvent(cambioInstitucion);
+        document.querySelector('#nombre').value = data.nombre;
+        document.querySelector('#tipo').value = data.tipo;
+        var cambioTipo = new Event('change');
+        document.querySelector('#tipo').dispatchEvent(cambioTipo);
+        //document.querySelector('#convenio_padre').value = data.id_convenio_padre; esto se hace en el Adendum(change)
+        document.querySelector('#coord_sii').value = data.id_coord_sii;
+        document.querySelector('#sup_sii').value = data.id_sup_sii;
+        document.querySelector('#estado').value = data.estado ;
+        var cambioEstado = new Event('change');
+        document.querySelector('#estado').dispatchEvent(cambioEstado)
+
+        document.querySelector('#convenio_reemplazo').value = data.id_convenio_reemplazo;
+        document.querySelector('#gabinete_electronico').value = data.gabinete_electronico;
+        document.querySelector('#proyecto').value = data.proyecto;
+      });
 
       // Seleccionar SDs involucradas
-      const sdInvolucradas = document.querySelector('#sd_involucradas');
-      var sd_seleccionadas = ['1', '2', '3'];
-      for (var i = 0; i < sdInvolucradas.options.length; i++) {
-        sdInvolucradas.options[i].selected = sd_seleccionadas.indexOf(sdInvolucradas.options[i].value) >= 0;
-      }
+      fetch(Flask.url_for('bitacoras.obtener_sds_convenio', {'id_convenio': selection.value}))
+      .then(response => response.json())
+      .then(data => {
+        const sdInvolucradas = document.querySelector('#sd_involucradas');
+        var sd_seleccionadas = data;
+        for (var i = 0; i < sdInvolucradas.options.length; i++) {
+          sdInvolucradas.options[i].selected = sd_seleccionadas.indexOf(sdInvolucradas.options[i].value) >= 0;
+        }
+      });
+
 
   }});
 
+
+
+
+
+
 </script>
+
 
 {% endblock content %}
