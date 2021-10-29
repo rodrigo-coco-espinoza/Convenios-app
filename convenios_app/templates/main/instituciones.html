@@ -26,13 +26,24 @@
             Agregar nueva institución
           </legend>
         </div>
-        <!-- Botón eliminar institución -->
+        <!-- Botón eliminar institución
         <div class="col-lg-4">
           <a id="btn-eliminar" class="eliminar-btn float-end" href="#" style='display: none'>
             <i class="fas fa-trash-alt"></i>
           </a>
-        </div>
+        </div> -->
+        <!-- Mostrar error si se intenta modificar un ministerio -->
+        {% if form_institucion.id_institucion.errors %}
+          {{ form_institucion.id_institucion(class='form-control form-control-lg is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_institucion.id_institucion.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
+
+
 
       <!-- Nombre -->
       <div class="form-group mb-3">
@@ -178,7 +189,7 @@
         document.querySelector('#tipo').value = data.tipo;
         document.querySelector('#direccion').value = data.direccion;
         document.querySelector('#ministerio').value = data.ministerio;
-        
+
 
         // Mostrar botón de eliminar y cambiar textos
         document.querySelector('legend').innerHTML = "Editar institución";

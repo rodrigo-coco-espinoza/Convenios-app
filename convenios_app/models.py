@@ -1,5 +1,6 @@
 from flask import current_app
 from convenios_app import db, login_manager
+from convenios_app.bitacoras.utils import generar_nombre_convenio, formato_nombre
 
 #TODO: Obtener los registgros que tengan campos en blanco (Instituciones, personas)
 
@@ -56,7 +57,7 @@ class Institucion(db.Model):
         :param form: información ingresada por el usuario en el formulario para editar.
         :return: cambia los parámetros en la base datos.
         """
-        self.nombre = form.nombre.data
+        self.nombre = formato_nombre(form.nombre.data)
         self.sigla = form.sigla.data.upper()
         self.rut = form.rut.data
         self.direccion = form.direccion.data
@@ -92,11 +93,11 @@ class Persona(db.Model):
         :param form: información ingresada por el usuario en el formulario para editar.
         :return: cambia los parámetros en la base datos.
         """
-        self.nombre = form.nombre.data
+        self.nombre = formato_nombre(form.nombre.data)
         self.correo = form.correo.data
         self.telefono = form.telefono.data
-        self.cargo = form.cargo.data
-        self.area = form.area.data
+        self.cargo = formato_nombre(form.cargo.data)
+        self.area = formato_nombre(form.area.data)
         self.id_institucion = int(form.institucion.data)
         self.id_equipo = int(form.equipo.data)
         db.session.commit()
@@ -133,5 +134,48 @@ class Convenio(db.Model):
     responsable_convenio_ie = db.relationship('Persona', foreign_keys=[id_responsable_convenio_ie])
     # Relaciones -> es llave foránea en:
 
+    def actualizar_convenio(self, form):
+        """
+        Actualiza la base de datos con el formulario de /nuevo_convenio.
+        :param form: información ingresada por el usuario en el formulario para editar.
+        :return: cambia los parámetros en la base datos.
+        """
+        self.nombre = formato_nombre(form.nombre.data)
+        self.estado = form.estado.data
+        if form.estado.data == 'Reemplazado':
+          self.id_convenio_reemplazo = form.convenio_reemplazo.data
+        self.tipo = form.tipo.data
+        if form.tipo.data == 'Adendum':
+            self.id_convenio_padre = form.convenio_padre.data
+        self.gabinete_electronico = form.gabinete_electronico.data
+        self.proyecto = form.proyecto.data
+        self.id_institucion = form.institucion.data
+        self.id_coord_sii = form.coord_sii.data
+        if int(form.sup_sii.data) != 0:
+            self.id_sup_sii = form.sup_sii.data
+        if int(form.coord_ie.data) != 0:
+            self.id_coord_ie = form.coord_ie.data
+        if int(form.sup_ie.data) != 0:
+            self.id_sup_ie = form.sup_ie.data
+        if int(form.responsable_convenio_ie.data) != 0:
+            self.id_responsable_convenio_ie = form.responsable_convenio_ie.data
+
+        db.session.commit()
+
     def __repr__(self):
         return f'{self.id} - {self.institucion.sigla} {self.nombre} - {self.estado}'
+
+
+class SdInvolucrada(db.Model):
+    """
+    Contiene todas las subdireciones involucradas para cada convenio.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
+    id_subdireccion = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+    subdireccion = db.relationship('Equipo', foreign_keys=[id_subdireccion])
+
+    def __repr__(self):
+        return f'{self.id} - {generar_nombre_convenio(self.convenio)} - {self.subdireccion}'
+

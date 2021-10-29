@@ -2,11 +2,15 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
 from convenios_app.models import Ministerio, Institucion, Equipo, Persona
 from convenios_app.main.forms import InstitucionForm, PersonaForm
 from convenios_app import db
+from convenios_app.main.utils import generar_nombre_institucion
+from convenios_app.bitacoras.utils import formato_nombre
 from sqlalchemy import desc, asc
 
 main = Blueprint('main', __name__)
 
 # TODO: race condition
+
+
 
 
 @main.route('/')
@@ -21,7 +25,7 @@ def ver_persona():
     personas.insert(0, (0, 'Seleccione persona para editar'))
 
     # Crear formulario persona
-    instituciones = [(institucion.id, institucion.nombre) for institucion in Institucion.query.order_by(Institucion.nombre.asc()).all()]
+    instituciones = [(institucion.id, generar_nombre_institucion(institucion)) for institucion in Institucion.query.order_by(Institucion.nombre.asc()).all()]
     instituciones.insert(0, (0, 'Seleccionar'))
     equipos = [(equipo.id, equipo.sigla) for equipo in Equipo.query.order_by(Equipo.sigla.asc()).all()]
     equipos.insert(0, (0, 'Seleccionar'))
@@ -31,14 +35,14 @@ def ver_persona():
 
     if form_persona.validate_on_submit():
         if int(form_persona.id_persona.data) == 0:
-            # NUEVA INSTITUCIÓN
+            # NUEVA PERSONA
             # Crear objeto persona
             nueva_persona = Persona(
-                nombre=form_persona.nombre.data,
+                nombre=formato_nombre(form_persona.nombre.data),
                 correo=form_persona.correo.data,
                 telefono=form_persona.telefono.data,
-                cargo=form_persona.cargo.data,
-                area=form_persona.area.data,
+                cargo=formato_nombre(form_persona.cargo.data),
+                area=formato_nombre(form_persona.area.data),
                 id_institucion=form_persona.institucion.data,
                 id_equipo=form_persona.equipo.data,
             )
@@ -49,7 +53,7 @@ def ver_persona():
             return redirect(url_for('main.ver_persona'))
 
         else:
-            # EDITAR INSTITUCIÓN
+            # EDITAR PERSONA
             editar_persona = Persona.query.get(int(form_persona.id_persona.data))
             editar_persona.actualizar_persona(form=form_persona)
             flash(f'Se ha actualizado {editar_persona.nombre}', 'success')
@@ -75,23 +79,23 @@ def obtener_persona(id):
     return jsonify(persona)
 
 
-@main.route('/eliminar_persona/<int:id_persona>')
-def eliminar_persona(id_persona):
-    persona = Persona.query.get(id_persona)
-    db.session.delete(persona)
-    db.session.commit()
-    flash(f'Se ha eliminado {persona.nombre}', 'success')
-    return redirect(url_for('main.ver_persona'))
+# @main.route('/eliminar_persona/<int:id_persona>')
+# def eliminar_persona(id_persona):
+#     persona = Persona.query.get(id_persona)
+#     db.session.delete(persona)
+#     db.session.commit()
+#     flash(f'Se ha eliminado {persona.nombre}', 'success')
+#     return redirect(url_for('main.ver_persona'))
 
 
 @main.route('/instituciones', methods=['GET', 'POST'])
 def ver_institucion():
     # Crear select field con instituciones
-    instituciones = [(institucion.id, institucion.nombre) for institucion in Institucion.query.order_by(Institucion.nombre.asc()).all()]
+    instituciones = [(institucion.id, generar_nombre_institucion(institucion)) for institucion in Institucion.query.order_by(Institucion.nombre.asc()).all()]
     instituciones.insert(0, (0, 'Seleccione institución para editar'))
 
     # Crear formulario nueva institución
-    ministerios = [(ministerio.id, ministerio.nombre) for ministerio in Ministerio.query.order_by(Ministerio.nombre.asc()).all()]
+    ministerios = [(ministerio.id, generar_nombre_institucion(ministerio)) for ministerio in Ministerio.query.order_by(Ministerio.nombre.asc()).all()]
     ministerios.insert(0, (0, 'Seleccionar o dejar en blanco'))
     form_institucion = InstitucionForm()
     form_institucion.ministerio.choices = ministerios
@@ -101,7 +105,7 @@ def ver_institucion():
             # NUEVA INSTITUCIÓN
             # Crear objeto institución
             nueva_institucion = Institucion(
-                nombre=form_institucion.nombre.data,
+                nombre=formato_nombre(form_institucion.nombre.data),
                 sigla=form_institucion.sigla.data.upper(),
                 rut=form_institucion.rut.data,
                 direccion=form_institucion.direccion.data,
@@ -141,10 +145,10 @@ def obtener_institucion(id):
     return jsonify(institucion)
 
 
-@main.route('/eliminar_institucion/<int:id_institucion>')
-def eliminar_institucion(id_institucion):
-    institucion = Institucion.query.get(id_institucion)
-    db.session.delete(institucion)
-    db.session.commit()
-    flash(f'Se ha eliminado {institucion.nombre}', 'success')
-    return redirect(url_for('main.ver_institucion'))
+# @main.route('/eliminar_institucion/<int:id_institucion>')
+# def eliminar_institucion(id_institucion):
+#     institucion = Institucion.query.get(id_institucion)
+#     db.session.delete(institucion)
+#     db.session.commit()
+#     flash(f'Se ha eliminado {institucion.nombre}', 'success')
+#     return redirect(url_for('main.ver_institucion'))

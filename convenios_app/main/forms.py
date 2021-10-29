@@ -3,6 +3,7 @@ from wtforms import StringField, SelectField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
 from convenios_app.models import Institucion, Persona
 from sqlalchemy import and_
+from convenios_app.bitacoras.utils import formato_nombre
 
 
 class InstitucionForm(FlaskForm):
@@ -12,18 +13,19 @@ class InstitucionForm(FlaskForm):
     rut = StringField('Rut', render_kw={"placeholder": "12345678-9"})
     direccion = StringField('Dirección')
     ministerio = SelectField('Ministerio al que pertenece')
-    tipo = SelectField('Tipo de institución', validators=[DataRequired()], choices=['Seleccionar',
-                                                                                    'Empresa pública',
-                                                                                    'Municipalidad',
-                                                                                    'Privado',
-                                                                                    'Servicio Público'])
+    tipo = SelectField('Tipo de institución', validators=[DataRequired()], validate_choice=False, choices=['Seleccionar',
+                                                                                                            'Empresa pública',
+                                                                                                            'Ministerio',
+                                                                                                            'Municipalidad',
+                                                                                                            'Privado',
+                                                                                                            'Servicio Público'])
     submit = SubmitField('Confirmar')
 
     def validate_nombre(self, nombre):
         """
         Valida que el nombre no exista ya sea si es institución nueva o si se edita uno
         """
-        institucion = Institucion.query.filter(and_(Institucion.nombre == nombre.data,
+        institucion = Institucion.query.filter(and_(Institucion.nombre == formato_nombre(nombre.data),
                                                     Institucion.id != int(self.id_institucion.data))).first()
         if institucion:
             raise ValidationError(f'{nombre.data} ya está registrado.')
@@ -40,7 +42,15 @@ class InstitucionForm(FlaskForm):
     def validate_tipo(self, tipo):
         if tipo.data == 'Seleccionar':
             raise ValidationError('Debe seleccionar un tipo de institución.')
+        elif tipo.data == 'Ministerio':
+            raise ValidationError('No es posible seleccionar Ministerio.')
 
+    def validate_id_institucion(self, id_institucion):
+        """
+        No permite que se edite un ministerio, los primeros 24 IDs de la tabla institución corresponde a los ministerios
+        """
+        if 0 < int(id_institucion.data) < 25:
+            raise ValidationError('No es posible editar un Ministerio.')
 
 
 class PersonaForm(FlaskForm):
@@ -66,7 +76,7 @@ class PersonaForm(FlaskForm):
         """
         Valida que no exista otra persona con el mismo nombre en la misma institución
         """
-        persona = Persona.query.filter(and_(Persona.nombre == nombre.data,
+        persona = Persona.query.filter(and_(Persona.nombre == formato_nombre(nombre.data),
                                             Persona.id_institucion == int(self.institucion.data),
                                             Persona.id != int(self.id_persona.data))).first()
         if persona:
