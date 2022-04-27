@@ -137,29 +137,8 @@
       {% endif %}
     </div>
   </fieldset>
-  <div class="form-group">
-    <!-- Botón Agregar lanza el modal -->
-    <button id='boton-form' type="button" class="btn btn-outline-primary float-end" data-bs-toggle="modal" data-bs-target="#confirmarModal">
-      Agregar
-    </button>
-  </div>
-  <!-- Modal Confirmar -->
-  <div class="modal fade" id="confirmarModal" tabindex="-1" role="dialog" aria-labelledby="confirmarModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="confirmarModalLabel">Confirmar acción</h5>
-        </div>
-        <div class="modal-body">
-          Por favor, verifique que los datos están correctos.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
-          <form action="">{{ form_persona.submit(class="btn btn-primary") }}</form>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ form_persona.submit(class="btn btn-outline-primary float-end mb-5") }}
+
 </form>
 </div>
 
@@ -168,10 +147,6 @@
   var selection = document.querySelector("#persona");
   selection.addEventListener('change', function(e) {
     if (selection.value == 0) {
-      document.querySelector('legend').innerHTML = "Agregar nueva persona"
-      document.querySelector('#boton-form').innerHTML = "Agregar"
-      document.querySelector('#eliminarPersona').style.display = 'none'
-
       document.querySelector('#id_persona').value = 0;
       document.querySelector('#nombre').value = "";
       document.querySelector('#correo').value = "";
@@ -180,6 +155,10 @@
       document.querySelector('#area').value = "";
       document.querySelector('#institucion').value = 0;
       document.querySelector('#equipo').value = 0;
+
+      document.querySelector('legend').innerHTML = "Agregar nueva persona"
+      document.querySelector('#submit').value = "Agregar"
+      // document.querySelector('#eliminarPersona').style.display = 'none'
 
     }
     // Si se selecciona, obtener info y mostrar formulario editar precargado
@@ -198,9 +177,9 @@
 
         // Mostrar botón de eliminar y cambiar textos
         document.querySelector('legend').innerHTML = "Editar persona";
-        document.querySelector('#boton-form').innerHTML = "Actualizar";
-        document.querySelector('#eliminarPersona').style.display = 'block';
-        document.querySelector('#eliminarPersona').href = Flask.url_for('main.eliminar_persona', {'id_persona': selection.value});
+        document.querySelector('#submit').value = "Actualizar";
+        // document.querySelector('#eliminarPersona').style.display = 'block';
+        // document.querySelector('#eliminarPersona').href = Flask.url_for('main.eliminar_persona', {'id_persona': selection.value});
     })}});
 </script>
 

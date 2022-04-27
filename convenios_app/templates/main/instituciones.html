@@ -132,29 +132,7 @@
         {% endif %}
       </div>
       </fieldset>
-      <div class="form-group">
-        <!-- Botón Agregar lanza el modal -->
-        <button id='boton-form' type="button" class="btn btn-outline-primary float-end" data-bs-toggle="modal" data-bs-target="#confirmarModal">
-          Agregar
-        </button>
-      </div>
-      <!-- Modal Confirmar -->
-      <div class="modal fade" id="confirmarModal" tabindex="-1" role="dialog" aria-labelledby="confirmarModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="confirmarModalLabel">Confirmar acción</h5>
-            </div>
-            <div class="modal-body">
-              Por favor, verifique que los datos están correctos.
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
-              <form action="">{{ form_institucion.submit(class="btn btn-primary") }}</form>
-            </div>
-          </div>
-        </div>
-      </div>
+      {{ form_institucion.submit(class="btn btn-outline-primary float-end mb-5") }}
   </form>
 </div>
 
@@ -166,8 +144,8 @@
     // Si no se selecciona ninguna mostrar formulario nueva institución
     if (selection.value == 0) {
       document.querySelector('legend').innerHTML = "Agregar nueva institución";
-      document.querySelector('#boton-form').innerHTML = "Agregar";
-      document.querySelector('#btn-eliminar').style.display = 'none';
+      document.querySelector('#submit').value = "Agregar";
+      // document.querySelector('#btn-eliminar').style.display = 'none';
 
       document.querySelector('#id_institucion').value = 0;
       document.querySelector("#nombre").value = "";
@@ -193,9 +171,9 @@
 
         // Mostrar botón de eliminar y cambiar textos
         document.querySelector('legend').innerHTML = "Editar institución";
-        document.querySelector('#boton-form').innerHTML = "Actualizar";
-        document.querySelector('#btn-eliminar').style.display = 'block';
-        document.querySelector('#btn-eliminar').href = Flask.url_for('main.eliminar_institucion', {'id_institucion': selection.value});
+        document.querySelector('#submit').value = "Actualizar";
+        // document.querySelector('#btn-eliminar').style.display = 'block';
+        // document.querySelector('#btn-eliminar').href = Flask.url_for('main.eliminar_institucion', {'id_institucion': selection.value});
     })}});
 
 </script>
