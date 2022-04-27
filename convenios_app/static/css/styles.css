@@ -63,3 +63,10 @@
 .eliminar-btn {
   color: inherit;
 }
+
+
+.scroll {
+  height:300px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}

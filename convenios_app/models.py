@@ -1,6 +1,13 @@
 from flask import current_app
 from convenios_app import db, login_manager
-from convenios_app.bitacoras.utils import generar_nombre_convenio, formato_nombre
+from convenios_app.main.utils import generar_nombre_convenio, formato_nombre
+from datetime import datetime
+from flask_login import UserMixin
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 #TODO: Obtener los registgros que tengan campos en blanco (Instituciones, personas)
 
@@ -30,6 +37,7 @@ class Equipo(db.Model):
     sigla = db.Column(db.String(10), unique=True, nullable=False)
     # Relaciones -> es llave foránea en:
     personas = db.relationship('Persona', backref='equipo')
+    equipos = db.relationship('TrayectoriaEquipo', backref='equipo')
 
     def __repr__(self):
         return f'{self.id} - {self.sigla} - {self.nombre}'
@@ -86,6 +94,7 @@ class Persona(db.Model):
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
     id_equipo = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
     # Relaciones -> es llave foránea en:
+    user = db.relationship('User', backref='persona')
 
     def actualizar_persona(self, form):
         """
@@ -118,7 +127,9 @@ class Convenio(db.Model):
     id_convenio_reemplazo = db.Column(db.Integer, nullable=True)
     gabinete_electronico = db.Column(db.Integer, nullable=True)
     proyecto = db.Column(db.Integer, nullable=True)
-    resolucion = db.Column(db.Integer, nullable=True)
+    fecha_documento = db.Column(db.Date, nullable=True)
+    fecha_resolucion = db.Column(db.Date, nullable=True)
+    nro_resolucion = db.Column(db.Integer, nullable=True)
     link_resolucion = db.Column(db.String(100), nullable=True)
     # Llaves foráneas
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
@@ -133,34 +144,10 @@ class Convenio(db.Model):
     id_responsable_convenio_ie = db.Column(db.Integer, db.ForeignKey('persona.id'), nullable=True)
     responsable_convenio_ie = db.relationship('Persona', foreign_keys=[id_responsable_convenio_ie])
     # Relaciones -> es llave foránea en:
-
-    def actualizar_convenio(self, form):
-        """
-        Actualiza la base de datos con el formulario de /nuevo_convenio.
-        :param form: información ingresada por el usuario en el formulario para editar.
-        :return: cambia los parámetros en la base datos.
-        """
-        self.nombre = formato_nombre(form.nombre.data)
-        self.estado = form.estado.data
-        if form.estado.data == 'Reemplazado':
-          self.id_convenio_reemplazo = form.convenio_reemplazo.data
-        self.tipo = form.tipo.data
-        if form.tipo.data == 'Adendum':
-            self.id_convenio_padre = form.convenio_padre.data
-        self.gabinete_electronico = form.gabinete_electronico.data
-        self.proyecto = form.proyecto.data
-        self.id_institucion = form.institucion.data
-        self.id_coord_sii = form.coord_sii.data
-        if int(form.sup_sii.data) != 0:
-            self.id_sup_sii = form.sup_sii.data
-        if int(form.coord_ie.data) != 0:
-            self.id_coord_ie = form.coord_ie.data
-        if int(form.sup_ie.data) != 0:
-            self.id_sup_ie = form.sup_ie.data
-        if int(form.responsable_convenio_ie.data) != 0:
-            self.id_responsable_convenio_ie = form.responsable_convenio_ie.data
-
-        db.session.commit()
+    bitacoras_analista = db.relationship('BitacoraAnalista', backref='convenio')
+    tareas = db.relationship('BitacoraTarea', backref='convenio')
+    etapas = db.relationship('TrayectoriaEtapa', backref='convenio')
+    equipos = db.relationship('TrayectoriaEquipo', backref='convenio')
 
     def __repr__(self):
         return f'{self.id} - {self.institucion.sigla} {self.nombre} - {self.estado}'
@@ -179,3 +166,115 @@ class SdInvolucrada(db.Model):
     def __repr__(self):
         return f'{self.id} - {generar_nombre_convenio(self.convenio)} - {self.subdireccion}'
 
+
+class BitacoraAnalista(db.Model):
+    """
+    Contiene las observaciones del analista del convenio
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    observacion = db.Column(db.String, nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    estado = db.Column(db.String, nullable=False, default='Creado')
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    id_autor = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+
+class BitacoraTarea(db.Model):
+    """
+    Contiene las tareas de cada convenio
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    tarea = db.Column(db.String, nullable=False)
+    plazo = db.Column(db.Date, nullable=False)
+    estado = db.Column(db.String, nullable=False, default='Pendiente')
+    timestamp = db.Column(db.DateTime, nullable=False)
+
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    id_autor = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+
+class Etapa(db.Model):
+    """
+    Contiene las etapas del proceso de convenio
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    etapa = db.Column(db.String, nullable=False)
+    #plazo
+
+    # Relaciones -> es llave foránea en:
+    trayectoria_etapas = db.relationship('TrayectoriaEtapa', backref='etapa')
+
+    def __repr__(self):
+        return f'<{self.id} - {self.etapa}>'
+
+
+class TrayectoriaEtapa(db.Model):
+    """
+    Contiene las fechas de ingreso y salida de los convenios en las diferentes etapas del proceso.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    ingreso = db.Column(db.Date, nullable=False)
+    timestamp_ingreso = db.Column(db.DateTime, nullable=False)
+    salida = db.Column(db.Date, nullable=True)
+    timestamp_salida = db.Column(db.DateTime, nullable=True)
+
+    # LLaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    id_etapa = db.Column(db.Integer, db.ForeignKey('etapa.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<{self.etapa.etapa} - {self.ingreso} - {self.salida}>'
+
+    def actualizar_trayectoria_etapa(self, form):
+        # Actualizar fecha salida etapa actual
+        self.salida = form.fecha_etapa.data
+        self.timestamp_salida = datetime.today()
+        # Ingresar nueva etapa
+        nueva_etapa = TrayectoriaEtapa(
+            ingreso=form.fecha_etapa.data,
+            timestamp_ingreso=datetime.today(),
+            id_convenio=self.id_convenio,
+            id_etapa=form.etapa.data
+        )
+        db.session.add(nueva_etapa)
+        db.session.commit()
+
+
+class TrayectoriaEquipo(db.Model):
+    """
+    Contiene las fechas de ingreso y salida de las equipos de trabajo por los que ha pasado un convenio.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    ingreso = db.Column(db.Date, nullable=False)
+    timestamp_ingreso = db.Column(db.DateTime, nullable=False)
+    salida = db.Column(db.Date, nullable=True)
+    timestamp_salida = db.Column(db.DateTime, nullable=True)
+
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    id_equipo = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<Convenio: {self.id_convenio} - Equipo: {self.equipo.sigla} - Ingreso: {self.ingreso}>'
+
+
+class User(db.Model, UserMixin):
+    """
+    Contiene a los usuarios, el tipo de cuenta y la persona asociada.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    permisos = db.Column(db.String(60), nullable=False)
+
+    # Laves foráneas
+    id_persona = db.Column(db.Integer, db.ForeignKey('persona.id'), nullable=False)
+    # Relaciones -> es llave foránea en:
+    bitacoras_analista = db.relationship('BitacoraAnalista', backref='autor')
+    tareas = db.relationship('BitacoraTarea', backref='autor')
+
+    def __repr__(self):
+        return f'<{self.persona.nombre} - {self.username} - {self.permisos}>'

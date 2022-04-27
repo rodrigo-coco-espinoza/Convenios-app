@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+
+<div class="content-section mx-4">
+  <!-- Select analista -->
+  <select autofocus class="form-control form-control-lg form-select mb-5" id='persona'>
+    {% for persona in analistas %}
+      <option value="{{ persona[0] }}">{{ persona[1] }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+
+
+<script type="text/javascript">
+  // Ir a página de tareas cuando se seleccione analista
+  const persona = document.querySelector('#persona');
+  persona.addEventListener('change', function(e) {
+    // ir al link
+    window.location.replace(Flask.url_for('informes.mis_tareas', {id_persona: persona.value}))
+  });
+
+</script>
+
+
+{% endblock content %}

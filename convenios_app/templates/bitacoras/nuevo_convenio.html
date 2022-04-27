@@ -15,9 +15,8 @@
   </select>
 
   <!-- Formulario Nuevo convenio -->
-  <form id="formConvenio" method="POST" novalidate>
+  <form id="formConvenio" method="POST" action='/nuevo_convenio' novalidate>
     {{ form_convenio.hidden_tag() }}
-    {{ form_convenio.id_convenio()}}
     <fieldset>
       <div class="row form-group mb-3">
         <!-- Legenda -->
@@ -122,7 +121,7 @@
           {% endif %}
         </div>
       </div>
-      <div class="row form-grop mb-3">
+      <div class="row form-group mb-3">
         <!-- Coordinador IE -->
         <div class="col-lg-4">
           {{ form_convenio.coord_ie.label(class='form-control-label mb-1') }}
@@ -179,140 +178,38 @@
         {% else %}
           {{ form_convenio.sd_involucradas(class="form-control form-control-lg form-select") }}
         {% endif %}
-
-        <!-- Errores Proyecto y Estado(Reemplazado) -->
-        <div class="invalid-feedback mt-3" style='display: block'>
-          {% for error in form_convenio.proyecto.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-        <div class="invalid-feedback" style='display: block'>
-          {% for error in form_convenio.estado.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
       </div>
-
-
-      <!-- Mostrar estos campos solo si se está editando el convenio -->
-      <div id='infoEditar' style='display: none'>
-        <div class="row form-grop mb-3">
-          <!-- Número de proyecto -->
-          <div class="col-lg-4">
-            {{ form_convenio.proyecto.label(class='form-control-label mb-1') }}
-            {% if form_convenio.proyecto.errors %}
-              {{ form_convenio.proyecto(class='form-control form-control-lg is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_convenio.proyecto.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_convenio.proyecto(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-          <!-- Número Gabinete Electrónico -->
-          <div class="col-lg-4">
-            {{ form_convenio.gabinete_electronico.label(class='form-control-label mb-1') }}
-            {% if form_convenio.gabinete_electronico.errors %}
-              {{ form_convenio.gabinete_electronico(class='form-control form-control-lg is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_convenio.gabinete_electronico.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_convenio.gabinete_electronico(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-        </div>
-        <div class="row form-grop mb-3">
-          <!-- Estado -->
-          <div class="col-lg-4">
-            {{ form_convenio.estado.label(class='form-control-label mb-1') }}
-            {% if form_convenio.estado.errors %}
-              {{ form_convenio.estado(class='form-control form-control-lg form-select is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_convenio.estado.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_convenio.estado(class="form-control form-control-lg form-select") }}
-            {% endif %}
-          </div>
-          <!-- Convenio que reemplaza -->
-          <div id='convenioReemplazo' class="col-lg-8" style='display: none' >
-            {{ form_convenio.convenio_reemplazo.label(class='form-control-label mb-1') }}
-            {% if form_convenio.convenio_reemplazo.errors %}
-              {{ form_convenio.convenio_reemplazo(class='form-control form-control-lg form-select is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_convenio.convenio_reemplazo.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_convenio.convenio_reemplazo(class="form-control form-control-lg form-select") }}
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-
     </fieldset>
-    <div class="form-group">
-      <!-- Botón Agregar lanza el modal -->
-      <button id='boton-form' type="button" class="btn btn-outline-primary float-end mb-5" data-bs-toggle="modal" data-bs-target="#confirmarModal">
-        Agregar
-      </button>
-    </div>
-    <!-- Modal Confirmar -->
-    <div class="modal fade" id="confirmarModal" tabindex="-1" role="dialog" aria-labelledby="confirmarModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmarModalLabel">Confirmar acción</h5>
-          </div>
-          <div class="modal-body">
-            Por favor, verifique que los datos están correctos.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
-            <form action="">{{ form_convenio.submit(class="btn btn-primary") }}</form>
-          </div>
-        </div>
-      </div>
-    </div>
+    {{ form_convenio.submit(class="btn btn-outline-primary float-end mb-5") }}
   </form>
   </div>
 
-  </form>
-</div>
+
 
 <script type="text/javascript">
-  // Cuando se selecciona Adendum como tipo de documento
+
+  // Redireccionar cuando se seleccione convenio a editar
+  const convenio = document.querySelector('#convenio');
+  convenio.addEventListener('change', function(e) {
+    // Ir a la página del convenio
+    window.location.replace(Flask.url_for('bitacoras.editar_convenio', {'id_convenio': convenio.value}));
+  });
+
+  const institucion = document.querySelector('#institucion');
   const tipoDocumento = document.querySelector('#tipo');
   const convenioPadre = document.querySelector('#convenioPadre');
+  // Opción 0 del field convenio padre
   const convenio_padre_0 = document.createElement('option');
   convenio_padre_0.value = 0;
   convenio_padre_0.innerHTML = 'Seleccione una institución para ver los convenios';
   const select_convenio_padre = document.querySelector('#convenio_padre');
 
-  const institucion = document.querySelector('#institucion');
-  const selection = document.querySelector('#convenio');
 
+  // Cuando se selecciona Adendum en el tipo de documento
   tipoDocumento.addEventListener('change', function(e) {
     if (tipoDocumento.value === 'Adendum'){
+      // Mostrar field con convenio padre (los convenios se agregan en otro EventListener)
       convenioPadre.style.display = 'block';
-
-
-      // Seleccionar el convenio convenio convenio padre
-      fetch(Flask.url_for('bitacoras.obtener_convenio_padre', {'id_convenio': selection.value}))
-      .then(response => response.json())
-      .then(data => {
-        select_convenio_padre.value = data.id_convenio_padre});
-
-
     }
     else {
       convenioPadre.style.display = 'none';
@@ -320,7 +217,7 @@
 
     }});
 
-  // Llenar select personas IE cuando se selecciona institución y cargar los convenios de esa institución
+  // Llenar select personas IE cuando se selecciona institución y cargar los convenios (padre) de esa institución
     institucion.addEventListener('change', function(e) {
 
       // Añadir los convenios en el select de convenio padre
@@ -345,16 +242,14 @@
         fetch(Flask.url_for('bitacoras.obtener_convenios_institucion', {'id_institucion': institucion.value}))
         .then(response => response.json())
         .then(data => {
-          for (convenio in data) {
+          for (convenio_padre in data) {
             var opt = document.createElement('option');
-            opt.value = data[convenio].id;
-            opt.innerHTML = data[convenio].nombre;
+            opt.value = data[convenio_padre].id;
+            opt.innerHTML = data[convenio_padre].nombre;
             select_convenio_padre.appendChild(opt);
 
           }
-        });
-
-      }
+        });}
 
       fetch(Flask.url_for('bitacoras.obtener_personas_ie', {'id_institucion': institucion.value}))
       .then(response => response.json())
@@ -414,118 +309,7 @@
           opt.value = data[persona].id;
           opt.innerHTML = data[persona].nombre;
           responsable_convenio_ie.appendChild(opt);
-        }
-
-        // Seleccionar personas si se está editando un convenio
-        if (document.querySelector('#convenio').value != 0) {
-          fetch(Flask.url_for('bitacoras.obtener_personas_convenio', {'id_convenio': selection.value}))
-          .then(response => response.json())
-          .then(data => {
-            coord_ie.value = data.coord_ie;
-            sup_ie.value = data.sup_ie;
-            responsable_convenio_ie.value = data.responsable_convenio_ie;
-
-  })}})});
-
-  // Mostrar Convenio que reeplaza si se elige Reemplazado como Estado
-  const estado = document.querySelector('#estado');
-  const convenioReemplazo = document.querySelector('#convenioReemplazo');
-  estado.addEventListener('change', function(e) {
-    if (estado.value === 'Reemplazado'){
-      convenioReemplazo.style.display = 'block';
-    }
-    else {
-      convenioReemplazo.style.display = 'none';
-      document.querySelector('#convenio_reemplazo').value = 0;
-    }});
-
-  // Precargar datos cuando se selecciona conveio para editar
-  selection.addEventListener('change', function(e) {
-    // Si no se ha seleccionado convenio limpiar el form
-    if (selection.value == 0) {
-      // Ocultar botón de eliminar y cambiar textos
-      document.querySelector('legend').innerHTML = 'Agregar nuevo convenio';
-      document.querySelector('#boton-form').innerHTML = 'Agregar';
-      document.querySelector('#btn-eliminar').style.display = 'none';
-      document.querySelector('#infoEditar').style.display = 'none';
-
-      document.querySelector('#id_convenio').value = 0;
-      document.querySelector('#nombre').value = "";
-      document.querySelector('#estado').value = 'En proceso' ;
-      document.querySelector('#tipo').value = 'Seleccionar';
-      document.querySelector('#convenio_padre').value = 0;
-      document.querySelector('#convenio_reemplazo').value = 0;
-      document.querySelector('#gabinete_electronico').value = "";
-      document.querySelector('#proyecto').value = "";
-      document.querySelector('#institucion').value = 0;
-      document.querySelector('#coord_sii').value = 0;
-      document.querySelector('#sup_sii').value = 0;
-      document.querySelector('#coord_ie').value = 0;
-      document.querySelector('#sup_ie').value = 0;
-      document.querySelector('#responsable_convenio_ie').value = 0;
-      document.querySelector('#sd_involucradas').value = 0;
-
-      // Generar eventos change
-      var cambioTipo = new Event('change');
-      tipoDocumento.dispatchEvent(cambioTipo);
-      var cambioEstado = new Event('change');
-      estado.dispatchEvent(cambioEstado);
-      var cambioInstitucion = new Event('change');
-      institucion.dispatchEvent(cambioInstitucion);
-
-    }
-
-    // Si se seleccionó convenio para editar, precargar el formulario
-    else {
-      // Mostrar botón de eliminar y cambiar textos
-      document.querySelector('legend').innerHTML = 'Editar convenio';
-      document.querySelector('#boton-form').innerHTML = 'Actualizar';
-      document.querySelector('#btn-eliminar').style.display = 'block';
-      document.querySelector('#btn-eliminar').href = Flask.url_for('bitacoras.eliminar_convenio', {'id_convenio': selection.value});
-      document.querySelector('#infoEditar').style.display = 'block';
-
-      // Precargar formulario con datos del convenio
-      fetch(Flask.url_for('bitacoras.obtener_convenio', {'id_convenio': selection.value}))
-      .then(response => response.json())
-      .then(data => {
-        document.querySelector('#id_convenio').value = data.id;
-        document.querySelector('#institucion').value = data.id_institucion;
-        var cambioInstitucion = new Event('change');
-        document.querySelector('#institucion').dispatchEvent(cambioInstitucion);
-        document.querySelector('#nombre').value = data.nombre;
-        document.querySelector('#tipo').value = data.tipo;
-        var cambioTipo = new Event('change');
-        document.querySelector('#tipo').dispatchEvent(cambioTipo);
-        //document.querySelector('#convenio_padre').value = data.id_convenio_padre; esto se hace en el Adendum(change)
-        document.querySelector('#coord_sii').value = data.id_coord_sii;
-        document.querySelector('#sup_sii').value = data.id_sup_sii;
-        document.querySelector('#estado').value = data.estado ;
-        var cambioEstado = new Event('change');
-        document.querySelector('#estado').dispatchEvent(cambioEstado)
-
-        document.querySelector('#convenio_reemplazo').value = data.id_convenio_reemplazo;
-        document.querySelector('#gabinete_electronico').value = data.gabinete_electronico;
-        document.querySelector('#proyecto').value = data.proyecto;
-      });
-
-      // Seleccionar SDs involucradas
-      fetch(Flask.url_for('bitacoras.obtener_sds_convenio', {'id_convenio': selection.value}))
-      .then(response => response.json())
-      .then(data => {
-        const sdInvolucradas = document.querySelector('#sd_involucradas');
-        var sd_seleccionadas = data;
-        for (var i = 0; i < sdInvolucradas.options.length; i++) {
-          sdInvolucradas.options[i].selected = sd_seleccionadas.indexOf(sdInvolucradas.options[i].value) >= 0;
-        }
-      });
-
-
-  }});
-
-
-
-
-
+        }})});
 
 </script>
 

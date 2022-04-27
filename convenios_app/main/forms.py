@@ -3,12 +3,12 @@ from wtforms import StringField, SelectField, SubmitField, HiddenField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
 from convenios_app.models import Institucion, Persona
 from sqlalchemy import and_
-from convenios_app.bitacoras.utils import formato_nombre
+from convenios_app.main.utils import formato_nombre
 
 
 class InstitucionForm(FlaskForm):
     id_institucion = HiddenField('id_institucion', default=0)
-    nombre = StringField('Nombre', validators=[DataRequired(), Length(min=2, max=100)])
+    nombre = StringField('Nombre', validators=[DataRequired(), Length(min=2, max=400)])
     sigla = StringField('Sigla', validators=[DataRequired()])
     rut = StringField('Rut', render_kw={"placeholder": "12345678-9"})
     direccion = StringField('Dirección')
