@@ -2,7 +2,7 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
 from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
-                                  BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo)
+                                  BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, CatalogoWS, WSConvenio)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, EQUIPOS)
 from convenios_app import db
@@ -108,10 +108,10 @@ def bitacora():
 
     # Gráfico convenios en produccion
     grafico_produccion = [
-        ['Convenios', Convenio.query.filter(and_(Convenio.estado == 'En producción', Convenio.tipo == 'Convenio')).count()],
+        ['Convenios',
+         Convenio.query.filter(and_(Convenio.estado == 'En producción', Convenio.tipo == 'Convenio')).count()],
         ['Adendum', Convenio.query.filter(and_(Convenio.estado == 'En producción', Convenio.tipo == 'Adendum')).count()]
     ]
-
 
     # Tabla convenios por analista
     data_analistas_produccion = {
@@ -140,7 +140,9 @@ def bitacora():
         # Información resumen
         nombre = generar_nombre_convenio(convenio)
         coordinador = f'<p align="center">{obtener_iniciales(convenio.coord_sii.nombre)}</p>'
-        suplente = (lambda suplente: f'<p align="center">{obtener_iniciales(suplente.nombre)}</p>' if suplente != None else '<p align="center">-</p>')(convenio.sup_sii)
+        suplente = (lambda
+                        suplente: f'<p align="center">{obtener_iniciales(suplente.nombre)}</p>' if suplente != None else '<p align="center">-</p>')(
+            convenio.sup_sii)
         link_resolucion = (lambda
                                link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
                                      f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
@@ -153,15 +155,17 @@ def bitacora():
     tabla_resumen_produccion.sort(key=lambda lista: lista[0])
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_resumen_produccion:
-        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
+        convenio[
+            0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
     # OTROS CONVENIOS
     # Crear select field con convenios
-    convenios_otros_query = Convenio.query.filter(and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
+    convenios_otros_query = Convenio.query.filter(
+        and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
     convenios_otros_select = [(convenio.id, generar_nombre_convenio(convenio)) for convenio in
-                                convenios_otros_query]
+                              convenios_otros_query]
     convenios_otros_select.sort(key=lambda tup: tup[1])
     convenios_otros_select.insert(0, (0, 'Seleccione convenio para ver bitácora'))
 
@@ -186,7 +190,8 @@ def bitacora():
     tabla_resumen_otros.sort(key=lambda lista: lista[0])
     # Agregar link a la bitácora
     for convenio in tabla_resumen_otros:
-        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
+        convenio[
+            0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
@@ -198,7 +203,8 @@ def bitacora():
     }
     return render_template('bitacoras/bitacora.html', convenios_proceso=convenios_proceso_select,
                            tabla_resumen_proceso=tabla_resumen_proceso, data_analistas_proceso=data_analistas_proceso,
-                           convenios_produccion=convenios_produccion_select, sin_asignar_produccion=sin_asignar_produccion,
+                           convenios_produccion=convenios_produccion_select,
+                           sin_asignar_produccion=sin_asignar_produccion,
                            data_analistas_produccion=data_analistas_produccion, cuenta=cuenta,
                            tabla_resumen_produccion=tabla_resumen_produccion, otros_convenios=convenios_otros_select,
                            tabla_resumen_otros=tabla_resumen_otros, grafico_proceso=grafico_proceso,
@@ -404,10 +410,36 @@ def bitacora_convenio(id_convenio):
         db.session.commit()
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
+    # Formulario para asignar WS
+    ws_asignados = [webservice.id_ws for webservice in
+                    WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()]
+    ws_contribuyentes_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de contribuyentes',
+                                                           CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_contribuyentes = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_sdi': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados else ""
+         }
+        for ws in ws_contribuyentes_query]
+    ws_contribuyentes.sort(key=lambda dict: dict['nombre_aiet'])
+    pprint(ws_contribuyentes)
+    ws_tributaria_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información tributaria',
+                                                       CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_bbrr_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de bienes raíces',
+                                                 CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_pisee_query = CatalogoWS.query.filter(and_(CatalogoWS.estado == 1, CatalogoWS.pisee == 1)).all()
+    ws_no_disponibles_query = CatalogoWS.query.filter(CatalogoWS.estado == 0).all()
+
+    if 'asignar_ws' in request.form:
+        return 'Asignese'
+
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
-                           form_info=form_info)
+                           form_info=form_info, ws_contribuyentes=ws_contribuyentes)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')

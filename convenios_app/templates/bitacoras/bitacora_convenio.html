@@ -420,6 +420,69 @@
       </div>
   </div>
 
+  <!-- Formulario para agregar WS -->
+  <div class="row border border-secondary rounded mb-3">
+    <h2>Asignar Web Services</h2>
+    <form class="" method="post" novalidate>
+      <fieldset>
+      <legend class="mb-2">
+        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        href="#informacionContribuyentes" aria-expanded="false" aria-controls="informacionContribuyentes">
+        I. Información de contribuyentes <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="informacionContribuyentes">
+
+        <!-- Web services -->
+        {% for ws in ws_contribuyentes %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}
+            </small>
+        </div>
+        {% endfor %}
+      </div>
+
+      <legend class="mb-2">
+        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        href="#informacionEmpresas" aria-expanded="false" aria-controls="informacionEmpresas">
+        II. Información tributaria <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="informacionEmpresas">
+        hola
+      </div>
+
+      <legend class="mb-2">
+        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        href="#informacionTributaria" aria-expanded="false" aria-controls="informacionTributaria">
+        III. Información de bienes raíces <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="informacionTributaria">
+        hola
+      </div>
+
+      <legend class="mb-2">
+        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        href="#informacionBBRR" aria-expanded="false" aria-controls="informacionBBRR">
+        IV. PISEE <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="informacionBBRR">
+        hola
+      </div>
+
+      <legend class="mb-2">
+        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        href="#pisee" aria-expanded="false" aria-controls="pisee">
+        V. No disponibles <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="pisee">
+        hola
+      </div>
+      <div class="px-1" align='right'>
+        <button type=submit name="asignar_ws" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </fieldset>
+  </form>
+  </div>
 
 </div>
 
