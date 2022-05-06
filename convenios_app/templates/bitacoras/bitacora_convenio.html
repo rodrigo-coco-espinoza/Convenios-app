@@ -430,11 +430,10 @@
         href="#informacionContribuyentes" aria-expanded="false" aria-controls="informacionContribuyentes">
         I. Información de contribuyentes <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionContribuyentes">
-
         <!-- Web services -->
         {% for ws in ws_contribuyentes %}
         <div class="row ps-3 mb-2">
-            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
             <small>
               {% if ws.observacion != "" %}
                 <span class="text-danger">{{ ws.observacion }}</span><br>
@@ -451,7 +450,19 @@
         href="#informacionEmpresas" aria-expanded="false" aria-controls="informacionEmpresas">
         II. Información tributaria <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionEmpresas">
-        hola
+        <!-- Web services -->
+        {% for ws in ws_tributaria %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}
+            </small>
+        </div>
+        {% endfor %}
       </div>
 
       <legend class="mb-2">
@@ -459,7 +470,19 @@
         href="#informacionTributaria" aria-expanded="false" aria-controls="informacionTributaria">
         III. Información de bienes raíces <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionTributaria">
-        hola
+        <!-- Web services -->
+        {% for ws in ws_bbrr %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}
+            </small>
+        </div>
+        {% endfor %}
       </div>
 
       <legend class="mb-2">
@@ -467,7 +490,19 @@
         href="#informacionBBRR" aria-expanded="false" aria-controls="informacionBBRR">
         IV. PISEE <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionBBRR">
-        hola
+        <!-- Web services -->
+        {% for ws in ws_pisee %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}
+            </small>
+        </div>
+        {% endfor %}
       </div>
 
       <legend class="mb-2">
@@ -475,7 +510,19 @@
         href="#pisee" aria-expanded="false" aria-controls="pisee">
         V. No disponibles <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="pisee">
-        hola
+        <!-- Web services -->
+        {% for ws in ws_no_disponibles %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}
+            </small>
+        </div>
+        {% endfor %}
       </div>
       <div class="px-1" align='right'>
         <button type=submit name="asignar_ws" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>

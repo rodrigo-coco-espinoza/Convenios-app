@@ -101,6 +101,7 @@ class DetalleWS(db.Model):
     def __repr__(self):
         return f'<Campo:{self.nombre_campo} - {self.tipo}>'
 
+
 class Institucion(db.Model):
     """
     Representa las instituciones con las cuales el SII firma los convenios.

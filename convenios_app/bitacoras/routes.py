@@ -411,8 +411,8 @@ def bitacora_convenio(id_convenio):
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     # Formulario para asignar WS
-    ws_asignados = [webservice.id_ws for webservice in
-                    WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()]
+    ws_asignados_query = WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()
+    ws_asignados = [webservice.id_ws for webservice in ws_asignados_query]
     ws_contribuyentes_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de contribuyentes',
                                                            CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
     ws_contribuyentes = [
@@ -425,21 +425,92 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_contribuyentes_query]
     ws_contribuyentes.sort(key=lambda dict: dict['nombre_aiet'])
-    pprint(ws_contribuyentes)
     ws_tributaria_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información tributaria',
                                                        CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_tributaria = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_sdi': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados else ""
+         }
+        for ws in ws_tributaria_query]
+    ws_tributaria.sort(key=lambda dict: dict['nombre_aiet'])
     ws_bbrr_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de bienes raíces',
                                                  CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_bbrr = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_sdi': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados else ""
+         }
+        for ws in ws_bbrr_query]
+    ws_bbrr.sort(key=lambda dict: dict['nombre_aiet'])
     ws_pisee_query = CatalogoWS.query.filter(and_(CatalogoWS.estado == 1, CatalogoWS.pisee == 1)).all()
+    ws_pisee = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_sdi': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados else ""
+         }
+        for ws in ws_pisee_query]
+    ws_pisee.sort(key=lambda dict: dict['nombre_aiet'])
     ws_no_disponibles_query = CatalogoWS.query.filter(CatalogoWS.estado == 0).all()
+    ws_no_disponibles = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_sdi': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados else ""
+         }
+        for ws in ws_no_disponibles_query]
+    ws_no_disponibles.sort(key=lambda dict: dict['nombre_aiet'])
 
     if 'asignar_ws' in request.form:
-        return 'Asignese'
+        mensaje = False
+        ws_seleccionados = request.form.getlist('ws_checkbox')
+        # Agregar nuevos WS
+        for ws in ws_seleccionados:
+            if ws not in ws_asignados:
+                nuevo_ws = WSConvenio(
+                    id_convenio=id_convenio,
+                    id_ws=int(ws),
+                    #estado=
+                )
+                mensaje = True
+                db.session.add(nuevo_ws)
+
+        # Eliminar WS
+        for ws in ws_asignados_query:
+            if str(ws.id_ws) not in ws_seleccionados:
+                db.session.delete(ws)
+                mensaje = True
+
+        if mensaje:
+            # Dejar registgro en bitácora
+            bitacora_ws = BitacoraAnalista(
+                observacion='Se ha actualizado la información de Web Services.',
+                fecha=date.today(),
+                timestamp=datetime.today(),
+                id_convenio=id_convenio,
+                id_autor=current_user.id
+            )
+            db.session.add(bitacora_ws)
+            db.session.commit()
+            flash('Se ha actualizado la información de Web Services.', 'success')
+            return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
-                           form_info=form_info, ws_contribuyentes=ws_contribuyentes)
+                           form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
+                           ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')

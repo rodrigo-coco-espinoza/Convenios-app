@@ -23,7 +23,7 @@
         <p><strong>Publicado:</strong><br> Sin resolución</p>
       {% else %}
         <p><strong>Publicado:</strong><br> Res. N°{{ informacion_convenio.nro_resolucion }} del {{ informacion_convenio.fecha_resolucion }}</p>
-        <p><a target="_blank" style='color: #000;' href="{{ informacion_convenio.link_resolucion }}">Ver resolución en intranet <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
+        <p><a target="_blank" style='color: #000; text-decoration: none;' href="{{ informacion_convenio.link_resolucion }}">Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
       {% endif %}
 
     </div>
