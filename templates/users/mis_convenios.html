@@ -1,0 +1,475 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+
+<div class="content-section mx-2">
+  <!-- Tabla tareas pendientes -->
+  <legend class="border-bottom mb-4">Tareas pendientes</legend>
+  <div class="overflow-auto">
+    <table class="table table-striped">
+      <thead>
+        <th scope='col'>#</th>
+        <th scope='col'>Nombre convenio</th>
+        <th scope='col'>Próxima tarea</th>
+        <th scope='col' style="width: 170px;"">Plazo</th>
+      </thead>
+      <tbody>
+        {% for tarea in tareas_pendientes %}
+          <tr>
+            <th>{{ loop.index }}</th>
+            <td><a style="text-decoration: none; color: #000;" href="{{ url_for('bitacoras.bitacora_convenio', id_convenio=tarea.id_convenio) }}">{{ tarea.nombre_convenio }} <i class="fa-solid fa-keyboard fa-fw"></a></td>
+            <td>{{ tarea.tarea }}</td>
+            {% if tarea.plazo <= hoy %}
+              <td class='text-danger'>{{ tarea.plazo }}
+                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="green fas fa-check"></i></a>
+                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="gray fas fa-trash"></i></a>
+              </td>
+            {% else %}
+              <td>{{ tarea.plazo }}
+                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="green fas fa-check"></i></a>
+                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="gray fas fa-trash"></i></a>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Actualizar bitácora -->
+  <legend class="border-bottom mb-4 mt-4">Actualizar bitácora</legend>
+  <!-- Select Convenio -->
+  <select class="form-control form-control-lg form-select mb-5" id="selectConvenio">
+    {% for convenio in convenios_select %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+  <!-- Información del convenio -->
+  <div class="row border border-secondary rounded mb-4">
+    <form id='formInfo' method="post" novalidate>
+      <fieldset>
+        {{ form_info.hidden_tag() }}
+        <!-- Primera fila -->
+        <div class="row mb-3 border-bottom pb-2">
+          <!-- Días en proceso -->
+          <div class="col-lg-3">
+            <div class="row py-2">
+              <h5>Días en proceso</h5>
+            </div>
+            <div class="row">
+              <h5 class=""><i class="fas fa-stopwatch"></i>   <span id="diasProceso"></span></h5>
+            </div>
+          </div>
+          <!-- Etapa actual -->
+          <div class="col-lg-5">
+            <div class="row mb-2 pt-2">
+              {% if form_info.etapa.errors %}
+                {{ form_info.etapa(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.etapa.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.etapa(class="form-control form-control-lg form-select") }}
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-lg-6 ps-0 pe-4">
+                {% if form_info.fecha_etapa.errors %}
+                  {{ form_info.fecha_etapa(class='datepicker form-control form-control-sm is-invalid mb-1') }}
+                  <div class="invalid-feedback">
+                    {% for error in form_info.fecha_etapa.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_info.fecha_etapa(class="datepicker form-control form-control-sm mb-1") }}
+                {% endif %}
+              </div>
+              <div class="col-lg-6 ps-0">
+                <h5><i class="fas fa-stopwatch"></i>   <span id='diasEtapa'></span></h5>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Segunda fila -->
+        <div class="row mb-3 border-bottom pb-2">
+          <!-- Equipo 1 -->
+          <div class="col-lg-3 ps-3">
+            <div class="row mb-2">
+              {% if form_info.equipo_1.errors %}
+                {{ form_info.equipo_1(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.equipo_1.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.equipo_1(class="form-control form-control-lg form-select") }}
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-lg-9 ps-0 pe-4">
+                {% if form_info.fecha_equipo_1.errors %}
+                  {{ form_info.fecha_equipo_1(class='datepicker form-control form-control-sm is-invalid mb-1') }}
+                  <div class="invalid-feedback">
+                    {% for error in form_info.fecha_equipo_1.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_info.fecha_equipo_1(class="datepicker form-control form-control-sm mb-1") }}
+                {% endif %}
+              </div>
+              <div class="col-lg-3 ps-0">
+                <h5><i class="fas fa-stopwatch"></i>   <span id='diasEquipo_1'></span></h5>
+              </div>
+            </div>
+          </div>
+          <!-- Equipo 2 -->
+          <div class="col-lg-3 ps-3">
+            <div class="row mb-2">
+              {% if form_info.equipo_2.errors %}
+                {{ form_info.equipo_2(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.equipo_2.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.equipo_2(class="form-control form-control-lg form-select") }}
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-lg-9 ps-0 pe-4">
+                {% if form_info.fecha_equipo_2.errors %}
+                  {{ form_info.fecha_equipo_2(class='datepicker form-control form-control-sm is-invalid mb-1') }}
+                  <div class="invalid-feedback">
+                    {% for error in form_info.fecha_equipo_2.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_info.fecha_equipo_2(class="datepicker form-control form-control-sm mb-1") }}
+                {% endif %}
+              </div>
+              <div class="col-lg-3 ps-0">
+                <h5><i class="fas fa-stopwatch"></i>   <span id="diasEquipo_2"></span></h5>
+              </div>
+            </div>
+          </div>
+          <!-- Equipo 3 -->
+          <div class="col-lg-3 ps-3">
+            <div class="row mb-2">
+              {% if form_info.equipo_3.errors %}
+                {{ form_info.equipo_3(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.equipo_3.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.equipo_3(class="form-control form-control-lg form-select") }}
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-lg-9 ps-0 pe-4">
+                {% if form_info.fecha_equipo_3.errors %}
+                  {{ form_info.fecha_equipo_3(class='datepicker form-control form-control-sm is-invalid mb-1') }}
+                  <div class="invalid-feedback">
+                    {% for error in form_info.fecha_equipo_3.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_info.fecha_equipo_3(class="datepicker form-control form-control-sm mb-1") }}
+                {% endif %}
+              </div>
+              <div class="col-lg-3 ps-0">
+                <h5><i class="fas fa-stopwatch"></i>   <span id="diasEquipo_3"></span></h5>
+              </div>
+            </div>
+          </div>
+          <!-- Equipo 4 -->
+          <div class="col-lg-3 ps-3">
+            <div class="row mb-2 pe-1">
+              {% if form_info.equipo_4.errors %}
+                {{ form_info.equipo_4(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.equipo_4.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.equipo_4(class="form-control form-control-lg form-select") }}
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col-lg-9 ps-0 pe-4">
+                {% if form_info.fecha_equipo_4.errors %}
+                  {{ form_info.fecha_equipo_4(class='datepicker form-control form-control-sm is-invalid mb-1') }}
+                  <div class="invalid-feedback">
+                    {% for error in form_info.fecha_equipo_4.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_info.fecha_equipo_4(class="datepicker form-control form-control-sm mb-1") }}
+                {% endif %}
+              </div>
+              <div class="col-lg-3 ps-0">
+                <h5><i class="fas fa-stopwatch"></i>  <span id="diasEquipo_4"></span></h5>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button id='info_convenio_submit' type=submit name='informacion_convenio' class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>
+      </fieldset>
+    </form>
+  </div>
+
+  <div class="row">
+      <div class="col-lg-6 border border-secondary rounded mb-3" id=bitacoraAnalista>
+        <!-- Formulario bitácora analista -->
+        <div class="">
+            <h2>Bitácora</h2>
+          <form id='formNuevo' method="post" novalidate>
+            {{ form_bitacora.hidden_tag() }}
+            <fieldset>
+              <div class="row form-group mb-3">
+                  <div class="col-lg-5">
+                    <!-- Fecha -->
+                    {% if form_bitacora.fecha.errors %}
+                      {{ form_bitacora.fecha(class='datepicker form-control is-invalid mb-1') }}
+                      <div class="invalid-feedback">
+                        {% for error in form_bitacora.fecha.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form_bitacora.fecha(class="datepicker form-control mb-1") }}
+                    {% endif %}
+                  </div>
+                  <div class="col-lg-6 ps-0">
+                    <!-- Observación -->
+                    {% if form_bitacora.observacion.errors %}
+                      {{ form_bitacora.observacion(class='form-control form-control is-invalid mb-1') }}
+                      <div class="invalid-feedback">
+                        {% for error in form_bitacora.observacion.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form_bitacora.observacion(class="form-control form-control mb-1") }}
+                    {% endif %}
+                  </div>
+                  <div class="col-lg-1 px-1">
+                    <button type=submit id='bitacora_analista_submit' name="bitacora_analista" class="btn btn-outline-success btn-sm mb-1"><i class="fas fa-plus"></i></button>
+                  </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-6 border border-secondary rounded mb-3" id=bitacoraTareas>
+        <!-- Formulario bitácora tareas -->
+        <div class="">
+            <h2>Tareas</h2>
+          <form id='formTarea' method="post" novalidate>
+            {{ form_tarea.hidden_tag() }}
+            <fieldset>
+              <div class="row form-group mb-3">
+                  <div class="col-lg-5">
+                    <!-- Fecha -->
+                    {% if form_tarea.plazo.errors %}
+                      {{ form_tarea.plazo(class='datepicker form-control is-invalid mb-1') }}
+                      <div class="invalid-feedback">
+                        {% for error in form_tarea.plazo.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form_tarea.plazo(class="datepicker form-control mb-1") }}
+                    {% endif %}
+                  </div>
+                  <div class="col-lg-6 ps-0">
+                    <!-- Observación -->
+                    {% if form_tarea.tarea.errors %}
+                      {{ form_tarea.tarea(class='form-control form-control is-invalid mb-1') }}
+                      <div class="invalid-feedback">
+                        {% for error in form_tarea.tarea.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form_tarea.tarea(class="form-control form-control mb-1") }}
+                    {% endif %}
+                  </div>
+                  <div class="col-lg-1 px-1">
+                    <button type=submit id='nueva_tarea_submit' name="nueva_tarea" class="btn btn-outline-success btn-sm mb-1"><i class="fas fa-plus"></i></button>
+                  </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+  </div>
+
+
+  <!-- Estado actual de los convenios -->
+  <legend class="border-bottom mb-4 mt-4">Estado actual de mis convenios</legend>
+  <div  class="mb-5 overflow-auto" style="height: 700px;">
+    <div id='tablaEstadoActual'></div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    // Deshabilitar botones para actualizar cuando se cargue la página
+    $('#info_convenio_submit').prop('disabled', true);
+    $('#bitacora_analista_submit').prop('disabled', true);
+    $('#nueva_tarea_submit').prop('disabled', true);
+
+    // Habilitar o deshabilitar campos cuando se seleccione un convenio
+    $('#selectConvenio').change(function(){
+      var id = $(this).find(':selected').val();
+      if (id == 0){
+        $('#etapa').prop('disabled', false);
+        $('#fecha_etapa').prop('disabled', false);
+        $('#equipo_1').prop('disabled', false);
+        $('#fecha_equipo_1').prop('disabled', false);
+        $('#equipo_2').prop('disabled', false);
+        $('#fecha_equipo_2').prop('disabled', false);
+        $('#equipo_3').prop('disabled', false);
+        $('#fecha_equipo_3').prop('disabled', false);
+        $('#equipo_4').prop('disabled', false);
+        $('#fecha_equipo_4').prop('disabled', false);
+        $('#info_convenio_submit').prop('disabled', true);
+        $('#bitacora_analista_submit').prop('disabled', true);
+        $('#nueva_tarea_submit').prop('disabled', true);
+
+        // Borrar el formulario
+        $('#id_convenio').val(0);
+        $('#diasProceso').text('');
+        $('#id_trayectoriaEtapa').val(0);
+        $('#etapa').val(0);
+        $('#fecha_etapa').val('');
+        $('#diasEtapa').text('');
+        $('#id_trayectoriaEquipo_1').val(0);
+        $('#equipo_1').val(0);
+        $('#fecha_equipo_1').val('');
+        $('#diasEquipo_1').text('');
+        $('#id_trayectoriaEquipo_2').val(0);
+        $('#equipo_2').val(0);
+        $('#fecha_equipo_2').val('');
+        $('#diasEquipo_2').text('');
+        $('#id_trayectoriaEquipo_3').val(0);
+        $('#equipo_3').val(0);
+        $('#fecha_equipo_3').val('');
+        $('#diasEquipo_3').text('');
+        $('#id_trayectoriaEquipo_4').val(0);
+        $('#equipo_4').val(0);
+        $('#fecha_equipo_4').val('');
+        $('#diasEquipo_4').text('');
+        $('#id_convenio_bitacora').val(0);
+        $('#id_convenio_tarea').val(0);
+
+      }
+      else {
+        // Obtener info del convenio seleccionado
+        fetch(Flask.url_for('users.obtener_info_convenio', {'id_convenio': id}))
+        .then(response => response.json())
+        .then(data => {
+          // Llenar campos del formulario form_info
+          $('#id_convenio').val(data.id_convenio);
+          $('#diasProceso').text(data.dias_proceso);
+          $('#id_trayectoriaEtapa').val(data.etapa.id_trayectoEtapa);
+          $('#etapa').val(data.etapa.id_etapa);
+          $('#fecha_etapa').val(data.etapa.fecha_etapa);
+          $('#diasEtapa').text(data.etapa.dias_etapa);
+          $('#id_trayectoriaEquipo_1').val(data.equipos[0].id_trayectoEquipo);
+          $('#equipo_1').val(data.equipos[0].id_equipo);
+          $('#fecha_equipo_1').val(data.equipos[0].ingreso);
+          $('#diasEquipo_1').text(data.equipos[0].dias_equipo);
+          $('#id_trayectoriaEquipo_2').val(data.equipos[1].id_trayectoEquipo);
+          $('#equipo_2').val(data.equipos[1].id_equipo);
+          $('#fecha_equipo_2').val(data.equipos[1].ingreso);
+          $('#diasEquipo_2').text(data.equipos[1].dias_equipo);
+          $('#id_trayectoriaEquipo_3').val(data.equipos[2].id_trayectoEquipo);
+          $('#equipo_3').val(data.equipos[2].id_equipo);
+          $('#fecha_equipo_3').val(data.equipos[2].ingreso);
+          $('#diasEquipo_3').text(data.equipos[2].dias_equipo);
+          $('#id_trayectoriaEquipo_4').val(data.equipos[3].id_trayectoEquipo);
+          $('#equipo_4').val(data.equipos[3].id_equipo);
+          $('#fecha_equipo_4').val(data.equipos[3].ingreso);
+          $('#diasEquipo_4').text(data.equipos[3].dias_equipo);
+
+          $('#id_convenio_bitacora').val(data.id_convenio);
+          $('#id_convenio_tarea').val(data.id_convenio);
+
+          $('#bitacora_analista_submit').prop('disabled', false);
+          $('#nueva_tarea_submit').prop('disabled', false);
+
+          // Deshabilitar formulario si convenio está finalizado
+          if (data.etapa.id_etapa == 5){
+            $('#etapa').prop('disabled', true);
+            $('#fecha_etapa').prop('disabled', true);
+            $('#equipo_1').prop('disabled', true);
+            $('#fecha_equipo_1').prop('disabled', true);
+            $('#equipo_2').prop('disabled', true);
+            $('#fecha_equipo_2').prop('disabled', true);
+            $('#equipo_3').prop('disabled', true);
+            $('#fecha_equipo_3').prop('disabled', true);
+            $('#equipo_4').prop('disabled', true);
+            $('#fecha_equipo_4').prop('disabled', true);
+            $('#info_convenio_submit').prop('disabled', true);
+          }
+          // Habilitar formulario si convenio está en proceso
+          else{
+            $('#etapa').prop('disabled', false);
+            $('#fecha_etapa').prop('disabled', false);
+            $('#equipo_1').prop('disabled', false);
+            $('#fecha_equipo_1').prop('disabled', false);
+            $('#equipo_2').prop('disabled', false);
+            $('#fecha_equipo_2').prop('disabled', false);
+            $('#equipo_3').prop('disabled', false);
+            $('#fecha_equipo_3').prop('disabled', false);
+            $('#equipo_4').prop('disabled', false);
+            $('#fecha_equipo_4').prop('disabled', false);
+            $('#info_convenio_submit').prop('disabled', false);
+          }
+        })
+      }
+    });
+
+  });
+</script>
+
+<!-- Tabla estado actual de convenios -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages': ['table']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var dataTablaEstadoActual = new google.visualization.DataTable();
+    dataTablaEstadoActual.addColumn('string', 'Convenio');
+    dataTablaEstadoActual.addColumn('string', 'Estado');
+    dataTablaEstadoActual.addColumn('string', 'Última observación');
+    dataTablaEstadoActual.addColumn('string', 'Suplente');
+    dataTablaEstadoActual.addColumn('string', 'Ver res.');
+
+    var listado_convenios = {{ tabla_estado_actual | tojson }}
+
+    dataTablaEstadoActual.addRows(listado_convenios);
+    dataTablaEstadoActual.setProperty(0, 0, 'style', 'width: 250px');
+    optionsTablaEstadoActual = {
+      allowHtml: true,
+      width: '100%'
+    };
+    var tablaEstadoActual = new google.visualization.Table(document.getElementById('tablaEstadoActual'));
+    tablaEstadoActual.draw(dataTablaEstadoActual, optionsTablaEstadoActual);
+  }
+</script>
+{% endblock content %}

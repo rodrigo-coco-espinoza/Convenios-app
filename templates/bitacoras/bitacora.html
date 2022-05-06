@@ -1,0 +1,302 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#bitacoraConvenio')
+</script>
+
+
+<!-- CONVENIOS EN PROCESO -->
+<legend class="border-bottom mb-3">
+  <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+  href="#conveniosEnProceso" aria-expanded="false" aria-controls="conveniosEnProceso">
+  Convenios en proceso <i class="fas fa-angle-down"></i></a></legend>
+<div class="content-section collapse" id="conveniosEnProceso">
+  <!-- Select Convenio -->
+  <select class="form-control form-control-lg form-select mb-5" id="selectConveniosProceso">
+    {% for convenio in convenios_proceso %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+  <!-- Convenios por analista -->
+  <div class="mb-5" align="center">
+    <table class="table table-striped table-hover table-bordered" style="width:50%">
+      <thead>
+        <tr>
+          <th scope='col'>Analista</th>
+          <th scope='col' class="text-center">Coordinador</th>
+          <th scope='col' class="text-center">Suplente</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nombre, cuenta in data_analistas_proceso.items() %}
+          <tr>
+            {% if nombre == 'Total' %}
+              <th>{{ nombre }}</th>
+              <th class="text-center">{{ cuenta[0] }}</th>
+              <th class="text-center">{{ cuenta[1] }}</th>
+            {% else %}
+              <td>{{ nombre }}</td>
+              <td class="text-center">{{ cuenta[0] }}</td>
+              <td class="text-center">{{ cuenta[1] }}</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Tabla resumen -->
+  <div  class="mb-5 scroll" style="height: 700px;">
+    <div id='tablaConveniosProceso'></div>
+  </div>
+</div>
+
+<!-- CONVENIOS EN PROCESO -->
+<legend class="border-bottom mb-3">
+  <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+  href="#conveniosEnProduccion" aria-expanded="false" aria-controls="conveniosEnProduccion">
+  Convenios en producción <i class="fas fa-angle-down"></i></a></legend>
+
+<div class="content-section collapse" id="conveniosEnProduccion">
+  <!-- Select Convenio -->
+  <select class="form-control form-control-lg form-select mb-5" id="selectConveniosProduccion">
+    {% for convenio in convenios_produccion %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+  <!-- Convenios por analista -->
+  <div class="mb-5" align="center">
+    <table class="table table-striped table-hover table-bordered mb-1" style="width:50%">
+      <thead>
+        <tr>
+          <th scope='col'>Analista</th>
+          <th scope='col' class="text-center">Coordinador</th>
+          <th scope='col' class="text-center">Suplente</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nombre, cuenta in data_analistas_produccion.items() %}
+          <tr>
+            {% if nombre == 'Total' %}
+              <th>{{ nombre }}</th>
+              <th class="text-center">{{ cuenta[0] }}</th>
+              <th class="text-center">{{ cuenta[1] }}</th>
+            {% else %}
+              <td>{{ nombre }}</td>
+              <td class="text-center">{{ cuenta[0] }}</td>
+              <td class="text-center">{{ cuenta[1] }}</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <small>{{sin_asignar_produccion}} convenios sin asignar.</small>
+  </div>
+  <!-- Tabla resumen -->
+  <div  class="mb-5 scroll" style="height: 700px;">
+    <div id='tablaConveniosProduccion'></div>
+  </div>
+</div>
+
+<!-- OTROS CONVENIOS -->
+<legend class="border-bottom mb-3">
+  <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+  href="#otrosConvenios" aria-expanded="false" aria-controls="otrosConvenios">
+  Otros convenios <i class="fas fa-angle-down"></i></a></legend>
+<div class="content-section collapse" id="otrosConvenios">
+  <!-- Select Convenio -->
+  <select class="form-control form-control-lg form-select mb-5" id="selectOtrosConvenios">
+    {% for convenio in otros_convenios %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+  <!-- Tabla resumen -->
+  <div  class="mb-5 scroll" style="height: 700px;">
+    <div id='tablaOtrosConvenios'></div>
+  </div>
+</div>
+
+
+<!-- Gráficos convenios -->
+<div class="row pt-5 content-section text-center">
+  <!-- Convenios en proceso --->
+  <div class="col-lg-4">
+    <h1>{{ cuenta.proceso}} <i class="fa-solid fa-comments fa-fw fa-sm"></i></h1>
+    Convenios en proceso
+    <div id='chartProceso'></div>
+  </div>
+  <!-- Convenios en producción -->
+  <div class="col-lg-4">
+    <h1>{{ cuenta.produccion}} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
+    Convenios en produccion
+    <div id='chartProduccion'></div>
+  </div>
+  <!-- Otros convenios -->
+  <div class="col-lg-4">
+    <h1>{{ cuenta.otros}} <i class="fa-solid fa-trash fa-fw fa-sm"></i></h1>
+    Otros convenios
+    <div id='chartOtros'></div>
+  </div>
+</div>
+
+
+
+
+
+<!-- Cambiar página cuando se cambie un select -->
+<script type="text/javascript">
+  $(document).ready(function(){
+    // Convenios en proceso
+    $('#selectConveniosProceso').change(function(){
+      var id = $(this).find(":selected").val();
+      window.location.replace(Flask.url_for('bitacoras.bitacora_convenio', {'id_convenio': id}));
+    });
+    // Convenios en producción
+    $('#selectConveniosProduccion').change(function(){
+      var id = $(this).find(":selected").val();
+      window.location.replace(Flask.url_for('bitacoras.bitacora_convenio', {'id_convenio': id}));
+    });
+    // Otros convenio
+    $('#selectOtrosConvenios').change(function(){
+      var id = $(this).find(':selected').val();
+      window.location.replace(Flask.url_for('bitacoras.bitacoa_convenio', {'id_convenio': id}));
+    });
+  });
+</script>
+
+
+
+<!-- Tablas resumen -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['table', 'corechart']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+
+    // Gráfico convenios en proceso
+    var dataChartProceso = new google.visualization.DataTable();
+    dataChartProceso.addColumn('string', 'Etapa');
+    dataChartProceso.addColumn('number', 'Convenios');
+    dataChartProceso.addRows({{ grafico_proceso | tojson }});
+
+    var optionsChartProceso = {
+      pieHole: 0.5,
+      pieSliceText: 'value',
+      chartArea: {height: '95%', width: '95%'},
+      legend: {position: 'none',},
+      titleTextStyle:{fontSize:18},
+      slices: {
+        0: {color: '#DFF6FF', textStyle:{color: '#051367'}, offset: 0.01},
+        1: {color: '#5D8BF4'},
+        2: {color: '#2D31FA'},
+        3: {color: '#051367'}
+      },
+    };
+    var chartProceso = new google.visualization.PieChart(document.getElementById('chartProceso'));
+    chartProceso.draw(dataChartProceso, optionsChartProceso);
+
+    // Gráfico convenios en producción
+    var dataChartProduccion = new google.visualization.DataTable();
+    dataChartProduccion.addColumn('string', 'Tipo');
+    dataChartProduccion.addColumn('number', 'Cuenta');
+    dataChartProduccion.addRows({{ grafico_produccion | tojson }});
+
+    var optionsChartProduccion = {
+      pieHole: 0.5,
+      pieSliceText: 'value',
+      chartArea: {height: '95%', width: '95%'},
+      legend: {position: 'none',},
+      titleTextStyle:{fontSize:18},
+      slices: {
+        0: {color: '#E6500A'},
+        1: {color: '#0064A0'},
+      },
+    };
+    var chartProduccion = new google.visualization.PieChart(document.getElementById('chartProduccion'));
+    chartProduccion.draw(dataChartProduccion, optionsChartProduccion);
+
+
+    //  Gráfico otros convenios
+    var dataChartOtros = new google.visualization.DataTable();
+    dataChartOtros.addColumn('string', 'Estado');
+    dataChartOtros.addColumn('number', 'Cuenta');
+    dataChartOtros.addRows({{ grafico_otros | tojson }});
+
+    var optionsChartOtros = {
+      pieHole: 0.5,
+      pieSliceText: 'value',
+      chartArea: {height: '95%', width: '95%'},
+      legend: {position: 'none',},
+      titleTextStyle:{fontSize:18},
+      slices: {
+        0: {color: '#2C2E43'},
+        1: {color: '#595260'},
+        2: {color: '#B2B1B9'},
+      },
+    };
+    var chartOtros = new google.visualization.PieChart(document.getElementById('chartOtros'));
+    chartOtros.draw(dataChartOtros, optionsChartOtros);
+
+    // Tabla resumen convenios en proceso
+    var dataTablaResumenProceso = new google.visualization.DataTable();
+    dataTablaResumenProceso.addColumn('string', 'Convenio');
+    dataTablaResumenProceso.addColumn('string', 'Última observación');
+    dataTablaResumenProceso.addColumn('string', 'Próxima tarea');
+    dataTablaResumenProceso.addColumn('string', 'Coord');
+
+    var listado_proceso = {{ tabla_resumen_proceso | tojson }}
+
+    dataTablaResumenProceso.addRows(listado_proceso);
+    dataTablaResumenProceso.setProperty(0, 0, 'style', 'width: 250px');
+    dataTablaResumenProceso.setProperty(0, 1, 'style', 'width: 400px');
+    dataTablaResumenProceso.setProperty(0, 2, 'style', 'width: 400px');
+    dataTablaResumenProceso.setProperty(0, 3, 'style', 'width: 100px');
+    optionsTablaResumenProceso = {
+      allowHtml: true,
+      width: '100%',
+    };
+    var tablaResumenProceso = new google.visualization.Table(document.getElementById('tablaConveniosProceso'));
+    tablaResumenProceso.draw(dataTablaResumenProceso, optionsTablaResumenProceso);
+
+    // Tabla resumen convenios en producción
+    var dataTablaResumenProduccion = new google.visualization.DataTable();
+    dataTablaResumenProduccion.addColumn('string', 'Convenio');
+    dataTablaResumenProduccion.addColumn('string', 'Coordinador');
+    dataTablaResumenProduccion.addColumn('string', 'Suplente');
+    dataTablaResumenProduccion.addColumn('string', 'Ver res.')
+
+    var listado_produccion = {{ tabla_resumen_produccion | tojson }}
+
+    dataTablaResumenProduccion.addRows(listado_produccion);
+    dataTablaResumenProceso.setProperty(0, 1, 'style', 'width: 250px');
+    dataTablaResumenProceso.setProperty(0, 2, 'style', 'width: 250px');
+    optionsTablaResumenProduccion = {
+      allowHtml: true,
+      width:'100%',
+    };
+    var tablaResumenProduccion = new google.visualization.Table(document.getElementById('tablaConveniosProduccion'));
+    tablaResumenProduccion.draw(dataTablaResumenProduccion, optionsTablaResumenProduccion);
+
+    // Tabla resumen otros convenios
+    var dataTablaOtrosConvenios = new google.visualization.DataTable();
+    dataTablaOtrosConvenios.addColumn('string', 'Convenio');
+    dataTablaOtrosConvenios.addColumn('string', 'Estado');
+    dataTablaOtrosConvenios.addColumn('string', 'Coordinador');
+    dataTablaOtrosConvenios.addColumn('string', 'Suplente');
+
+    var listado_otros = {{ tabla_resumen_otros | tojson }}
+
+    dataTablaOtrosConvenios.addRows(listado_otros);
+
+    optionsTablaResumenOtros = {
+      allowHtml: true,
+      width: '100%',
+    };
+    var tablaResumenOtros = new google.visualization.Table(document.getElementById('tablaOtrosConvenios'));
+    tablaResumenOtros.draw(dataTablaOtrosConvenios, optionsTablaResumenOtros);
+
+  }
+</script>
+
+
+{% endblock content %}

@@ -1,0 +1,102 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="" align='center'>
+  <div class="contet-section mx-5 mt-3 w-50" >
+    <form class="" method="POST" novalidate>
+      {{ form.hidden_tag() }}
+      {{ form.csrf_token }}
+      <fieldset class='form-group mb-4'>
+          <legend class="border-bottom mb-4">Registrar nuevo usuario</legend>
+          <!-- Usuario -->
+          <div class="form-group mb-3" align='left'>
+            {{ form.user.label(class='form-control-label mb-1') }}
+            {% if form.user.errors %}
+              {{ form.user(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form.user.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.user(class='form-control form-control-lg') }}
+            {% endif %}
+          </div>
+          <!-- Contraseña -->
+          <div class="form-group mb-3" align='left'>
+            {{ form.password.label(class='form-control-label mb-1') }}
+            {% if form.password.errors %}
+              {{ form.password(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form.password.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.password(class='form-control form-control-lg') }}
+            {% endif %}
+          </div>
+          <!-- Confirmar contraseña -->
+          <div class="form-group mb-3" align='left'>
+            {{ form.confirm_password.label(class='form-control-label mb-1') }}
+            {% if form.confirm_password.errors %}
+              {{ form.confirm_password(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form.confirm_password.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form.confirm_password(class='form-control form-control-lg') }}
+            {% endif %}
+          </div>
+          <!-- Fila selects -->
+          <div class="row">
+            <div class="col-lg-8">
+              <!-- Seleccionar persona -->
+              <div class="form-group mb-3" align='left'>
+                {% if form.persona.errors %}
+                  {{ form.persona(class='form-control form-control-lg form-select is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in form.persona.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.persona(class='form-control form-control-lg form-select') }}
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <!-- Seleccionar tipo de cuenta -->
+              <div class="form-group mb-3" align='left'>
+                {% if form.tipo.errors %}
+                  {{ form.tipo(class='form-control form-control-lg form-select is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in form.tipo.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.tipo(class='form-control form-control-lg form-select') }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+      </fieldset>
+      <!-- Submit -->
+      <div class="form-group" align='right'>
+        {{ form.submit(class='btn btn-outline-primary') }}
+      </div>
+    </form>
+  </div>
+  <div class="border-top mt-3 w-75" >
+    <small class="text-muted">
+      ¿Ya estás registrado?<a class='ms-1' href="{{ url_for('users.ingresar') }}">Ingresa</a>
+    </small>
+  </div>
+</div>
+
+
+{% endblock content %}

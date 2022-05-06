@@ -1,0 +1,283 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#conveniosProduccion')
+</script>
+
+<div class="content-section mx-4">
+  <!-- Select Convenio -->
+  <select autofocus class="form-control form-control-lg form-select mb-5" id="convenio">
+    {% for convenio in convenios_select %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+
+<!-- Convenios en números -->
+<div class="row text-center mb-3">
+  <div class="col-lg-6">
+    <h1>{{ cuenta_produccion.convenios }} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
+    Convenios en producción
+  </div>
+  <div class="col-lg-6">
+    <h1>{{ cuenta_produccion.adendum }} <i class="fa-solid fa-file-lines fa-fw fa-sm"></i></h1>
+    Adendum en producción
+  </div>
+</div>
+
+<!-- Estadísticas e indicadores del proceso -->
+<legend class="border-bottom mb-0">Estadísticas de convenios en producción</legend>
+<small class="mb-5">Estos datos se calculan con la información de convenios
+que ingresaron a partir del 01 de enero del 2020.</small>
+<!-- Información de días -->
+<div class="row my-3" align='center'>
+  <!-- Días en proceso -->
+  <p class="mb-1"><strong>Días promedio en proceso</strong></p>
+  <h2><i class="fas fa-stopwatch fa-lg"></i> {{ dias_proceso }}</h2>
+</div>
+
+<div class="row mb-1">
+  <!-- Días por etapa -->
+  <div class="col-lg-6">
+    <div id="chartDiasEtapas"></div>
+  </div>
+  <!-- Días por equipo -->
+  <div class="col-lg-6">
+    <div id="chartDiasEquipos"></div>
+  </div>
+</div>
+<!-- Tareas por área y tiempo de respuesta -->
+<div class='row'>
+  <div id='chartTareas'></div>
+</div>
+
+<!-- Días por etapa por años
+<legend class='border-bottom mb-2'>Días en etapas por años</legend>
+<div  class="mb-5">
+  <div id='chartAnual'></div>
+</div>  -->
+
+<!-- Listado convenios en producción -->
+<legend class='border-bottom mb-2'>Listado convenios en producción</legend>
+<div  class="mb-5 scroll" style="height: 700px;">
+  <div id='listadoConvenios'></div>
+</div>
+
+
+<!-- Estadíticas -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart(){
+    // Días por etapas
+    // Tablas de datos según selección
+    var dataEtapasTotal = google.visualization.arrayToDataTable({{ dias_etapas.total | tojson }});
+    var dataEtapasDefinicion = google.visualization.arrayToDataTable({{ dias_etapas.definicion | tojson }});
+    var dataEtapasConfeccion = google.visualization.arrayToDataTable({{ dias_etapas.confeccion | tojson }});
+    var dataEtapasFirmas = google.visualization.arrayToDataTable({{ dias_etapas.firmas | tojson }});
+    var dataEtapasResolucion = google.visualization.arrayToDataTable({{ dias_etapas.resolucion | tojson }});
+    var optionsEtapas = {
+      title: 'Días promedio por etapa',
+      pieHole: 0.5,
+      width: 500,
+      height: 400,
+      chartArea: {left: 10, width: '80%'},
+      legend: {position: 'right', textStyle: {color: 'black', fontSize: 12}},
+      titleTextStyle:{fontSize:16},
+      slices: {
+        0: {color: '#DFF6FF', textStyle:{color: '#051367'}, offset: 0.01},
+        1: {color: '#5D8BF4', offset: 0.01},
+        2: {color: '#2D31FA', offset: 0.01},
+        3: {color: '#051367', offset: 0.01}
+        },
+      }
+
+    // Crear gráfico Días por etapa Total
+    var chartDiasEtapas = new google.visualization.PieChart(document.getElementById('chartDiasEtapas'));
+    chartDiasEtapas.draw(dataEtapasTotal, optionsEtapas);
+
+    // Días por Equipo
+    // Tabla de datos según selección
+    datosEquipos = [{{ dias_equipos.total | tojson }},
+                    {{ dias_equipos.definicion | tojson }},
+                    {{ dias_equipos.confeccion | tojson }},
+                    {{ dias_equipos.firmas | tojson }},
+                    {{ dias_equipos.resolucion | tojson }}
+                    ];
+    datosEquipos.forEach((item, i) => {
+      item[0].push({role: 'style'});
+    });
+
+    var dataEquiposTotal = google.visualization.arrayToDataTable(datosEquipos[0]);
+    var dataEquiposDefinicion = google.visualization.arrayToDataTable(datosEquipos[1]);
+    var dataEquiposConfeccion = google.visualization.arrayToDataTable(datosEquipos[2]);
+    var dataEquiposFirmas = google.visualization.arrayToDataTable(datosEquipos[3]);
+    var dataEquiposResolucion = google.visualization.arrayToDataTable(datosEquipos[4]);
+    var optionsEquipos = {
+      title: 'Días promedio por área',
+      width: 480,
+      height: 400,
+      chartArea: {left: 100, width: '100%'},
+      legend: {position: 'right', textStyle: {color: 'black', fontSize: 12}},
+      titleTextStyle:{fontSize:16},
+    };
+
+    var chartDiasEquipos = new google.visualization.BarChart(document.getElementById('chartDiasEquipos'));
+    chartDiasEquipos.draw(dataEquiposTotal, optionsEquipos);
+
+    // Tareas por área y tiempo de respuesta
+    var dataTareasTotal = google.visualization.arrayToDataTable({{ tareas_equipos.total.datos | tojson}});
+    var dataTareasDefinicion = google.visualization.arrayToDataTable({{ tareas_equipos.definicion.datos | tojson }});
+    var dataTareasConfeccion = google.visualization.arrayToDataTable({{ tareas_equipos.confeccion.datos | tojson}});
+    var dataTareasFirmas = google.visualization.arrayToDataTable({{ tareas_equipos.firmas.datos | tojson }});
+    var dataTareasResolucion = google.visualization.arrayToDataTable({{ tareas_equipos.resolucion.datos | tojson }});
+    var optionsTareas = {
+      title : 'Tareas por área vs tiempo de respuesta promedio',
+      seriesType: 'bars',
+      series: {},
+      isStacked: true,
+      legend: { position: 'none'},
+      height: 400,
+      chartArea: {width: '90%'},
+    };
+    var series_col_index = dataTareasTotal.getNumberOfColumns() - 2;
+    optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+    optionsTareas.colors = {{ tareas_equipos.total.colores | tojson }}
+
+    var chartTareas = new google.visualization.ComboChart(document.getElementById('chartTareas'));
+    chartTareas.draw(dataTareasTotal, optionsTareas);
+
+
+    // Filtro
+    google.visualization.events.addListener(chartDiasEtapas, 'select', selectHandler);
+    function selectHandler(e){
+      var selection = chartDiasEtapas.getSelection()
+
+      // Identificar filtro
+      if (selection ==  '') {
+        // Volver a los gráficos originales
+        chartDiasEtapas.draw(dataEtapasTotal, optionsEtapas);
+        chartDiasEquipos.draw(dataEquiposTotal, optionsEquipos);
+
+        var series_col_index = dataTareasTotal.getNumberOfColumns() - 2;
+        optionsTareas.series = {};
+        optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+        optionsTareas.colors = {{ tareas_equipos.total.colores | tojson }}
+        chartTareas.draw(dataTareasTotal, optionsTareas);
+
+      }
+      else {
+        var item = selection[0];
+        // Filtrar gráficos por Definición
+        if (dataEtapasTotal.getValue(item.row, 0) == 'Definición de Alcance del Convenio' ) {
+          chartDiasEtapas.draw(dataEtapasDefinicion, optionsEtapas);
+          chartDiasEtapas.setSelection([{row: 0}]);
+          chartDiasEquipos.draw(dataEquiposDefinicion, optionsEquipos);
+
+          var series_col_index = dataTareasDefinicion.getNumberOfColumns() - 2;
+          optionsTareas.series = {};
+          optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+          optionsTareas.colors = {{ tareas_equipos.definicion.colores | tojson }}
+          chartTareas.draw(dataTareasDefinicion, optionsTareas);
+        }
+        // Filtrar gráficos por Confección
+        else if (dataEtapasTotal.getValue(item.row, 0) == 'Confección de Documento de Convenio') {
+          chartDiasEtapas.draw(dataEtapasConfeccion, optionsEtapas);
+          chartDiasEtapas.setSelection([{row: 1}]);
+          chartDiasEquipos.draw(dataEquiposConfeccion, optionsEquipos);
+
+          var series_col_index = dataTareasConfeccion.getNumberOfColumns() - 2;
+          optionsTareas.series = {};
+          optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+          optionsTareas.colors = {{ tareas_equipos.confeccion.colores | tojson }}
+          chartTareas.draw(dataTareasConfeccion, optionsTareas);
+        }
+        // Filtrar gráficos por Firmas
+        else if (dataEtapasTotal.getValue(item.row, 0) == 'Gestión de Visto Bueno y Firmas') {
+          chartDiasEtapas.draw(dataEtapasFirmas, optionsEtapas);
+          chartDiasEtapas.setSelection([{row: 2}]);
+          chartDiasEquipos.draw(dataEquiposFirmas, optionsEquipos);
+
+          var series_col_index = dataTareasFirmas.getNumberOfColumns() - 2;
+          optionsTareas.series = {};
+          optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+          optionsTareas.colors = {{ tareas_equipos.firmas.colores | tojson }}
+          chartTareas.draw(dataTareasFirmas, optionsTareas);
+        }
+        // Filtrar gráficos por Resolución
+        else if (dataEtapasTotal.getValue(item.row, 0) == 'Generación de Resolución y Protocolo Técnico') {
+          chartDiasEtapas.draw(dataEtapasResolucion, optionsEtapas);
+          chartDiasEtapas.setSelection([{row: 3}]);
+          chartDiasEquipos.draw(dataEquiposResolucion, optionsEquipos);
+
+          var series_col_index = dataTareasResolucion.getNumberOfColumns() - 2;
+          optionsTareas.series = {};
+          optionsTareas.series[series_col_index] = {type: 'line', pointSize: 6, color:'#2D312A' };
+          optionsTareas.colors = {{ tareas_equipos.resolucion.colores | tojson }}
+          chartTareas.draw(dataTareasResolucion, optionsTareas);
+        }
+      }
+    }}
+
+</script>
+
+<!-- Listado convenios -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['table']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var dataTablaListado = new google.visualization.DataTable();
+    dataTablaListado.addColumn('string', 'Institución');
+    dataTablaListado.addColumn('string', 'Nombre de convenio');
+    dataTablaListado.addColumn('date', 'Fecha firma');
+    dataTablaListado.addColumn('string', 'Resolución');
+    dataTablaListado.addColumn('string', 'Ver res.')
+
+
+    var listado = {{ listado_convenios | tojson }}
+    var dataListado = [];
+
+    listado.forEach((convenio, i) => {
+      dataListado.push([
+        convenio.institucion,
+        convenio.nombre,
+        new Date(convenio.año_firma, convenio.mes_firma, convenio.dia_firma),
+        convenio.resolucion,
+        convenio.link_resolucion
+        ]);
+      });
+
+    dataTablaListado.addRows(dataListado);
+    dataTablaListado.setProperty(0, 0, 'style', 'width: 250px');
+    dataTablaListado.setProperty(0, 4, 'style', 'width: 70px');
+    dataTablaListado.setProperty(0, 3, 'style', 'width: 150px');
+    optionsTablaListado = {
+      allowHtml: true,
+      width: '100%',
+      sortColumn: 2,
+      sortAscending: false,
+    };
+
+    var tablaListado = new google.visualization.Table(document.getElementById('listadoConvenios'));
+    tablaListado.draw(dataTablaListado, optionsTablaListado);
+  }
+</script>
+
+<script type="text/javascript">
+  // Ir al detalle del convenio cuando se seleccione uno
+  const convenio = document.querySelector('#convenio');
+  convenio.addEventListener('change', function(e) {
+    //Ir a la página del convenio
+    window.location.replace(Flask.url_for('informes.detalle_convenio_en_produccion', {'id_convenio': convenio.value}))
+  });
+
+</script>
+
+
+
+
+{% endblock content %}
