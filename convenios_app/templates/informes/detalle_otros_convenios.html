@@ -3,7 +3,7 @@
 {{ JSGlue.include() }}
 <script src='{{ url_for("static", filename="script.js") }}'></script>
 <script type="text/javascript">
-  changeActive('#conveniosProceso')
+  changeActive('#otrosConvenios')
 </script>
 
 <!-- Select Convenio -->
@@ -23,8 +23,7 @@
         <p><strong>Publicado:</strong><br> Sin resolución</p>
       {% else %}
         <p><strong>Publicado:</strong><br> Res. N°{{ informacion_convenio.nro_resolucion }} del {{ informacion_convenio.fecha_resolucion }}</p>
-        <p><a target="_blank" style='color: #000; text-decoration: none;' href="{{ informacion_convenio.link_resolucion }}">
-          Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
+        <p><a target="_blank" style='color: #000; text-decoration: none;' href="{{ informacion_convenio.link_resolucion }}">Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
       {% endif %}
 
     </div>
@@ -58,38 +57,24 @@
 
   <div class="row mb-4">
     <div class="col-lg-12">
-      <!-- Agrega convenio padre si es adendum -->
-      {% if informacion_convenio.convenio_padre %}
-        <p><strong>Convenio al cual pertenece el adendum:</strong>
-          <br>
-          {% if informacion_convenio.convenio_padre.estado_convenio_padre == 'En producción' %}
-            <a style='color: #000; text-decoration: none;'
-            href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=informacion_convenio.convenio_padre.id_convenio_padre) }}">
-            {{ informacion_convenio.convenio_padre.nombre_convenio_padre }} <i class="fas fa-search btn-sm"></i></a></p>
-          {% elif informacion_convenio.convenio_padre.estado_convenio_padre == 'En proceso' %}
-            <a style='color: #000; text-decoration: none;'
-            href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=informacion_convenio.convenio_padre.id_convenio_padre) }}">
-            {{ informacion_convenio.convenio_padre.nombre_convenio_padre }} (En proceso) <i class="fas fa-search btn-sm"></i></a></p>
+      <!-- Agrega convenio reeplazo si existe -->
+      {% if informacion_convenio.convenio_reemplazo %}
+        <p><strong>Convenio por el que fue reemplazado:</strong>
+          {% if informacion_convenio.convenio_reemplazo.estado == 'En producción'  %}
+            <br><a style='color: #000; text-decoration: none;'
+            href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=informacion_convenio.convenio_reemplazo.id) }}">
+            {{ informacion_convenio.convenio_reemplazo.nombre }}<i class="fas fa-search btn-sm"></i></a>
+          {% elif informacion_convenio.convenio_reemplazo.estado == 'En proceso' %}
+            <br><a style='color: #000; text-decoration: none;'
+            href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=informacion_convenio.convenio_reemplazo.id) }}">
+            {{ informacion_convenio.convenio_reemplazo.nombre }}<i class="fas fa-search btn-sm"></i></a>
+          {% else %}
+          <br><a style='color: #000; text-decoration: none;'
+          href="{{ url_for('informes.detalle_otros_convenios', id_convenio=informacion_convenio.convenio_reemplazo.id) }}">
+          {{ informacion_convenio.convenio_reemplazo.nombre }}<i class="fas fa-search btn-sm"></i></a>
           {% endif %}
+        </p>
       {% endif%}
-
-      <!-- Agregar adendum si existe -->
-      {% if informacion_convenio.adendum %}
-        <p><strong>Adendum de este convenio:</strong>
-          {% for adendum in informacion_convenio.adendum %}
-            <br>
-            {% if adendum.estado_adendum == 'En producción'%}
-              <a style='color: #000; text-decoration: none;'
-              href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=adendum.id_adendum) }}">
-                {{ adendum.nombre_adendum }} <i class="fas fa-search btn-sm"></i></a>
-            {% elif adendum.estado_adendum == 'En proceso' %}
-              <a style='color: #000; text-decoration: none;'
-              href='{{ url_for("informes.detalle_convenio_en_proceso", id_convenio=adendum.id_adendum)}}'>
-                {{ adendum.nombre_adendum }} (En proceso) <i class="fas fa-search btn-sm"></i></a>
-            {% endif %}
-          {% endfor %}
-      {% endif %}
-    </div>
   </div>
 
 
@@ -134,6 +119,26 @@
 
 </div>
 
+
+
+<!-- Funciones select -->
+<script type="text/javascript">
+
+  $(document).ready(function(){
+    // Marcar convenio en el select
+    $("#convenio").val({{ id_convenio }})
+  });
+  // Ir a la página cuando se cambie el select
+  $('#convenio').change(function(){
+    var id = $(this).find(':selected').val();
+    if (id == 0){
+      window.location.replace(Flask.url_for('informes.otros_convenios'));
+    }
+    else {
+      window.location.replace(Flask.url_for('informes.detalle_otros_convenios', {id_convenio: id}));
+    }
+  });
+</script>
 
 <!-- Estadíticas -->
 <script type="text/javascript">
@@ -452,31 +457,6 @@
     tablaBitacora.draw(filteredDataTablaBitacora, optionsTablaBitacora);
     }
 }
-
-
-
-
-</script>
-
-<script type="text/javascript">
-
-  document.addEventListener('DOMContentLoaded', function() {
-    // Marcar convenio en el select
-    convenio.value = {{ id_convenio }}
-  });
-
-  // Ir a la página cuando se cambie el select
-  const convenio = document.querySelector('#convenio');
-  convenio.addEventListener('change', function() {
-    // Ir al resumen de convenios en produción
-    if (convenio.value == 0) {
-      window.location.replace(Flask.url_for('informes.convenios_en_proceso'));
-    }
-    // Ir al detalle del convenio
-    else {
-      window.location.replace(Flask.url_for('informes.detalle_convenio_en_proceso', {'id_convenio': convenio.value}));
-    }
-  });
 
 </script>
 

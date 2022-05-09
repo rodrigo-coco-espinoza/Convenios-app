@@ -48,18 +48,21 @@
               <a id='instituciones' href="{{ url_for('main.ver_institucion') }}" class="list-group-item list-group-item-action py-2 ripple">
                 <i class="fa-solid fa-landmark fa-fw me-3"></i><span>Instituciones</span>
               </a>
-              <a id='personas' href="{{ url_for('main.ver_persona') }}" class="list-group-item list-group-item-action py-2 ripple">
+              <a id='personas' href="{{ url_for('main.ver_persona') }}" class="list-group-item list-group-item-action py-2 ripple mb-4">
                 <i class="fas fa-user fa-fw me-3"></i><span>Personas</span>
               </a>
             {% endif %}
           {% endif %}
           <!-- Informes -->
-          <p class="sidebar-header mb-0 mt-4 fw-bold">Informes<i class="fas fa-search btn-sm"></i></p>
+          <p class="sidebar-header mb-0 fw-bold">Informes<i class="fas fa-search btn-sm"></i></p>
           <a id='conveniosProceso' href="{{ url_for('informes.convenios_en_proceso') }}" class="list-group-item list-group-item-action py-2 ripple" aria-current="true">
             <i class="fa-solid fa-folder-open fa-fw me-3"></i><span>C. en proceso</span>
           </a>
           <a id='conveniosProduccion' href="{{ url_for('informes.convenios_en_produccion') }}" class="list-group-item list-group-item-action py-2 ripple">
             <i class="fa-solid fa-folder-tree fa-fw me-3"></i><span>C. en producción</span>
+          </a>
+          <a id='otrosConvenios' href="{{ url_for('informes.otros_convenios') }}" class="list-group-item list-group-item-action py-2 ripple">
+            <i class="fa-solid fa-dumpster fa-fw me-3"></i><span>Otros convenios</span>
           </a>
         <!--  <a href="#" class="list-group-item list-group-item-action py-2 ripple">
             <i class="fas fa-file-alt fa-fw me-3"></i><span>Recepción</span>
@@ -90,8 +93,11 @@
         <!-- Right links -->
         <div class="navbar-nav ms-auto d-flex flex-row">
             {% if current_user.is_authenticated %}
+              {% if current_user.permisos == 'Admin' or current_user.permisos == 'Subdirección' %}
+                <a class="nav-item nav-link" href="{{ url_for('users.convenios_sd', id_persona=current_user.id_persona) }}">Convenios SD</a>
+              {% endif %}
               {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
-                <a class="nav-item nav-link" href="{{ url_for('informes.mis_convenios', id_persona=current_user.id_persona) }}">Mis convenios</a>
+                <a class="nav-item nav-link" href="{{ url_for('users.mis_convenios', id_persona=current_user.id_persona) }}">Mis convenios</a>
               {% endif %}
               {% if current_user.permisos == 'Admin' %}
                 <a class="nav-item nav-link" href="{{ url_for('users.registrar_usuario') }}">Registrar</a>

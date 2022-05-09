@@ -5,13 +5,13 @@
 <div class="content-section mx-2">
   <!-- Tabla tareas pendientes -->
   <legend class="border-bottom mb-4">Tareas pendientes</legend>
-  <div class="overflow">
+  <div class="overflow-auto">
     <table class="table table-striped">
       <thead>
         <th scope='col'>#</th>
         <th scope='col'>Nombre convenio</th>
         <th scope='col'>Próxima tarea</th>
-        <th scope='col'>Plazo</th>
+        <th scope='col' style="width: 170px;"">Plazo</th>
       </thead>
       <tbody>
         {% for tarea in tareas_pendientes %}
@@ -21,13 +21,13 @@
             <td>{{ tarea.tarea }}</td>
             {% if tarea.plazo <= hoy %}
               <td class='text-danger'>{{ tarea.plazo }}
-                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="fas fa-check"></i></a>
-                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="fas fa-times"></i></a>
+                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="green fas fa-check"></i></a>
+                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="gray fas fa-trash"></i></a>
               </td>
             {% else %}
               <td>{{ tarea.plazo }}
-                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="fas fa-check"></i></a>
-                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="fas fa-times"></i></a>
+                <a class="text-dark ms-3" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="green fas fa-check"></i></a>
+                <a class="text-dark mx-2" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea.id_tarea, id_convenio=tarea.id_convenio, id_persona=id_persona) }}"><i class="gray fas fa-trash"></i></a>
               </td>
             {% endif %}
           </tr>
@@ -380,7 +380,7 @@
       }
       else {
         // Obtener info del convenio seleccionado
-        fetch(Flask.url_for('informes.obtener_info_convenio', {'id_convenio': id}))
+        fetch(Flask.url_for('users.obtener_info_convenio', {'id_convenio': id}))
         .then(response => response.json())
         .then(data => {
           // Llenar campos del formulario form_info

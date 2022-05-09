@@ -12,7 +12,7 @@ class RegistrationForm(FlaskForm):
     tipo = SelectField('Tipo de cuenta', choices=['Seleccionar cuenta',
                                                   'Admin',
                                                   'Analista',
-                                                  'Otro'])
+                                                  'Subdirección'])
     persona = SelectField('Persona usuaria')
     submit = SubmitField('Registrar')
 

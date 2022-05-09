@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="content-section mx-2">
+
+  <!-- Tabla convenios asignados -->
+  <legend class="border-bottom mb-3">Convenios asignados a {{ equipo.sigla }}</legend>
+  <table class="table table-striped mb-5">
+    <thead>
+      <th scope='col'>#</th>
+      <th scope='col'>Nombre convenio</th>
+      <th class="text-center" scope='col'>Días en área</th>
+      <th scope='col'>Etapa actual</th>
+    </thead>
+    <tbody>
+      {% for convenio in convenios_asignados %}
+        <tr>
+          <th> {{ loop.index }}</th>
+          <td><a style='text-decoration: none; color: #000;' href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=convenio.id) }}">{{ convenio.nombre }} <i class="fas fa-search btn-sm"></a></td>
+          <td class='text-center'>{{ convenio.dias_area }}</td>
+          <td>{{ convenio.etapa }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <!-- Tabla estado actual convenios asociados a SD -->
+  <legend class="border-bottom mb-3">Estado actual convenios de {{ equipo.sigla }}</legend>
+  <div  class="mb-5 overflow-auto" style="height: 700px;">
+    <div id='tablaEstadoActual'></div>
+  </div>
+</div>
+
+<!-- Tabla estado actual de convenios -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages': ['table']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var dataTablaEstadoActual = new google.visualization.DataTable();
+    dataTablaEstadoActual.addColumn('string', 'Convenio');
+    dataTablaEstadoActual.addColumn('string', 'Estado');
+    dataTablaEstadoActual.addColumn('string', 'Última observación');
+    dataTablaEstadoActual.addColumn('string', 'Coordinador');
+    dataTablaEstadoActual.addColumn('string', 'Ver res.');
+
+    var listado_convenios = {{ tabla_convenios_asociados | tojson }}
+
+    dataTablaEstadoActual.addRows(listado_convenios);
+    dataTablaEstadoActual.setProperty(0, 0, 'style', 'width: 310px');
+    optionsTablaEstadoActual = {
+      allowHtml: true,
+      width: '100%'
+    };
+    var tablaEstadoActual = new google.visualization.Table(document.getElementById('tablaEstadoActual'));
+    tablaEstadoActual.draw(dataTablaEstadoActual, optionsTablaEstadoActual);
+  }
+</script>
+
+{% endblock content %}

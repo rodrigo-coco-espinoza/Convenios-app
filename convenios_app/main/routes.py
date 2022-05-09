@@ -22,17 +22,15 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def home():
     # Datos números
-    convenios_publicados = Convenio.query.filter(and_(Convenio.fecha_resolucion != None,
-                                                      or_(Convenio.estado == 'En proceso', Convenio.estado == 'En producción'))).count()
     convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
                                                     or_(Convenio.estado == 'En proceso', Convenio.estado == 'En producción'))).count()
     instituciones_firmantes = db.session.query(func.count(distinct(Convenio.id_institucion))).filter(or_(Convenio.estado == 'En producción', Convenio.estado == 'En proceso')).first()[0]
+    count_convenios_por_firmar = Convenio.query.filter(and_(Convenio.estado == 'En proceso', Convenio.fecha_documento == None)).count()
     count_convenios_en_proceso = Convenio.query.filter(Convenio.estado == 'En proceso').count()
     count_convenios_en_produccion = Convenio.query.filter(Convenio.estado == 'En producción').count()
-
     data = {
-        'publicados': convenios_publicados,
         'firmados': convenios_firmados,
+        'por_firmar': count_convenios_por_firmar,
         'en_produccion': count_convenios_en_produccion,
         'instituciones': instituciones_firmantes,
         'en_proceso': count_convenios_en_proceso

@@ -38,9 +38,68 @@ class Equipo(db.Model):
     # Relaciones -> es llave foránea en:
     personas = db.relationship('Persona', backref='equipo')
     equipos = db.relationship('TrayectoriaEquipo', backref='equipo')
+    encargados = db.relationship('CatalogoWS', backref='encargado')
 
     def __repr__(self):
         return f'{self.id} - {self.sigla} - {self.nombre}'
+
+
+class CatalogoWS(db.Model):
+    """
+    Representa todos los Web Services que existen en el SII.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_aiet = db.Column(db.String(100), nullable=False)
+    nombre_sdi = db.Column(db.String(50), nullable=True)
+    metodo = db.Column(db.String(50), nullable=True)
+    estado = db.Column(db.Boolean(), nullable=False)
+    descripcion = db.Column(db.String(), nullable=True)
+    observacion = db.Column(db.String(), nullable=True)
+    categoria = db.Column(db.String(50), nullable=False)
+    url = db.Column(db.String(50), nullable=True)
+    reservado = db.Column(db.Boolean(), nullable=True)
+    pisee = db.Column(db.Boolean(), nullable=True)
+
+    # Llaves foráneas
+    id_encargado = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    # Relaciones -> es llave foránea en:
+    detalle = db.relationship('DetalleWS', backref='ws')
+
+    def __repr__(self):
+        return f'<{self.nombre_aiet} - {self.nombre_sdi} - {self.metodo}: {self.estado}>'
+
+
+class WSConvenio(db.Model):
+    """
+    Relaciona los Web Services del catálogo con los convenios en los que se otorgan a las IE.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    #TODO: cambiar a false cuando se tenga formulario para habilitar los WS
+    estado = db.Column(db.Boolean(), nullable=True)
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
+    id_ws = db.Column(db.Integer, db.ForeignKey('catalogoWS.id'), nullable=False)
+    ws = db.relationship('CatalogoWS', foreign_keys=[id_ws])
+
+    def __repr__(self):
+        return f'<{self.id} - {self.convenio.institucion.sigla} - {self.ws.nombre_aiet}: {self.estado}>'
+
+
+class DetalleWS(db.Model):
+    """
+    Contiene el detalle de campos de entrada y salida de cada WS.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_campo = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.String(150), nullable=True)
+    observacion = db.Column(db.String(), nullable=True)
+    tipo = db.Column(db.String(10), nullable=False)
+
+    # LLaves foráneas
+    id_ws = db.Column(db.Integer, db.ForeignKey('catalogoWS.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<Campo:{self.nombre_campo} - {self.tipo}>'
 
 
 class Institucion(db.Model):
