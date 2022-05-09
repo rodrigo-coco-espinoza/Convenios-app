@@ -580,6 +580,7 @@ def editar_convenio(id_convenio):
     # Crear formulario convenio
     personas_aiet = [(persona.id, persona.nombre) for persona in
                      Persona.query.filter_by(id_equipo=ID_AIET).order_by(Persona.nombre.asc()).all()]
+    personas_aiet.append((6, 'SDGEET'))
     personas_aiet.insert(0, (0, 'Seleccionar'))
     personas_ie = [(persona.id, persona.nombre) for persona in
                    Persona.query.filter_by(id_institucion=convenio_seleccionado.id_institucion).all()]
@@ -675,6 +676,7 @@ def agregar_convenio():
     instituciones.insert(0, (0, 'Seleccionar'))
     personas_aiet = [(persona.id, persona.nombre) for persona in
                      Persona.query.filter_by(id_equipo=ID_AIET).order_by(Persona.nombre.asc()).all()]
+    personas_aiet.append((6, 'SDGEET'))
     personas_aiet.insert(0, (0, 'Seleccionar'))
     subdirecciones = [(str(subdireccion.id), subdireccion.sigla) for subdireccion in Equipo.query.filter(
         and_(Equipo.sigla != 'AIET', Equipo.sigla != 'IE', Equipo.sigla != 'GDIR')).order_by(Equipo.sigla.asc()).all()]

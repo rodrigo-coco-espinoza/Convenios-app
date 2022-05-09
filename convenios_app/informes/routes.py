@@ -393,12 +393,384 @@ estadisticas_convenios()
 
 @informes.route('/otros_convenios')
 def otros_convenios():
-    return render_template('informes/otros_convenios.html')
+    # Select field convenios en proceso
+    convenios_query = Convenio.query.filter(and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
+    convenios_select = [(convenio.id, generar_nombre_convenio(convenio)) for convenio in convenios_query]
+    convenios_select.sort(key=lambda tup: tup[1])
+    convenios_select.insert(0, (0, 'Seleccione convenio para ver detalle'))
+
+    # Convenios en números
+    cuenta_convenios = {
+        'pausados': Convenio.query.filter(Convenio.estado == 'Pausado').count(),
+        'cancelados': Convenio.query.filter(Convenio.estado == 'Cancelado').count(),
+        'reemplazados': Convenio.query.filter(Convenio.estado == 'Reemplazado').count()
+    }
+
+    # Listado otros convenios
+    listado_convenios = [[
+        convenio.institucion.sigla,
+        f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>'
+        f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
+        f'<i class="fas fa-search btn-sm"></i></a>',
+        convenio.estado,
+        (lambda
+             link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                   f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
+        '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
+            convenio.link_resolucion)
+    ]
+        for convenio in convenios_query]
+
+    return render_template('informes/otros_convenios.html', convenios_select=convenios_select,
+                           cuenta_convenios=cuenta_convenios, listado_convenios=listado_convenios)
 
 
 @informes.route('/detalle_otros_convenios/<int:id_convenio>', methods=['GET', 'POST'])
 def detalle_otros_convenios(id_convenio):
-    return 'detalle'
+    # Select field convenios en producción
+    convenios_query = Convenio.query.filter(and_(Convenio.estado != 'En producción', Convenio.estado != 'En proceso')).all()
+    convenios_select = [(convenio.id, generar_nombre_convenio(convenio)) for convenio in convenios_query]
+    convenios_select.sort(key=lambda tup: tup[1])
+    convenios_select.insert(0, (0, 'Ver resumen otros convenios'))
+
+    # Obtener datos para el informe
+    convenio_query = Convenio.query.get(id_convenio)
+
+    # Información del convenio
+    subdirecciones_involucradas = SdInvolucrada.query.filter(SdInvolucrada.id_convenio == id_convenio).all()
+    informacion_convenio = {
+        'fecha_firma': (lambda firma: datetime.strftime(firma, '%d-%m-%Y') if firma else 'No firmado')(
+            convenio_query.fecha_documento),
+        'fecha_resolucion': (lambda convenio: datetime.strftime(convenio.fecha_resolucion,
+                                                                "%d-%m-%Y") if convenio.fecha_resolucion != None else "Sin resolución")(
+            convenio_query),
+        'nro_resolucion': convenio_query.nro_resolucion,
+        'link_resolucion': (lambda convenio: convenio.link_resolucion if convenio.link_resolucion != None else "")(
+            convenio_query),
+        'coord_sii': convenio_query.coord_sii.nombre,
+        'sup_sii': (lambda convenio: convenio.sup_sii.nombre if convenio.id_sup_sii != None else "Sin asignar")(
+            convenio_query),
+        'gabinete': (
+            lambda convenio: convenio.gabinete_electronico if convenio.gabinete_electronico != None else 'Sin asignar')(
+            convenio_query),
+        'proyecto': (lambda convenio: convenio.proyecto if convenio.proyecto != None else 'Sin asignar')(
+            convenio_query),
+        'subdirecciones': [subdireccion.subdireccion.sigla for subdireccion in subdirecciones_involucradas],
+        'sd_techo': ceil(len(subdirecciones_involucradas) / 2),
+        'sd_total': len(subdirecciones_involucradas),
+        'adendum': []
+    }
+    # Si fue reemplazado agregar convenio de reemplazo
+    if convenio_query.id_convenio_reemplazo:
+        convenio_reemplazo_query = Convenio.query.get(convenio_query.id_convenio_reemplazo)
+        informacion_convenio['convenio_reemplazo'] = {
+            'nombre': generar_nombre_convenio(convenio_reemplazo_query),
+            'id': convenio_reemplazo_query.id,
+            'estado': convenio_reemplazo_query.estado
+        }
+    else:
+        informacion_convenio['convenio_reemplazo'] = None
+
+    # Estadísticas y Trayectoria
+    trayectoria_etapas_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == id_convenio,
+                                                                  TrayectoriaEtapa.id_etapa != 5)).all()
+    trayectoria_equipos_query = TrayectoriaEquipo.query.filter(TrayectoriaEquipo.id_convenio == id_convenio).all()
+
+    # Estadísticas del proceso
+    dias_proceso = 0
+    # Días por etapa
+    cuenta_etapas = {
+        'Definición de Alcance del Convenio': 0,
+        'Confección de Documento de Convenio': 0,
+        'Gestión de Visto Bueno y Firmas': 0,
+        'Generación de Resolución y Protocolo Técnico': 0
+    }
+    for trayecto in trayectoria_etapas_query:
+        cuenta_etapas[trayecto.etapa.etapa] += (trayecto.salida - trayecto.ingreso).days
+        dias_proceso += (trayecto.salida - trayecto.ingreso).days
+    dias_etapas_total = [[etapa, dias] for etapa, dias in cuenta_etapas.items()]
+    dias_etapas = {
+        'total': dias_etapas_total,
+        'definicion': [['Definición de Alcance del Convenio', cuenta_etapas['Definición de Alcance del Convenio']],
+                       ['Confección de Documento de Convenio', 0],
+                       ['Gestión de Visto Bueno y Firmas', 0],
+                       ['Generación de Resolución y Protocolo Técnico', 0]],
+        'confeccion': [['Definición de Alcance del Convenio', 0],
+                       ['Confección de Documento de Convenio', cuenta_etapas['Confección de Documento de Convenio']],
+                       ['Gestión de Visto Bueno y Firmas', 0],
+                       ['Generación de Resolución y Protocolo Técnico', 0]],
+        'firmas': [['Definición de Alcance del Convenio', 0],
+                   ['Confección de Documento de Convenio', 0],
+                   ['Gestión de Visto Bueno y Firmas', cuenta_etapas['Gestión de Visto Bueno y Firmas']],
+                   ['Generación de Resolución y Protocolo Técnico', 0]],
+        'resolucion': [['Definición de Alcance del Convenio', 0],
+                       ['Confección de Documento de Convenio', 0],
+                       ['Gestión de Visto Bueno y Firmas', 0],
+                       ['Generación de Resolución y Protocolo Técnico',
+                        cuenta_etapas['Generación de Resolución y Protocolo Técnico']]]
+    }
+    for etapa, datos in dias_etapas.items():
+        datos.insert(0, ['Etapa', 'Días en etapa'])
+
+    # Días por área
+    # Contar días del convenio en cada equipo y número de tareas
+    cuenta_equipos_total = {
+        'SDGEET': 0,
+        'IE': 0,
+        'SDAC': 0,
+        'SDAV': 0,
+        'SDF': 0,
+        'SDI': 0,
+        'SDJ': 0,
+        'GDIR': 0,
+        'DGC': 0,
+        'SDA': 0,
+        'SDACORP': 0,
+        'SDDP': 0,
+        'SDN': 0
+    }
+    cuenta_tareas_total = {}
+    for trayecto in trayectoria_equipos_query:
+        sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayecto.equipo.sigla)
+        cuenta_equipos_total[sigla] += (trayecto.salida - trayecto.ingreso).days
+        # Agregar al diccionario si no existe
+        try:
+            cuenta_tareas_total[sigla] += 1
+        except KeyError:
+            cuenta_tareas_total[sigla] = 1
+    # Eliminar equipos con 0 tareas en cuenta_tareas_total
+
+    dias_equipos_total = [[equipo, dias, COLORES_EQUIPOS[equipo]]
+                          for equipo, dias in cuenta_equipos_total.items()
+                          if equipo in cuenta_tareas_total]
+    tareas_total = [['Área', 'Tiempo respuesta (días)']]
+    for i, (equipo, tareas) in enumerate(cuenta_tareas_total.items()):
+        tareas_total[0].insert(1, 'Tareas')
+        tareas_total.append([])
+        tareas_total[i + 1].append(equipo)
+        if i == 0:
+            tareas_total[i + 1].append(tareas)
+            for j in range(0, len(cuenta_tareas_total) - (i + 1)):
+                tareas_total[i + 1].append(0)
+        else:
+            for j in range(0, i):
+                tareas_total[i + 1].append(0)
+            tareas_total[i + 1].append(tareas)
+            for j in range(0, len(cuenta_tareas_total) - (i + 1)):
+                tareas_total[i + 1].append(0)
+        # Tiempo de respuesta promedio
+        tareas_total[i + 1].append(round(cuenta_equipos_total[equipo] / tareas))
+
+    cuenta_equipos = {
+        'total': dict.fromkeys(['SDGEET', 'IE', 'SDAC', 'SDAV', 'SDF', 'SDI', 'SDJ',
+                                'GDIR', 'DGC', 'SDA', 'SDACORP', 'SDDP', 'SDN'], 0),
+        'Definición de Alcance del Convenio': dict.fromkeys(['SDGEET', 'IE', 'SDAC', 'SDAV', 'SDF', 'SDI', 'SDJ',
+                                                             'GDIR', 'DGC', 'SDA', 'SDACORP', 'SDDP', 'SDN'], 0),
+        'Confección de Documento de Convenio': dict.fromkeys(['SDGEET', 'IE', 'SDAC', 'SDAV', 'SDF', 'SDI', 'SDJ',
+                                                              'GDIR', 'DGC', 'SDA', 'SDACORP', 'SDDP', 'SDN'], 0),
+        'Gestión de Visto Bueno y Firmas': dict.fromkeys(['SDGEET', 'IE', 'SDAC', 'SDAV', 'SDF', 'SDI', 'SDJ',
+                                                          'GDIR', 'DGC', 'SDA', 'SDACORP', 'SDDP', 'SDN'], 0),
+        'Generación de Resolución y Protocolo Técnico': dict.fromkeys(
+            ['SDGEET', 'IE', 'SDAC', 'SDAV', 'SDF', 'SDI', 'SDJ',
+             'GDIR', 'DGC', 'SDA', 'SDACORP', 'SDDP', 'SDN'], 0),
+    }
+
+    trayectoria_equipos = {
+        'total': {
+            'datos': [],
+            'colores': []
+        },
+        'etapas': []
+    }
+
+    tareas_etapa = {}
+
+    for etapa in trayectoria_etapas_query:
+        equipos_query = TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == id_convenio,
+                                                            and_(TrayectoriaEquipo.ingreso < etapa.salida,
+                                                                 TrayectoriaEquipo.salida > etapa.ingreso))).all()
+        cuenta_tareas_etapa = {}
+        # Agregar etapa a la trayectoria de equipos
+        trayectoria_equipos['etapas'].append({'datos': [], 'colores': []})
+        # Calular días considerando solo el inicio y término de la etapa
+        for trayecto in equipos_query:
+            trayectoria_equipos['etapas'][-1]['colores'].append(COLORES_EQUIPOS[trayecto.equipo.sigla])
+            sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayecto.equipo.sigla)
+            # Días por equipo
+            if trayecto.ingreso < etapa.ingreso:
+                if trayecto.salida > etapa.salida:
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - etapa.ingreso).days
+                    trayectoria_equipos['etapas'][-1]['datos'].append({
+                        'equipo': sigla,
+                        'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
+                        'ingreso_mes': int(datetime.strftime(etapa.ingreso, '%m')) - 1,
+                        'ingreso_año': datetime.strftime(etapa.ingreso, '%Y'),
+                        'salida_dia': datetime.strftime(etapa.salida, '%d'),
+                        'salida_mes': int(datetime.strftime(etapa.salida, '%m')) - 1,
+                        'salida_año': datetime.strftime(etapa.salida, '%Y'),
+                    })
+                else:
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - etapa.ingreso).days
+                    trayectoria_equipos['etapas'][-1]['datos'].append({
+                        'equipo': sigla,
+                        'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
+                        'ingreso_mes': int(datetime.strftime(etapa.ingreso, '%m')) - 1,
+                        'ingreso_año': datetime.strftime(etapa.ingreso, '%Y'),
+                        'salida_dia': datetime.strftime(trayecto.salida, '%d'),
+                        'salida_mes': int(datetime.strftime(trayecto.salida, '%m')) - 1,
+                        'salida_año': datetime.strftime(trayecto.salida, '%Y'),
+                    })
+
+            else:
+                if trayecto.salida > etapa.salida:
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - trayecto.ingreso).days
+                    trayectoria_equipos['etapas'][-1]['datos'].append({
+                        'equipo': sigla,
+                        'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
+                        'ingreso_mes': int(datetime.strftime(trayecto.ingreso, '%m')) - 1,
+                        'ingreso_año': datetime.strftime(trayecto.ingreso, '%Y'),
+                        'salida_dia': datetime.strftime(etapa.salida, '%d'),
+                        'salida_mes': int(datetime.strftime(etapa.salida, '%m')) - 1,
+                        'salida_año': datetime.strftime(etapa.salida, '%Y'),
+                    })
+                else:
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - trayecto.ingreso).days
+                    trayectoria_equipos['etapas'][-1]['datos'].append({
+                        'equipo': sigla,
+                        'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
+                        'ingreso_mes': int(datetime.strftime(trayecto.ingreso, '%m')) - 1,
+                        'ingreso_año': datetime.strftime(trayecto.ingreso, '%Y'),
+                        'salida_dia': datetime.strftime(trayecto.salida, '%d'),
+                        'salida_mes': int(datetime.strftime(trayecto.salida, '%m')) - 1,
+                        'salida_año': datetime.strftime(trayecto.salida, '%Y'),
+                    })
+
+            # Contar tareas
+            try:
+                cuenta_tareas_etapa[sigla] += 1
+            except KeyError:
+                cuenta_tareas_etapa[sigla] = 1
+
+        trayectoria_equipos['etapas'][-1]['colores'] = list(dict.fromkeys(trayectoria_equipos['etapas'][-1]['colores']))
+
+        tareas_etapa[etapa.etapa.etapa] = cuenta_tareas_etapa
+
+    dias_equipos = {
+        'total': dias_equipos_total,
+        'definicion': [[equipo, dias, COLORES_EQUIPOS[equipo]]
+                       for equipo, dias in cuenta_equipos['Definición de Alcance del Convenio'].items()
+                       if 'Definición de Alcance del Convenio' in tareas_etapa and equipo in tareas_etapa[
+                           'Definición de Alcance del Convenio']],
+        'confeccion': [[equipo, dias, COLORES_EQUIPOS[equipo]]
+                       for equipo, dias in cuenta_equipos['Confección de Documento de Convenio'].items()
+                       if 'Confección de Documento de Convenio' in tareas_etapa and equipo in tareas_etapa[
+                           'Confección de Documento de Convenio']],
+        'firmas': [[equipo, dias, COLORES_EQUIPOS[equipo]]
+                   for equipo, dias in cuenta_equipos['Gestión de Visto Bueno y Firmas'].items()
+                   if 'Gestión de Visto Bueno y Firmas' in tareas_etapa and equipo in tareas_etapa[
+                       'Gestión de Visto Bueno y Firmas']],
+        'resolucion': [[equipo, dias, COLORES_EQUIPOS[equipo]]
+                       for equipo, dias in cuenta_equipos['Generación de Resolución y Protocolo Técnico'].items()
+                       if 'Generación de Resolución y Protocolo Técnico' in tareas_etapa and equipo in tareas_etapa[
+                           'Generación de Resolución y Protocolo Técnico']]
+    }
+    for etapa, datos in dias_equipos.items():
+        datos.insert(0, ['Equipos', 'Días en equipo'])
+
+    tareas_equipos = dict.fromkeys(['total', 'definicion', 'confeccion', 'firmas', 'resolucion'],
+                                   {'datos': tareas_total,
+                                    'colores': [COLORES_EQUIPOS[equipo] for equipo, tarea in
+                                                cuenta_tareas_total.items()]
+                                    })
+
+    for etapa, equipos in tareas_etapa.items():
+        tareas_lista = [['Área', 'Tiempo respuesta (días)']]
+        colores_etapa = []
+        # Añadir encabezado
+        for i, (equipo, tareas) in enumerate(equipos.items()):
+            tareas_lista[0].insert(1, 'Tareas')
+            tareas_lista.append([])
+            tareas_lista[i + 1].append(equipo)
+            if i == 0:
+                tareas_lista[i + 1].append(tareas)
+                for j in range(0, len(equipos) - (i + 1)):
+                    tareas_lista[i + 1].append(0)
+            else:
+                for j in range(0, i):
+                    tareas_lista[i + 1].append(0)
+                tareas_lista[i + 1].append(tareas)
+                for j in range(0, len(equipos) - (i + 1)):
+                    tareas_lista[i + 1].append(0)
+
+            # Tiempo de respuesta promedio
+            tareas_lista[i + 1].append(round(cuenta_equipos[etapa][equipo] / tareas))
+            # Colores
+            colores_etapa.append(COLORES_EQUIPOS[equipo])
+
+        # Pasar datos al diccionario
+        if etapa == 'Definición de Alcance del Convenio':
+            tareas_equipos['definicion'] = {'datos': tareas_lista,
+                                            'colores': colores_etapa,
+                                            }
+        elif etapa == 'Confección de Documento de Convenio':
+            tareas_equipos['confeccion'] = {'datos': tareas_lista,
+                                            'colores': colores_etapa,
+                                            }
+        elif etapa == 'Gestión de Visto Bueno y Firmas':
+            tareas_equipos['firmas'] = {'datos': tareas_lista,
+                                        'colores': colores_etapa,
+                                        }
+        elif etapa == 'Generación de Resolución y Protocolo Técnico':
+            tareas_equipos['resolucion'] = {'datos': tareas_lista,
+                                            'colores': colores_etapa,
+                                            }
+
+    # Timeline Trayectoria
+    # Etapas
+    trayectoria_etapas = [{
+        'etapa': trayecto.etapa.etapa,
+        'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
+        'ingreso_mes': int(datetime.strftime(trayecto.ingreso, '%m')) - 1,
+        'ingreso_año': datetime.strftime(trayecto.ingreso, '%Y'),
+        'salida_dia': datetime.strftime(trayecto.salida, '%d'),
+        'salida_mes': int(datetime.strftime(trayecto.salida, '%m')) - 1,
+        'salida_año': datetime.strftime(trayecto.salida, '%Y'),
+    } for trayecto in trayectoria_etapas_query]
+
+    for trayecto in trayectoria_etapas:
+        trayecto['color'] = COLORES_ETAPAS[trayecto['etapa']]
+
+    # Equipos
+    trayectoria_equipos['total']['datos'] = [{
+        'equipo': (lambda sigla: sigla if sigla != 'AIET' else 'SDGEET')(trayecto.equipo.sigla),
+        'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
+        'ingreso_mes': int(datetime.strftime(trayecto.ingreso, '%m')) - 1,
+        'ingreso_año': datetime.strftime(trayecto.ingreso, '%Y'),
+        'salida_dia': datetime.strftime(trayecto.salida, '%d'),
+        'salida_mes': int(datetime.strftime(trayecto.salida, '%m')) - 1,
+        'salida_año': datetime.strftime(trayecto.salida, '%Y'),
+    } for trayecto in trayectoria_equipos_query]
+    trayectoria_equipos['total']['colores'] = list(
+        dict.fromkeys([COLORES_EQUIPOS[trayecto.equipo.sigla] for trayecto in trayectoria_equipos_query]))
+
+    # Bitácora
+    bitacora_dict = [{
+        'id': registro.id,
+        'observacion': registro.observacion,
+        'fecha': datetime.strftime(registro.fecha, '%YYYY-%MM-%DD'),
+        'dia': datetime.strftime(registro.fecha, '%d'),
+        'mes': int(datetime.strftime(registro.fecha, '%m')) - 1,
+        'año': datetime.strftime(registro.fecha, '%Y'),
+    }
+        for registro in ((BitacoraAnalista.query.filter(and_(BitacoraAnalista.id_convenio == id_convenio,
+                                                             BitacoraAnalista.estado != 'Eliminado')))).
+            order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
+
+    return render_template('informes/detalle_otros_convenios.html', id_convenio=id_convenio,
+                           convenios_select=convenios_select, informacion_convenio=informacion_convenio, bitacora=bitacora_dict,
+                           trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
+                           dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
+                           tareas_equipos=tareas_equipos)
 
 
 @informes.route('/convenios_en_proceso')

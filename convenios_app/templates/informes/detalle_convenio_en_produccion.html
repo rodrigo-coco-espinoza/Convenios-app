@@ -7,7 +7,7 @@
 </script>
 
 <!-- Select Convenio -->
-<div class="content-section mx-4">
+<div class="content-section mx-2">
   <select autofocus class="form-control form-control-lg form-select mb-5" id="convenio">
     {% for convenio in convenios_select %}
       <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
@@ -116,7 +116,7 @@
 
   <!-- Bitácora del convenio -->
   <legend class="border-bottom mb-4">Bitácora</legend>
-  <div class="mb-5 scroll">
+  <div class="mb-5 overflow-auto" style="height: 400px;">
     <div class='' id="bitacora"></div>
   </div>
 

@@ -6,5 +6,74 @@
   changeActive('#otrosConvenios')
 </script>
 
-HOLANDA QUE TALCA
+<div class="content-section mx-2">
+  <!-- Select Convenio -->
+  <select autofocus class="form-control form-control-lg form-select mb-5" id="convenio">
+    {% for convenio in convenios_select %}
+      <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
+    {% endfor %}
+  </select>
+
+
+  <!-- Convenios en números -->
+  <div class="row text-center mb-3">
+    <div class="col-lg-4">
+      <h1>{{ cuenta_convenios.reemplazados }} <i class="fa-solid fa-down-left-and-up-right-to-center fa-fw fa-sm"></i></h1>
+      Convenios reemplazados
+    </div>
+    <div class="col-lg-4">
+      <h1>{{ cuenta_convenios.pausados }} <i class="fa-solid fa-pause fa-fw fa-sm"></i></h1>
+      Convenios en pausa
+    </div>
+    <div class="col-lg-4">
+      <h1>{{ cuenta_convenios.cancelados }} <i class="fa-solid fa-ban fa-fw fa-sm"></i></h1>
+      Convenios cancelados
+    </div>
+  </div>
+
+
+  <!-- Listado otros convenios -->
+  <legend class='border-bottom mb-2'>Listado otros convenios</legend>
+  <div  class="mb-5 overflow-auto" style="height: 580px;">
+    <div id='listadoConvenios'></div>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+  // Ir al detalle del convenio cuando se seleccione uno
+  $('#convenio').change(function() {
+    window.location.replace(Flask.url_for('informes.detalle_otros_convenios',
+                                                  {'id_convenio': $('#convenio').val()}))
+  });
+</script>
+
+<!-- Listado convenios -->
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['table']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var dataTablaListado = new google.visualization.DataTable();
+    dataTablaListado.addColumn('string', 'Institución');
+    dataTablaListado.addColumn('string', 'Nombre de convenio');
+    dataTablaListado.addColumn('string', 'Estado');
+    dataTablaListado.addColumn('string', 'Ver res.')
+
+    var dataListado = {{ listado_convenios | tojson }}
+    dataTablaListado.addRows(dataListado);
+    dataTablaListado.setProperty(0, 0, 'style', 'width: 250px');
+    dataTablaListado.setProperty(0, 3, 'style', 'width: 70px');
+    dataTablaListado.setProperty(0, 2, 'style', 'width: 150px');
+    optionsTablaListado = {
+      allowHtml: true,
+      width: '100%',
+      sortColumn: 2,
+      sortAscending: false,
+    };
+
+    var tablaListado = new google.visualization.Table(document.getElementById('listadoConvenios'));
+    tablaListado.draw(dataTablaListado, optionsTablaListado);
+  }
+</script>
+
 {% endblock content %}

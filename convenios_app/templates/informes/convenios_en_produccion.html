@@ -6,66 +6,67 @@
   changeActive('#conveniosProduccion')
 </script>
 
-<div class="content-section mx-4">
+<div class="content-section mx-2">
   <!-- Select Convenio -->
   <select autofocus class="form-control form-control-lg form-select mb-5" id="convenio">
     {% for convenio in convenios_select %}
       <option value="{{ convenio[0] }}">{{ convenio[1] }}</option>
     {% endfor %}
   </select>
-</div>
 
 
-<!-- Convenios en números -->
-<div class="row text-center mb-3">
-  <div class="col-lg-6">
-    <h1>{{ cuenta_produccion.convenios }} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
-    Convenios en producción
+
+  <!-- Convenios en números -->
+  <div class="row text-center mb-3">
+    <div class="col-lg-6">
+      <h1>{{ cuenta_produccion.convenios }} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
+      Convenios en producción
+    </div>
+    <div class="col-lg-6">
+      <h1>{{ cuenta_produccion.adendum }} <i class="fa-solid fa-file-lines fa-fw fa-sm"></i></h1>
+      Adendum en producción
+    </div>
   </div>
-  <div class="col-lg-6">
-    <h1>{{ cuenta_produccion.adendum }} <i class="fa-solid fa-file-lines fa-fw fa-sm"></i></h1>
-    Adendum en producción
+
+  <!-- Estadísticas e indicadores del proceso -->
+  <legend class="border-bottom mb-0">Estadísticas de convenios en producción</legend>
+  <small class="mb-5">Estos datos se calculan con la información de convenios
+  que ingresaron a partir del 01 de enero del 2020.</small>
+  <!-- Información de días -->
+  <div class="row my-3" align='center'>
+    <!-- Días en proceso -->
+    <p class="mb-1"><strong>Días promedio en proceso</strong></p>
+    <h2><i class="fas fa-stopwatch fa-lg"></i> {{ dias_proceso }}</h2>
   </div>
-</div>
 
-<!-- Estadísticas e indicadores del proceso -->
-<legend class="border-bottom mb-0">Estadísticas de convenios en producción</legend>
-<small class="mb-5">Estos datos se calculan con la información de convenios
-que ingresaron a partir del 01 de enero del 2020.</small>
-<!-- Información de días -->
-<div class="row my-3" align='center'>
-  <!-- Días en proceso -->
-  <p class="mb-1"><strong>Días promedio en proceso</strong></p>
-  <h2><i class="fas fa-stopwatch fa-lg"></i> {{ dias_proceso }}</h2>
-</div>
-
-<div class="row mb-1">
-  <!-- Días por etapa -->
-  <div class="col-lg-6">
-    <div id="chartDiasEtapas"></div>
+  <div class="row mb-1">
+    <!-- Días por etapa -->
+    <div class="col-lg-6">
+      <div id="chartDiasEtapas"></div>
+    </div>
+    <!-- Días por equipo -->
+    <div class="col-lg-6">
+      <div id="chartDiasEquipos"></div>
+    </div>
   </div>
-  <!-- Días por equipo -->
-  <div class="col-lg-6">
-    <div id="chartDiasEquipos"></div>
+  <!-- Tareas por área y tiempo de respuesta -->
+  <div class='row'>
+    <div id='chartTareas'></div>
   </div>
-</div>
-<!-- Tareas por área y tiempo de respuesta -->
-<div class='row'>
-  <div id='chartTareas'></div>
-</div>
 
-<!-- Días por etapa por años
-<legend class='border-bottom mb-2'>Días en etapas por años</legend>
-<div  class="mb-5">
-  <div id='chartAnual'></div>
-</div>  -->
+  <!-- Días por etapa por años
+  <legend class='border-bottom mb-2'>Días en etapas por años</legend>
+  <div  class="mb-5">
+    <div id='chartAnual'></div>
+  </div>  -->
 
-<!-- Listado convenios en producción -->
-<legend class='border-bottom mb-2'>Listado convenios en producción</legend>
-<div  class="mb-5 scroll" style="height: 700px;">
-  <div id='listadoConvenios'></div>
+  <!-- Listado convenios en producción -->
+  <legend class='border-bottom mb-2'>Listado convenios en producción</legend>
+  <div  class="mb-5 scroll" style="height: 700px;">
+    <div id='listadoConvenios'></div>
+  </div>
+
 </div>
-
 
 <!-- Estadíticas -->
 <script type="text/javascript">
