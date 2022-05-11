@@ -263,22 +263,41 @@
                 {{ form_info.nro_resolucion(class="form-control form-control-sm") }}
               {% endif %}
             </div>
-            <div class="col-lg-6 pt-4">
-              <!-- Link a resolución en intranet -->
-              {% if info_convenio.link_resolucion != "" %}
-                <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución en intranet</a>
-              {% else %}
-                {% if form_info.link_resolucion.errors %}
-                  {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
-                  <div class="invalid-feedback">
-                    {% for error in form_info.link_resolucion.errors %}
-                      <span>{{ error }}</span>
-                    {% endfor %}
-                  </div>
+            <div class="col-lg-6 pe-3">
+              <div class="row">
+                <!-- Link a al Project -->
+                {% if info_convenio.link_project != "" %}
+                  <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_project }}"><img src="{{ url_for('static', filename='project.png') }}"> Ver Project</a>
                 {% else %}
-                  {{ form_info.link_resolucion(class="form-control form-control-sm") }}
+                  {% if form_info.link_project.errors %}
+                    {{ form_info.link_project(class='form-control form-control-sm is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in form_info.link_project.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form_info.link_project(class="form-control form-control-sm") }}
+                  {% endif %}
                 {% endif %}
-              {% endif %}
+              </div>
+              <div class="row pt-1">
+                <!-- Link a resolución en intranet -->
+                {% if info_convenio.link_resolucion != "" %}
+                  <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución</a>
+                {% else %}
+                  {% if form_info.link_resolucion.errors %}
+                    {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in form_info.link_resolucion.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form_info.link_resolucion(class="form-control form-control-sm") }}
+                  {% endif %}
+                {% endif %}
+              </div>
             </div>
           </div>
         </div>
@@ -340,7 +359,7 @@
               <tr>
                 <td style="width: 100px;">{{ registro[1] }}</td>
                 <td>{{ registro[0] }}</td>
-                <td><a class="text-dark" href="{{ url_for('bitacoras.borrar_bitacora_analista', id_comentario=registro[2], id_convenio=id_convenio) }}"><i class="fas fa-times"></i></a></td>
+                <td><a class="text-dark" href="{{ url_for('bitacoras.borrar_bitacora_analista', id_comentario=registro[2], id_convenio=id_convenio) }}"><i class="gray fas fa-trash"></i></a></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -399,8 +418,8 @@
                     <td class='text-danger' style="width: 100px;">{{ tarea[1] }}</td>
                     <td class='text-danger'>{{ tarea[0] }}</td>
                     <td style="width: 60px;">
-                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-check"></i></a>
-                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-times"></i></a>
+                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="gray fas fa-trash"></i></a>
+                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-check green"></i></a>
                     </td>
                   </tr>
                 {% else %}
@@ -408,8 +427,8 @@
                     <td style="width: 100px;">{{ tarea[1] }}</td>
                     <td>{{ tarea[0] }}</td>
                     <td style="width: 60px;">
-                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-check"></i></a>
-                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-times"></i></a>
+                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="gray fas fa-trash"></i></a>
+                      <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.completar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="fas fa-check green"></i></a>
                     </td>
                   </tr>
                 {% endif %}
@@ -531,7 +550,169 @@
   </form>
   </div>
 
+  <!-- Formulario para agregar entregas batch -->
+  <div class="row border border-secondary rounded mb-3">
+    <h2>Recepción de información</h2>
+    <!-- Recepción asignadas -->
+    <legend class="mb-2">
+      <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+      href="#verRecepcion" aria-expanded="false" aria-controls="verRecepcion">
+      Ver recepción <i class="fas fa-angle-down"></i></a></legend>
+    <div class="content-section collapse" id="verRecepcion">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope='col'>Nombre</th>
+            <th scope='col'>Carpeta</th>
+            <th scope='col'>Archivo</th>
+            <th scope='col'>Periodicidad</th>
+            <th scope='col'>Subdirección</th>
+            <th scope='col'>Funciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Información de pensionados</td>
+            <td>CONVENIO_AAAA</td>
+            <td>info_pensionados_mm_aaaa.csv</td>
+            <td>Ene, Jul, Nov</td>
+            <td>SDF</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Contratos truchos</td>
+            <td>CONTRATOS_MM_AAAA</td>
+            <td>truchos.txt</td>
+            <td>Mensual</td>
+            <td>SDAC</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Empleados en teletrabajo</td>
+            <td></td>
+            <td>empleados_teletrabajo.csv</td>
+            <td>Online</td>
+            <td>SDJ</td>
+            <td>...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Añadir recepción -->
+    <legend class="mb-2">
+      <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+      href="#agregarRecepcion" aria-expanded="false" aria-controls="agregarRecepcion">
+      Agregar recepción <i class="fas fa-angle-down"></i></a></legend>
+    <div class="content-section collapse" id="agregarRecepcion">
+      <form method="POST" novalidate>
+        {{ form_recepcion.hidden_tag() }}
+        <fieldset>
+          <!-- Nombre de la recepción -->
+          <div class="form-group mb-3">
+            {{ form_recepcion.nombre.label(class='form-control-label mb-1') }}
+            {% if form_recepcion.nombre.errors %}
+              {{ form_recepcion.nombre(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_recepcion.nombre.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_recepcion.nombre(class='form-control form-control-lg')}}
+            {% endif %}
+          </div>
+          <div class="row form-group mb-3">
+            <!-- Carpeta -->
+            <div class="col-lg-6">
+              {{ form_recepcion.carpeta.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.carpeta.errors %}
+                {{ form_recepcion.carpeta(clas='form-control form-control-lg is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.carpeta.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.carpeta(class='form-control form-control-lg')}}
+              {% endif %}
+            </div>
+            <!-- Carpeta -->
+            <div class="col-lg-6">
+              {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.archivo.errors %}
+                {{ form_recepcion.archivo(class='form-control form-control-lg is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.archivo.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.archivo(class='form-control form-control-lg')}}
+              {% endif %}
+            </div>
+          </div>
+          <div class="row form-group mb-3">
+            <div class="col-lg-4">
+              {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.sd_recibe.errors %}
+                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.sd_recibe.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
+              {% endif %}
+            </div>
+            <div class="col-lg-8 form-group">
+              <p class="form-control-label mb-1">Periodicidad de la recepción</p>
+              <div class="row mb-0">
+                <div class="col-lg-2"><p class="mb-0">En línea <input type="checkbox" name="periodicidad_checkbox" value="En línea"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_checkbox" value="Diario"></p></div>
+                <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_checkbox" value="Semanal"></P></div>
+                <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_checkbox" value="Mensual"></p></div>
+              </div>
+              <div class="row">
+                <div class='col-lg-2'>
+                  <p class="my-0">Ene <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Feb <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Mar <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Abr <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">May <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Jun <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Jul <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Ago <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Sep <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Oct <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Nov <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                  <p class="my-0">Dic <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="px-1" align='right'>
+            <button type=submit name="agregar_recepcion" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+
 </div>
+
+
+
+
 
 <script type="text/javascript">
   // Marcar convenio seleccionado en el select

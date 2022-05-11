@@ -2,6 +2,7 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, User)
 from convenios_app.users.forms import RegistrationForm, LoginForm
+from convenios_app.bitacoras.forms import ETAPAS
 from convenios_app.informes.forms import MisConveniosInfoConvenioForm, MisConveniosBitacoraForm, MisConveniosTareaForm
 from convenios_app import db, bcrypt
 from convenios_app.users.utils import admin_only, analista_only
@@ -11,6 +12,7 @@ from convenios_app.bitacoras.utils import actualizar_trayectoria_equipo, actuali
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias
 from datetime import datetime, date
+from pprint import pprint
 
 users = Blueprint('users', __name__)
 
@@ -176,7 +178,7 @@ def mis_convenios(id_persona):
         for equipo in form_info_equipos:
             actualizar_trayectoria_equipo(equipo[0], equipo[1], equipo[2], form_info_convenio.id_convenio.data)
         flash(f'Se ha actualizado la información de {generar_nombre_convenio(convenio)}', 'success')
-        return redirect(url_for('informes.mis_convenios', id_persona=id_persona))
+        return redirect(url_for('users.mis_convenios', id_persona=id_persona))
 
     # Formulario nueva observación bitácora
     form_bitacora = MisConveniosBitacoraForm()
@@ -193,7 +195,7 @@ def mis_convenios(id_persona):
         db.session.commit()
         convenio = Convenio.query.get(form_bitacora.id_convenio_bitacora.data)
         flash(f'Se actualizado la bitácora de {generar_nombre_convenio(convenio)}', 'success')
-        return redirect(url_for('informes.mis_convenios', id_persona=id_persona))
+        return redirect(url_for('users.mis_convenios', id_persona=id_persona))
 
     # Formulario nueva tarea
     form_tarea = MisConveniosTareaForm()
@@ -210,7 +212,7 @@ def mis_convenios(id_persona):
         db.session.commit()
         convenio = Convenio.query.get(form_tarea.id_convenio_tarea.data)
         flash(f'Se ha agregado tarea a {generar_nombre_convenio(convenio)}', 'success')
-        return redirect(url_for('informes.mis_convenios', id_persona=id_persona))
+        return redirect(url_for('users.mis_convenios', id_persona=id_persona))
 
 
     # Estado actual de mis convenios
@@ -228,14 +230,20 @@ def mis_convenios(id_persona):
                                      f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
-        tabla_estado_actual.append([nombre, etapa, ultima_observacion, suplente, link_resolucion, convenio.id])
+        link_project = (lambda
+                               link: f'<div class="text-center"><a target="_blank" style="text-decoration: none; color: #000;" href="{link}">'
+                                     f'<img class="text-center btn-lg" src="{url_for("static", filename="project.png")}"></a></div>' if link else
+        f'<div class="text-center"><img class=" text-muted btn-lg" src="{url_for("static", filename="project_gray.png")}"></div>')(
+            convenio.link_project)
+        tabla_estado_actual.append([nombre, etapa, ultima_observacion, suplente, link_project, link_resolucion, convenio.id])
     # Ordenar tabla
     tabla_estado_actual.sort(key=lambda lista: lista[0])
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_estado_actual:
-        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[5])}>' \
+        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[6])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
+
 
     return render_template('users/mis_convenios.html', tareas_pendientes=tareas_pendientes, hoy=date.today(),
                            id_persona=id_persona, convenios_select=convenios_select, form_info=form_info_convenio,

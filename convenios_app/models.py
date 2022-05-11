@@ -190,6 +190,7 @@ class Convenio(db.Model):
     fecha_resolucion = db.Column(db.Date, nullable=True)
     nro_resolucion = db.Column(db.Integer, nullable=True)
     link_resolucion = db.Column(db.String(100), nullable=True)
+    link_project = db.Column(db.String(100), nullable=True)
     # Llaves foráneas
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
     id_coord_sii = db.Column(db.Integer, db.ForeignKey('persona.id'), nullable=False)

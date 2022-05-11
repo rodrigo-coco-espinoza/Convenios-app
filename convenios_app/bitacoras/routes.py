@@ -4,7 +4,7 @@ from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, CatalogoWS, WSConvenio)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
-                                           NuevaTareaForm, InfoConvenioForm, ETAPAS, EQUIPOS)
+                                           NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales
@@ -263,6 +263,8 @@ def bitacora_convenio(id_convenio):
         'sup': (lambda convenio: convenio.sup_sii.nombre if convenio.id_sup_sii != None else "")(convenio),
         'equipos': trayectoria_equipos,
         'link_resolucion': (lambda convenio: convenio.link_resolucion if convenio.link_resolucion != None else "")(
+            convenio),
+        'link_project': (lambda convenio: convenio.link_project if convenio.link_project != None else "")(
             convenio)
     }
     form_info = InfoConvenioForm(
@@ -369,6 +371,10 @@ def bitacora_convenio(id_convenio):
         convenio.nro_resolucion = form_info.nro_resolucion.data
         if not convenio.link_resolucion and convenio.link_resolucion != form_info.link_resolucion.data:
             convenio.link_resolucion = form_info.link_resolucion.data
+
+        # Actualizar link project
+        if not convenio.link_project and convenio.link_project != form_info.link_project.data:
+            convenio.link_project = form_info.link_project.data
         db.session.commit()
 
         flash('Se ha actualizado la información del convenio.', 'success')
@@ -506,11 +512,25 @@ def bitacora_convenio(id_convenio):
             flash('Se ha actualizado la información de Web Services.', 'success')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
+    # Formulario recepción de información
+    sd_asociadas = SdInvolucrada.query.filter(SdInvolucrada.id_convenio == id_convenio).all()
+    form_recepcion = AgregarRecepcionForm()
+    form_recepcion.sd_recibe.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
+    form_recepcion.sd_recibe.choices.sort(key=lambda tup: tup[1])
+    form_recepcion.sd_recibe.choices.insert(0, (0, 'Seleccione Subdirección'))
+
+    if 'agregar_recepcion' in request.form and form_recepcion.validate_on_submit():
+        periodicidad = request.form.getlist('periodicidad_checkbox')
+        if not periodicidad:
+            flash('Debe seleccionar la periodicidad de la recepción.', 'danger')
+            return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
                            form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
-                           ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles)
+                           ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
+                           form_recepcion=form_recepcion)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')
@@ -546,7 +566,7 @@ def completar_tarea(id_tarea, id_convenio, id_persona):
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
     else:
         flash('Se ha completado la tarea.', 'success')
-        return redirect(url_for('informes.mis_convenios', id_persona=id_persona))
+        return redirect(url_for('users.mis_convenios', id_persona=id_persona))
 
 
 @bitacoras.route('/borrar_tarea/<int:id_tarea>/<int:id_convenio>/<int:id_persona>')
@@ -561,8 +581,8 @@ def borrar_tarea(id_tarea, id_convenio, id_persona):
         flash(f'Se ha eliminado la tarea "{tarea.plazo} {tarea.tarea}"', 'warning')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
     else:
-        flash('Se ha eliminado la tarea "{tarea.plazo} {tarea.tarea}"', 'warning')
-        return redirect(url_for('informes.mis_convenios', id_persona=id_persona))
+        flash(f'Se ha eliminado la tarea "{tarea.plazo} {tarea.tarea}"', 'warning')
+        return redirect(url_for('users.mis_convenios', id_persona=id_persona))
 
 
 @bitacoras.route('/editar_convenio/<int:id_convenio>', methods=['GET', 'POST'])
@@ -608,7 +628,6 @@ def editar_convenio(id_convenio):
     form_editar_convenio.coord_ie.choices = personas_ie
     form_editar_convenio.sup_ie.choices = personas_ie
     form_editar_convenio.responsable_convenio_ie.choices = personas_ie
-    form_editar_convenio.sd_involucradas.choices = subdirecciones
     query_sd = SdInvolucrada.query.filter_by(id_convenio=id_convenio).all()
     sd_involucradas = [str(subdireccion.id_subdireccion) for subdireccion in query_sd]
     form_editar_convenio.convenio_reemplazo.choices = convenios_reemplazo
@@ -647,7 +666,8 @@ def editar_convenio(id_convenio):
 
     if form_editar_convenio.validate_on_submit():
         respuesta = actualizar_convenio(convenio=convenio_seleccionado, form=form_editar_convenio,
-                                        sd_actuales=sd_involucradas, query_sd=query_sd)
+                                        sd_actuales=sd_involucradas, query_sd=query_sd,
+                                        sd_seleccionadas=request.form.getlist('sd_checkbox'))
         flash(f'Se ha actualizado {generar_nombre_convenio(convenio_seleccionado)}', 'success')
         if respuesta == 'reabierto':
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
@@ -685,7 +705,6 @@ def agregar_convenio():
     form_convenio.institucion.choices = instituciones
     form_convenio.coord_sii.choices = personas_aiet
     form_convenio.sup_sii.choices = personas_aiet
-    form_convenio.sd_involucradas.choices = subdirecciones
 
     # Agregar nuevo convenio
     if form_convenio.validate_on_submit():
@@ -744,7 +763,8 @@ def agregar_convenio():
         # Agregar subdirecciones involucradas
         convenio_recien_agregado = Convenio.query.filter(and_(Convenio.nombre == nuevo_convenio.nombre,
                                                               Convenio.id_institucion == nuevo_convenio.id_institucion)).first()
-        for subdireccion in form_convenio.sd_involucradas.data:
+        sd_seleccionadas = request.form.getlist('sd_checkbox')
+        for subdireccion in sd_seleccionadas:
             nueva_sd_involucrada = SdInvolucrada(
                 id_convenio=convenio_recien_agregado.id,
                 id_subdireccion=subdireccion
