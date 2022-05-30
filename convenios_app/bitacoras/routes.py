@@ -868,7 +868,13 @@ def obtener_convenios_institucion(id_institucion):
 @login_required
 @analista_only
 def eliminar_hito(id_hito):
-    return f'voy a elimina el hito {id_hito}'
+    hito = HitosConvenio.query.get(id_hito)
+    nombre_hito = hito.hito.nombre
+    id_convenio = hito.id_convenio
+    db.session.delete(hito)
+    db.session.commit()
+    flash(f'Se ha eliminado el hito {nombre_hito}', 'success')
+    return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
 # @bitacoras.route('/obtener_convenio/<int:id_convenio>')
 # def obtener_convenio(id_convenio):
