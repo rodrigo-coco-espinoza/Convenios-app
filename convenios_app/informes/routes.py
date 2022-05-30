@@ -5,13 +5,12 @@ from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvo
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo)
 from convenios_app import db
 from sqlalchemy import and_, or_
-from convenios_app.bitacoras.utils import actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales
-from convenios_app.bitacoras.forms import ETAPAS
-from convenios_app.users.utils import admin_only, analista_only
+from convenios_app.bitacoras.utils import dias_habiles
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias
 
 from datetime import datetime, date
+import pandas as pd
 from pprint import pprint
 from math import ceil, floor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -174,7 +173,7 @@ def estadisticas_convenios():
             # Fecha de salida de la etapa
             trayectoEtapaSalida = (lambda salida: salida if salida != None else date.today())(trayectoEtapa.salida)
             # Sumar días del trayecto a los días de la etapa del convenio
-            diasxEtapaConvenio[trayectoEtapa.etapa.etapa] += (trayectoEtapaSalida - trayectoEtapa.ingreso).days
+            diasxEtapaConvenio[trayectoEtapa.etapa.etapa] += dias_habiles(trayectoEtapa.ingreso, trayectoEtapaSalida)
 
             # Obtener equipos de cada trayecto de etapa
             trayectoria_equipos_query = TrayectoriaEquipo.query.filter(
@@ -199,8 +198,8 @@ def estadisticas_convenios():
                     lambda salida: salida if salida <= trayectoEtapaSalida else trayectoEtapaSalida)(
                     trayectoEquipoSalida)
                 # Sumar los días
-                diasxEquipoEtapaConvenio[trayectoEtapa.etapa.etapa][sigla] += (
-                            trayectoEquipoSalida - trayectoEquipoIngreso).days
+                diasxEquipoEtapaConvenio[trayectoEtapa.etapa.etapa][sigla] += dias_habiles(trayectoEquipoIngreso,
+                                                                                           trayectoEquipoSalida)
 
                 # Contar tarea en el equipo y etapa correspondiente
                 try:
@@ -217,7 +216,8 @@ def estadisticas_convenios():
             trayectoEquipoTotalSalida = (lambda salida: salida if salida != None else date.today())(
                 trayectoEquipoTotal.salida)
             cuentaxEquipoEtapaConvenio['total'][sigla] = True
-            diasxEquipoEtapaConvenio['total'][sigla] += (trayectoEquipoTotalSalida - trayectoEquipoTotal.ingreso).days
+            diasxEquipoEtapaConvenio['total'][sigla] += dias_habiles(trayectoEquipoTotal.ingreso,
+                                                                     trayectoEquipoTotalSalida)
             # Sumar tareas
             try:
                 tareasxEquipoTotalConvenio[sigla] += 1
@@ -312,7 +312,7 @@ def estadisticas_convenios():
         }
         for trayectoEtapa in trayectoria_etapa_query:
             # Sumar días del trayecto a los días de la etapa del convenio
-            diasxEtapaConvenio[trayectoEtapa.etapa.etapa] += (trayectoEtapa.salida - trayectoEtapa.ingreso).days
+            diasxEtapaConvenio[trayectoEtapa.etapa.etapa] += dias_habiles(trayectoEtapa.ingreso, trayectoEtapa.salida)
 
             # Obtener equipos de cada trayecto de etapa
             trayectoria_equipos_query = TrayectoriaEquipo.query.filter(
@@ -332,8 +332,8 @@ def estadisticas_convenios():
                 # Marcar que el equipo tuvo el convenio durante la etapa
                 cuentaxEquipoEtapaConvenio[trayectoEtapa.etapa.etapa][sigla] = True
                 # Sumar días
-                diasxEquipoEtapaConvenio[trayectoEtapa.etapa.etapa][sigla] += (
-                            trayectoEquipoSalida - trayectoEquipoIngreso).days
+                diasxEquipoEtapaConvenio[trayectoEtapa.etapa.etapa][sigla] += dias_habiles(trayectoEquipoIngreso,
+                                                                                           trayectoEquipoSalida)
 
                 # Contar tarea en el equipo y etapa correspondiente
                 try:
@@ -348,7 +348,7 @@ def estadisticas_convenios():
         for trayectoEquipoTotal in trayectoria_equipo_total_query:
             sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayectoEquipoTotal.equipo.sigla)
             cuentaxEquipoEtapaConvenio['total'][sigla] = True
-            diasxEquipoEtapaConvenio['total'][sigla] += (trayectoEquipoTotal.salida - trayectoEquipoTotal.ingreso).days
+            diasxEquipoEtapaConvenio['total'][sigla] += dias_habiles(trayectoEquipoTotal.ingreso, trayectoEquipoTotal.salida)
             # Sumar tareas
             try:
                 tareasxEquipoTotalConvenio[sigla] += 1
@@ -391,10 +391,38 @@ scheduler.start()
 estadisticas_convenios()
 
 
+@informes.route('/convenios_por_institucion')
+def convenios_por_institucion():
+    convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
+                                                    or_(Convenio.estado == 'En proceso',
+                                                        Convenio.estado == 'En producción'))).all()
+    instituciones = [convenio.institucion.sigla for convenio in convenios_firmados]
+    instituciones_dict = {i:{'total': instituciones.count(i),
+                             'convenios':0,
+                                'adendum':0} for i in instituciones}
+
+    for convenio in convenios_firmados:
+        if convenio.tipo == 'Convenio':
+            instituciones_dict[convenio.institucion.sigla]['convenios'] += 1
+        else:
+            instituciones_dict[convenio.institucion.sigla]['adendum'] += 1
+
+    lista = []
+    for nombre, cuenta in instituciones_dict.items():
+        lista.append({'insittucion': nombre,
+                      'convenios': cuenta['convenios'],
+                      'adendum': cuenta['adendum'],
+                      'total': cuenta['total']})
+    df = pd.DataFrame.from_dict(lista)
+    df.to_csv(r'instituciones.csv', index=False, header=True)
+
+    return 'hola'
+
 @informes.route('/otros_convenios')
 def otros_convenios():
     # Select field convenios en proceso
-    convenios_query = Convenio.query.filter(and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
+    convenios_query = Convenio.query.filter(
+        and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
     convenios_select = [(convenio.id, generar_nombre_convenio(convenio)) for convenio in convenios_query]
     convenios_select.sort(key=lambda tup: tup[1])
     convenios_select.insert(0, (0, 'Seleccione convenio para ver detalle'))
@@ -428,7 +456,8 @@ def otros_convenios():
 @informes.route('/detalle_otros_convenios/<int:id_convenio>', methods=['GET', 'POST'])
 def detalle_otros_convenios(id_convenio):
     # Select field convenios en producción
-    convenios_query = Convenio.query.filter(and_(Convenio.estado != 'En producción', Convenio.estado != 'En proceso')).all()
+    convenios_query = Convenio.query.filter(
+        and_(Convenio.estado != 'En producción', Convenio.estado != 'En proceso')).all()
     convenios_select = [(convenio.id, generar_nombre_convenio(convenio)) for convenio in convenios_query]
     convenios_select.sort(key=lambda tup: tup[1])
     convenios_select.insert(0, (0, 'Ver resumen otros convenios'))
@@ -486,8 +515,8 @@ def detalle_otros_convenios(id_convenio):
         'Generación de Resolución y Protocolo Técnico': 0
     }
     for trayecto in trayectoria_etapas_query:
-        cuenta_etapas[trayecto.etapa.etapa] += (trayecto.salida - trayecto.ingreso).days
-        dias_proceso += (trayecto.salida - trayecto.ingreso).days
+        cuenta_etapas[trayecto.etapa.etapa] += dias_habiles(trayecto.ingreso, trayecto.salida)
+        dias_proceso += dias_habiles(trayecto.ingreso, trayecto.salida)
     dias_etapas_total = [[etapa, dias] for etapa, dias in cuenta_etapas.items()]
     dias_etapas = {
         'total': dias_etapas_total,
@@ -532,7 +561,7 @@ def detalle_otros_convenios(id_convenio):
     cuenta_tareas_total = {}
     for trayecto in trayectoria_equipos_query:
         sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayecto.equipo.sigla)
-        cuenta_equipos_total[sigla] += (trayecto.salida - trayecto.ingreso).days
+        cuenta_equipos_total[sigla] += dias_habiles(trayecto.ingreso, trayecto.salida)
         # Agregar al diccionario si no existe
         try:
             cuenta_tareas_total[sigla] += 1
@@ -599,7 +628,7 @@ def detalle_otros_convenios(id_convenio):
             # Días por equipo
             if trayecto.ingreso < etapa.ingreso:
                 if trayecto.salida > etapa.salida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, etapa.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -610,7 +639,7 @@ def detalle_otros_convenios(id_convenio):
                         'salida_año': datetime.strftime(etapa.salida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, trayecto.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -623,7 +652,7 @@ def detalle_otros_convenios(id_convenio):
 
             else:
                 if trayecto.salida > etapa.salida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, etapa.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -634,7 +663,7 @@ def detalle_otros_convenios(id_convenio):
                         'salida_año': datetime.strftime(etapa.salida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, trayecto.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -767,7 +796,8 @@ def detalle_otros_convenios(id_convenio):
             order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
 
     return render_template('informes/detalle_otros_convenios.html', id_convenio=id_convenio,
-                           convenios_select=convenios_select, informacion_convenio=informacion_convenio, bitacora=bitacora_dict,
+                           convenios_select=convenios_select, informacion_convenio=informacion_convenio,
+                           bitacora=bitacora_dict,
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos)
@@ -784,8 +814,10 @@ def convenios_en_proceso():
     # Convenios en números
     cuenta_convenios = {
         'proceso': Convenio.query.filter(Convenio.estado == 'En proceso').count(),
-        'firmados': Convenio.query.filter(and_(Convenio.estado == 'En proceso', Convenio.fecha_documento != None)).count(),
-        'publicados': Convenio.query.filter(and_(Convenio.estado == 'En proceso', Convenio.fecha_resolucion != None)).count()
+        'firmados': Convenio.query.filter(
+            and_(Convenio.estado == 'En proceso', Convenio.fecha_documento != None)).count(),
+        'publicados': Convenio.query.filter(
+            and_(Convenio.estado == 'En proceso', Convenio.fecha_resolucion != None)).count()
     }
 
     # Calcular promedio de dias por equipo
@@ -991,8 +1023,8 @@ def detalle_convenio_en_proceso(id_convenio):
     for trayecto in trayectoria_etapas_query:
         # Fecha de salida de la etapa
         trayectoEtapaSalida = (lambda salida: salida if salida != None else date.today())(trayecto.salida)
-        cuenta_etapas[trayecto.etapa.etapa] += (trayectoEtapaSalida - trayecto.ingreso).days
-        dias_proceso += (trayectoEtapaSalida - trayecto.ingreso).days
+        cuenta_etapas[trayecto.etapa.etapa] += dias_habiles(trayecto.ingreso, trayectoEtapaSalida)
+        dias_proceso += dias_habiles(trayecto.ingreso, trayectoEtapaSalida)
     dias_etapas_total = [[etapa, dias] for etapa, dias in cuenta_etapas.items()]
     dias_etapas = {
         'total': dias_etapas_total,
@@ -1038,7 +1070,7 @@ def detalle_convenio_en_proceso(id_convenio):
     for trayecto in trayectoria_equipos_query:
         trayectoEquipoSalida = (lambda salida: salida if salida != None else date.today())(trayecto.salida)
         sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayecto.equipo.sigla)
-        cuenta_equipos_total[sigla] += (trayectoEquipoSalida - trayecto.ingreso).days
+        cuenta_equipos_total[sigla] += dias_habiles(trayecto.ingreso, trayectoEquipoSalida)
         # Agregar al diccionario si no existe
         try:
             cuenta_tareas_total[sigla] += 1
@@ -1108,7 +1140,7 @@ def detalle_convenio_en_proceso(id_convenio):
             # Días por equipo
             if trayecto.ingreso <= etapa.ingreso:
                 if trayectoEquipoSalida >= trayectoEtapaSalida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayectoEtapaSalida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, trayectoEtapaSalida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -1119,7 +1151,7 @@ def detalle_convenio_en_proceso(id_convenio):
                         'salida_año': datetime.strftime(trayectoEtapaSalida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayectoEquipoSalida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, trayectoEquipoSalida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -1132,7 +1164,7 @@ def detalle_convenio_en_proceso(id_convenio):
 
             else:
                 if trayectoEquipoSalida >= trayectoEtapaSalida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayectoEtapaSalida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, trayectoEtapaSalida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -1143,7 +1175,7 @@ def detalle_convenio_en_proceso(id_convenio):
                         'salida_año': datetime.strftime(trayectoEtapaSalida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayectoEquipoSalida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, trayectoEquipoSalida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -1300,7 +1332,8 @@ def convenios_en_produccion():
 
     # Convenios en producción
     cuenta_produccion = {
-        'convenios': Convenio.query.filter(and_(Convenio.estado == 'En producción', Convenio.tipo == 'Convenio')).count(),
+        'convenios': Convenio.query.filter(
+            and_(Convenio.estado == 'En producción', Convenio.tipo == 'Convenio')).count(),
         'adendum': Convenio.query.filter(and_(Convenio.estado == 'En producción', Convenio.tipo == 'Adendum')).count()
     }
 
@@ -1434,7 +1467,8 @@ def convenios_en_produccion():
 
     return render_template('informes/convenios_en_produccion.html', convenios_select=convenios_select,
                            listado_convenios=listado_convenios, dias_etapas=dias_etapas, dias_proceso=dias_proceso,
-                           dias_equipos=dias_equipos, tareas_equipos=tareas_equipos, cuenta_produccion=cuenta_produccion)
+                           dias_equipos=dias_equipos, tareas_equipos=tareas_equipos,
+                           cuenta_produccion=cuenta_produccion)
 
 
 @informes.route('/detalle_convenio_en_produccion/<int:id_convenio>', methods=['GET', 'POST'])
@@ -1508,8 +1542,8 @@ def detalle_convenio_en_produccion(id_convenio):
         'Generación de Resolución y Protocolo Técnico': 0
     }
     for trayecto in trayectoria_etapas_query:
-        cuenta_etapas[trayecto.etapa.etapa] += (trayecto.salida - trayecto.ingreso).days
-        dias_proceso += (trayecto.salida - trayecto.ingreso).days
+        cuenta_etapas[trayecto.etapa.etapa] += dias_habiles(trayecto.ingreso, trayecto.salida)
+        dias_proceso += dias_habiles(trayecto.ingreso, trayecto.salida)
     dias_etapas_total = [[etapa, dias] for etapa, dias in cuenta_etapas.items()]
     dias_etapas = {
         'total': dias_etapas_total,
@@ -1554,7 +1588,7 @@ def detalle_convenio_en_produccion(id_convenio):
     cuenta_tareas_total = {}
     for trayecto in trayectoria_equipos_query:
         sigla = (lambda sigla: 'SDGEET' if sigla == 'AIET' else sigla)(trayecto.equipo.sigla)
-        cuenta_equipos_total[sigla] += (trayecto.salida - trayecto.ingreso).days
+        cuenta_equipos_total[sigla] += dias_habiles(trayecto.ingreso, trayecto.salida)
         # Agregar al diccionario si no existe
         try:
             cuenta_tareas_total[sigla] += 1
@@ -1621,7 +1655,7 @@ def detalle_convenio_en_produccion(id_convenio):
             # Días por equipo
             if trayecto.ingreso < etapa.ingreso:
                 if trayecto.salida > etapa.salida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, etapa.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -1632,7 +1666,7 @@ def detalle_convenio_en_produccion(id_convenio):
                         'salida_año': datetime.strftime(etapa.salida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - etapa.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(etapa.ingreso, trayecto.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(etapa.ingreso, '%d')),
@@ -1645,7 +1679,7 @@ def detalle_convenio_en_produccion(id_convenio):
 
             else:
                 if trayecto.salida > etapa.salida:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (etapa.salida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, etapa.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -1656,7 +1690,7 @@ def detalle_convenio_en_produccion(id_convenio):
                         'salida_año': datetime.strftime(etapa.salida, '%Y'),
                     })
                 else:
-                    cuenta_equipos[etapa.etapa.etapa][sigla] += (trayecto.salida - trayecto.ingreso).days
+                    cuenta_equipos[etapa.etapa.etapa][sigla] += dias_habiles(trayecto.ingreso, trayecto.salida)
                     trayectoria_equipos['etapas'][-1]['datos'].append({
                         'equipo': sigla,
                         'ingreso_dia': int(datetime.strftime(trayecto.ingreso, '%d')),
@@ -1794,13 +1828,6 @@ def detalle_convenio_en_produccion(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos)
-
-
-
-
-
-
-
 
 # def obtener_info_convenios_en_proceso():
 #     convenios_en_proceso = Convenio.query.filter(Convenio.estado == 'En proceso').all()

@@ -39,6 +39,7 @@ class Equipo(db.Model):
     personas = db.relationship('Persona', backref='equipo')
     equipos = db.relationship('TrayectoriaEquipo', backref='equipo')
     encargados = db.relationship('CatalogoWS', backref='encargado')
+    recepciones = db.relationship('RecepcionConvenio', backref='sd')
 
     def __repr__(self):
         return f'{self.id} - {self.sigla} - {self.nombre}'
@@ -101,6 +102,52 @@ class DetalleWS(db.Model):
     def __repr__(self):
         return f'<Campo:{self.nombre_campo} - {self.tipo}>'
 
+
+class RecepcionConvenio(db.Model):
+    """
+    Representa las recepciones de información comprometidas para cada convenio.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(), nullable=False)
+    carpeta = db.Column(db.String(50), nullable=True)
+    archivo = db.Column(db.String(50), nullable=False)
+    periodicidad = db.Column(db.String(), nullable=False)
+    estado = db.Column(db.Boolean(), nullable=True)
+
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
+    id_sd = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+
+    def __repr__(self):
+        return f'<{self.nombre}: {self.convenio.institucion}>'
+
+
+class HitosConvenio(db.Model):
+    """
+    Registra los del proceso convenio
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    minuta = db.Column(db.String, nullable=True)
+    grabacion = db.Column(db.String, nullable=True)
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
+    id_hito = db.Column(db.Integer, db.ForeignKey('hito.id'), nullable=False)
+    hito = db.relationship('Hito', foreign_keys=[id_hito])
+
+
+class Hito(db.Model):
+    """
+    Contiene los hitos del proceso de convenios.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(50), nullable=False)
+
+    # Llaves foráneas
+    id_etapa = db.Column(db.Integer, db.ForeignKey('etapa.id'), nullable=False)
 
 class Institucion(db.Model):
     """
@@ -190,6 +237,7 @@ class Convenio(db.Model):
     fecha_resolucion = db.Column(db.Date, nullable=True)
     nro_resolucion = db.Column(db.Integer, nullable=True)
     link_resolucion = db.Column(db.String(100), nullable=True)
+    link_project = db.Column(db.String(100), nullable=True)
     # Llaves foráneas
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
     id_coord_sii = db.Column(db.Integer, db.ForeignKey('persona.id'), nullable=False)
@@ -265,6 +313,7 @@ class Etapa(db.Model):
 
     # Relaciones -> es llave foránea en:
     trayectoria_etapas = db.relationship('TrayectoriaEtapa', backref='etapa')
+    etapa_hito = db.relationship('Hito', backref='etapa')
 
     def __repr__(self):
         return f'<{self.id} - {self.etapa}>'

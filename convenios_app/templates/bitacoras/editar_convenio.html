@@ -37,7 +37,7 @@
 
       <!-- Institución -->
       <div class="form-group mb-4">
-        {{ form_editar_convenio.institucion.label(class_='form-control-label mb-1') }}
+        {{ form_editar_convenio.institucion.label(class='form-control-label mb-1') }}
         {% if form_editar_convenio.institucion.errors %}
           {{ form_editar_convenio.institucion(class='form-control form-control-lg is-invalid') }}
           <div class="invalid-feedback">
@@ -168,18 +168,28 @@
         </div>
       </div>
       <!-- Subdirecciones involucradas -->
-      <div class="form-group mb-4">
-        {{ form_editar_convenio.sd_involucradas.label(class='form-control-label mb-1') }}
-        {% if form_editar_convenio.sd_involucradas.errors %}
-          {{ form_editar_convenio.sd_involucradas(class='form-select form-select-sm is-invalid') }}
-          <div class="invalid-feedback">
-            {% for error in form_editar_convenio.sd_involucradas.errors %}
-              <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form_editar_convenio.sd_involucradas(class="form-control form-control-lg form-select") }}
-        {% endif %}
+      <p class='form-control-label mb-1'>Subidrecciones involucradas en el convenio</p>
+      <div class="form-group mb-4 row border gray rounded ms-2 ps-0">
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>DGC <input type="checkbox" name="sd_checkbox" value="10"></p>
+          <p class='mb-1'>SDA <input type="checkbox" name="sd_checkbox" value="11"></p>
+          <p class='mb-1'>SDAC <input type="checkbox" name="sd_checkbox" value="3"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDACORP <input type="checkbox" name="sd_checkbox" value="12"></p>
+          <p class='mb-1'>SDAV <input type="checkbox" name="sd_checkbox" value="4"></p>
+          <p class='mb-1'>SDDP <input type="checkbox" name="sd_checkbox" value="13"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDF <input type="checkbox" name="sd_checkbox" value="5"></p>
+          <p class='mb-1'>SDGEET <input type="checkbox" name="sd_checkbox" value="6"></p>
+          <p class='mb-1'>SDI <input type="checkbox" name="sd_checkbox" value="7"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDJ <input type="checkbox" name="sd_checkbox" value="8"></p>
+          <p class='mb-1'>SDN <input type="checkbox" name="sd_checkbox" value="14"></p>
+        </div>
+      </div>
 
       <!-- Mostrar estos campos solo si se está editando el convenio -->
       <div id='infoEditar'>
@@ -284,17 +294,11 @@
     document.querySelector('#gabinete_electronico').value = '{{ info_convenio.gabinete_electronico}}';
     document.querySelector('#estado').value = '{{ info_convenio.estado }}';
     document.querySelector('#convenio_reemplazo').value = '{{ info_convenio.convenio_reemplazo }}';
+
     // SDs involucradas
-    const sdInvolucradas = document.querySelector('#sd_involucradas');
-    var sd_seleccionadas = [];
-
     {% for sd in info_convenio.sd_involucradas %}
-      sd_seleccionadas.push({{ sd }});
+      $('input[value={{ sd }}]').prop('checked', true);
     {% endfor %}
-
-    for (var i = 0; i < sdInvolucradas.options.length; i++) {
-      sdInvolucradas.options[i].selected = sd_seleccionadas.indexOf(parseInt(sdInvolucradas.options[i].value, 10)) >= 0;
-};
 
     // Generar eventos change
     var cambioTipo = new Event('change');

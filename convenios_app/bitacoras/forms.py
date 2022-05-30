@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
-from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo
+from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio
 from sqlalchemy import and_
 from convenios_app.main.utils import formato_nombre, generar_nombre_convenio
 from wtforms.widgets import TextArea
@@ -30,8 +30,6 @@ class NuevoConvenioForm(FlaskForm):
     coord_ie = SelectField('Coordinador institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     sup_ie = SelectField('Suplente institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     responsable_convenio_ie = SelectField('Responsable del convenio IE', choices=[(0, 'Seleccionar')],
-                                          validate_choice=False)
-    sd_involucradas = SelectMultipleField('Subdirecciones involucradas en el convenio', render_kw={"": 'multiple'},
                                           validate_choice=False)
     submit = SubmitField('Agregar')
 
@@ -65,10 +63,6 @@ class NuevoConvenioForm(FlaskForm):
         if sup_ie.data == self.coord_ie.data and int(sup_ie.data) != 0:
             raise ValidationError('Debe seleccionar un suplente distinto al coordinador de la IE.')
 
-    def validate_sd_involucradas(self, sd_involucradas):
-        if len(sd_involucradas.data) == 0:
-            raise ValidationError('Debe escoger al menos una subdirección involucrada.')
-
     def validate_institucion(self, institucion):
         if institucion.data == '0':
             raise ValidationError('Debe seleccionar institución.')
@@ -99,8 +93,6 @@ class EditarConvenioForm(FlaskForm):
     coord_ie = SelectField('Coordinador institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     sup_ie = SelectField('Suplente institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     responsable_convenio_ie = SelectField('Responsable del convenio IE', choices=[(0, 'Seleccionar')],
-                                          validate_choice=False)
-    sd_involucradas = SelectMultipleField('Subdirecciones involucradas en el convenio', render_kw={"": 'multiple'},
                                           validate_choice=False)
     submit = SubmitField('Editar')
 
@@ -134,10 +126,6 @@ class EditarConvenioForm(FlaskForm):
         if sup_ie.data == self.coord_ie.data and int(sup_ie.data) != 0:
             raise ValidationError('Debe seleccionar un suplente distinto al coordinador de la IE.')
 
-    def validate_sd_involucradas(self, sd_involucradas):
-        if len(sd_involucradas.data) == 0:
-            raise ValidationError('Debe escoger al menos una subdirección involucrada.')
-
     def validate_proyecto(self, proyecto):
         if len(str(proyecto.data)) > 0:
             try:
@@ -151,8 +139,6 @@ class EditarConvenioForm(FlaskForm):
             if nro_proyecto:
                 raise ValidationError(
                     f'El número de proyecto {proyecto.data} ya está registrado. Vuelva a seleccionar el convenio para editar')
-
-
 
     def validate_estado(self, estado):
         # Verificar que se haya finalizado el convenio
@@ -202,7 +188,8 @@ class InfoConvenioForm(FlaskForm):
     fecha_firma_documento = DateField('Fecha firma documento', widget=DateInput(), validators=(validators.Optional(),))
     fecha_firma_resolucion = DateField('Fecha resolución', widget=DateInput(), validators=(validators.Optional(),))
     nro_resolucion = IntegerField('N° de resolución', validators=(validators.Optional(),), render_kw={"placeholder": 'N° de resolución'})
-    link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link a resolución en intranet'})
+    link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link de la resolución'})
+    link_project = StringField('Link project', render_kw={'placeholder': 'Ingrese link del Project'})
 
     def validate_fecha_etapa(self, fecha_etapa):
         etapa_actual = TrayectoriaEtapa.query.get(self.id_trayectoria.data)
@@ -315,3 +302,34 @@ class InfoConvenioForm(FlaskForm):
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
         if self.id_trayectoria_4.data == '0' and equipo_4.data != '0' and self.fecha_equipo_4.data is None:
             raise ValidationError('Debe seleccionar una fecha.')
+
+
+class AgregarRecepcionForm(FlaskForm):
+    id_convenio = HiddenField('ID Convenio')
+    nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
+    carpeta = StringField('Carpeta', render_kw={'placeholder': 'Nombre de la carpeta'})
+    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'},  validators=[DataRequired(), Length(min=2)])
+    sd_recibe = SelectField('Subdirección que recibe la información')
+
+    def validate_archivo(self, archivo):
+        if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
+                                            RecepcionConvenio.archivo == archivo.data)).first():
+            raise ValidationError('El nombre de archivo ya existe para este convenio.')
+
+    def validate_sd_recibe(self, sd_recibe):
+        if int(sd_recibe.data) == 0:
+            raise ValidationError('Debe seleccionar una subdirección.')
+
+
+class RegistrarHitoForm(FlaskForm):
+    id_convenio = HiddenField('ID Convenio')
+    hito = SelectField('Seleccione hito')
+    fecha = DateField('Fecha', default=date.today, widget=DateInput(), validators=[DataRequired()])
+    minuta = StringField('Link minuta', render_kw={'placeholder': 'Ingrese link de la minuta'})
+    grabacion = StringField('Link grabación', render_kw={'placeholder': 'Ingrese link de la grabación'})
+
+    def validate_hito(self, hito):
+        if int(hito.data) == 0:
+            raise ValidationError('Debe selecciona hito para registrar.')
+
+

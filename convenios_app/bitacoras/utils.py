@@ -5,6 +5,23 @@ from convenios_app.models import TrayectoriaEquipo, BitacoraAnalista, Convenio, 
 from convenios_app.main.utils import formato_nombre
 from flask_login import current_user
 from sqlalchemy import and_, or_
+import pandas as pd
+import holidays
+from numpy import busday_count
+from pprint import pprint
+
+FERIADOS= [pd.to_datetime(date[0], format='%Y-%m-%d').date() for
+           date in holidays.CL(years=[year for year in range(2015, 2026, 1)]).items()]
+
+
+def dias_habiles(ingreso, salida):
+    """
+    Devuelve los días hábiles entre dos fechas, tomando en cuenta los feriados en Chile (2015-2025)
+    :param ingreso: fecha de ingreso
+    :param salida: fecha de salida
+    :return: número de días entre la fechas
+    """
+    return int(busday_count(ingreso, salida, holidays=FERIADOS))
 
 
 def actualizar_trayectoria_equipo(id_trayectoria, id_equipo, fecha_formulario, id_convenio):
@@ -70,7 +87,7 @@ def actualizar_trayectoria_equipo(id_trayectoria, id_equipo, fecha_formulario, i
     db.session.commit()
 
 
-def actualizar_convenio(convenio, form, sd_actuales, query_sd):
+def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas):
     """
     Actualiza la tabla Convenio y SD Involucrada en el formulario de editar convenio.
     :param convenio: objeto de la clase Convenio que será actualizado.
@@ -127,10 +144,10 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd):
         campos_actualizados.append('Número de Gabinete Electrónico')
 
     # Subdirecciones involucradas
-    # Agregar nuevas subdireccines
-    if sd_actuales != form.sd_involucradas.data:
+    # Agregar nuevas subdirecciones
+    if sd_actuales != sd_seleccionadas:
         campos_actualizados.append('Subdirecciones involucradas')
-    for sd in form.sd_involucradas.data:
+    for sd in sd_seleccionadas:
         if sd not in sd_actuales:
             nueva_sd_involucrada = SdInvolucrada(
                 id_convenio=convenio.id,
@@ -139,7 +156,7 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd):
             db.session.add(nueva_sd_involucrada)
     # Eliminar subdirecciones que no estén involucradas
     for sd in query_sd:
-        if str(sd.id_subdireccion) not in form.sd_involucradas.data:
+        if str(sd.id_subdireccion) not in sd_seleccionadas:
             db.session.delete(sd)
 
     # Estado

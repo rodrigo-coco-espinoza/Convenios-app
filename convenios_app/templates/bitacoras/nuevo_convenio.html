@@ -166,18 +166,27 @@
         </div>
       </div>
       <!-- Subdirecciones involucradas -->
-      <div class="form-group mb-4">
-        {{ form_convenio.sd_involucradas.label(class='form-control-label mb-1') }}
-        {% if form_convenio.sd_involucradas.errors %}
-          {{ form_convenio.sd_involucradas(class='form-select form-select-sm is-invalid') }}
-          <div class="invalid-feedback">
-            {% for error in form_convenio.sd_involucradas.errors %}
-              <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form_convenio.sd_involucradas(class="form-control form-control-lg form-select") }}
-        {% endif %}
+      <p class='form-control-label mb-1'>Subidrecciones involucradas en el convenio</p>
+      <div class="form-group mb-4 row border gray rounded ms-2 ps-0">
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>DGC <input type="checkbox" name="sd_checkbox" value="10"></p>
+          <p class='mb-1'>SDA <input type="checkbox" name="sd_checkbox" value="11"></p>
+          <p class='mb-1'>SDAC <input type="checkbox" name="sd_checkbox" value="3"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDACORP <input type="checkbox" name="sd_checkbox" value="12"></p>
+          <p class='mb-1'>SDAV <input type="checkbox" name="sd_checkbox" value="4"></p>
+          <p class='mb-1'>SDDP <input type="checkbox" name="sd_checkbox" value="13"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDF <input type="checkbox" name="sd_checkbox" value="5"></p>
+          <p class='mb-1'>SDGEET <input type="checkbox" name="sd_checkbox" value="6"></p>
+          <p class='mb-1'>SDI <input type="checkbox" name="sd_checkbox" value="7"></p>
+        </div>
+        <div class="col-lg-3 text-dark">
+          <p class='mb-1'>SDJ <input type="checkbox" name="sd_checkbox" value="8"></p>
+          <p class='mb-1'>SDN <input type="checkbox" name="sd_checkbox" value="14"></p>
+        </div>
       </div>
     </fieldset>
     {{ form_convenio.submit(class="btn btn-outline-primary float-end mb-5") }}
