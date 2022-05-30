@@ -310,7 +310,7 @@
   </div>
 
   <div class="row">
-      <div class="col-lg-6 border border-secondary rounded mb-3" id=bitacoraAnalista>
+      <div class="col-lg-6 border border-secondary rounded mb-4" id=bitacoraAnalista>
         <!-- Formulario bitácora analista -->
         <div class="">
             <h2>Bitácora</h2>
@@ -367,7 +367,7 @@
         </div>
       </div>
 
-      <div class="col-lg-6 border border-secondary rounded mb-3" id=bitacoraTareas>
+      <div class="col-lg-6 border border-secondary rounded mb-4" id=bitacoraTareas>
         <!-- Formulario bitácora tareas -->
         <div class="">
             <h2>Tareas</h2>
@@ -391,14 +391,14 @@
                   <div class="col-lg-6 ps-0">
                     <!-- Observación -->
                     {% if form_tarea.tarea.errors %}
-                      {{ form_tarea.tarea(class='form-control form-control is-invalid mb-1') }}
+                      {{ form_tarea.tarea(class='form-control is-invalid mb-1') }}
                       <div class="invalid-feedback">
                         {% for error in form_tarea.tarea.errors %}
                           <span>{{ error }}</span>
                         {% endfor %}
                       </div>
                     {% else %}
-                      {{ form_tarea.tarea(class="form-control form-control mb-1") }}
+                      {{ form_tarea.tarea(class="form-control mb-1") }}
                     {% endif %}
                   </div>
                   <div class="col-lg-1 px-1">
@@ -415,7 +415,7 @@
               {% for tarea in tareas_pendientes %}
                 {% if tarea[1] <= hoy %}
                   <tr>
-                    <td class='text-danger' style="width: 100px;">{{ tarea[1] }}</td>
+                    <td class='text-danger' style="width: 100px;">{{ tarea[1].strftime('%d-%m-%Y') }}</td>
                     <td class='text-danger'>{{ tarea[0] }}</td>
                     <td style="width: 60px;">
                       <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="gray fas fa-trash"></i></a>
@@ -424,7 +424,7 @@
                   </tr>
                 {% else %}
                   <tr>
-                    <td style="width: 100px;">{{ tarea[1] }}</td>
+                    <td style="width: 100px;">{{ tarea[1].strftime('%d-%m-%Y') }}</td>
                     <td>{{ tarea[0] }}</td>
                     <td style="width: 60px;">
                       <a class="text-dark float-end mx-1" href="{{ url_for('bitacoras.borrar_tarea', id_tarea=tarea[2], id_convenio=id_convenio, id_persona=0) }}"><i class="gray fas fa-trash"></i></a>
@@ -437,6 +437,317 @@
           </table>
         </div>
       </div>
+  </div>
+
+  <!-- Hitos del proceso -->
+  <div class="row border border-secondary rounded mb-4">
+  <h2>Hitos del proceso</h2>
+  <div class="content-section mb-3">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Hito</th>
+          <th class="text-center" scope="col">Fecha</th>
+          <th class='text-center' scope="col">Minuta</th>
+          <th class="text-center" scope="col">Grabación</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hito in hitos_registrados %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ hito.hito }}</td>
+            <td class="text-center">{{ hito.fecha }}</td>
+            <td class="text-center">
+              {% if hito.minuta %}
+                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+              {% else %}
+                <i class="fa-solid fa-link-slash gray"></i>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if hito.grabacion %}
+                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+              {% else %}
+                <i class="fa-solid fa-video-slash gray"></i>
+              {% endif %}
+            </td>
+            <td>
+              <a href="#" data-href="{{ url_for('bitacoras.eliminar_hito', id_hito=hito.id_registro) }}" data-bs-toggle="modal" data-bs-target="#borrarHitoModal">
+                <i class="gray fas fa-trash"></i>
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="pb-2">
+      <form class="" method="post" novalidate>
+        <fieldset class='row'>
+          {{ form_hitos.hidden_tag() }}
+          <div class="col-lg-3">
+            {% if form_hitos.hito.errors %}
+              {{ form_hitos.hito(class='form-control form-control-lg form-select is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_hitos.hito.errors %}
+                  <span> {{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_hitos.hito(class='form-control form-control-sm form-select') }}
+            {% endif %}
+          </div>
+          <div class="col-lg-2">
+            {% if form_hitos.fecha.errors %}
+              {{ form_hitos.fecha(class='form-control datepicker is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_hitos.fecha.errors %}
+                  <span> {{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_hitos.fecha(class='form-control datepicker') }}
+            {% endif %}
+          </div>
+          <div class="col-lg-3">
+            {% if form_hitos.minuta.errors %}
+              {{ form_hitos.minuta(class='form-control is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_hitos.minuta.errors %}
+                  <span> {{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_hitos.minuta(class='form-control') }}
+            {% endif %}
+          </div>
+          <div class="col-lg-3">
+            {% if form_hitos.grabacion.errors %}
+              {{ form_hitos.grabacion(class='form-control is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_hitos.grabacion.errors %}
+                  <span> {{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_hitos.grabacion(class='form-control') }}
+            {% endif %}
+          </div>
+          <div class="col-lg-1 pt-1">
+            <button type=submit name="nuevo_hito" class="btn btn-outline-success btn-sm"><i class="fas fa-plus"></i></button>
+          </div>
+
+        </fieldset>
+      </form>
+    </div>
+
+
+
+    </div>
+  </div>
+
+  <!-- Información intercambiada -->
+  <div class="row border border-secondary rounded mb-4">
+    <h2>Información a intercambiar</h2>
+    <h4>Recepción</h4>
+    <div class="content-section mb-3">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope='col'>Nombre</th>
+            <th scope='col'>Carpeta</th>
+            <th scope='col'>Archivo</th>
+            <th scope='col'>Periodicidad</th>
+            <th scope='col'>Subdirección</th>
+            <th scope='col'>Funciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Información de pensionados</td>
+            <td>CONVENIO_AAAA</td>
+            <td>info_pensionados_mm_aaaa.csv</td>
+            <td>Ene, Jul, Nov</td>
+            <td>SDF</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Contratos truchos</td>
+            <td>CONTRATOS_MM_AAAA</td>
+            <td>truchos.txt</td>
+            <td>Mensual</td>
+            <td>SDAC</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Empleados en teletrabajo</td>
+            <td></td>
+            <td>empleados_teletrabajo.csv</td>
+            <td>Online</td>
+            <td>SDJ</td>
+            <td>...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Web Services</h4>
+    <div class="content-section">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope='col'>Nombre</th>
+            <th scope='col'>Carpeta</th>
+            <th scope='col'>Archivo</th>
+            <th scope='col'>Periodicidad</th>
+            <th scope='col'>Subdirección</th>
+            <th scope='col'>Funciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Información de pensionados</td>
+            <td>CONVENIO_AAAA</td>
+            <td>info_pensionados_mm_aaaa.csv</td>
+            <td>Ene, Jul, Nov</td>
+            <td>SDF</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Contratos truchos</td>
+            <td>CONTRATOS_MM_AAAA</td>
+            <td>truchos.txt</td>
+            <td>Mensual</td>
+            <td>SDAC</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Empleados en teletrabajo</td>
+            <td></td>
+            <td>empleados_teletrabajo.csv</td>
+            <td>Online</td>
+            <td>SDJ</td>
+            <td>...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar entregas batch -->
+  <div class="row border border-secondary rounded mb-4">
+    <h2>Agregar recepción</h2>
+    <!-- Añadir recepción -->
+    <div class="content-section">
+      <form method="POST" novalidate>
+        {{ form_recepcion.hidden_tag() }}
+        <fieldset>
+          <!-- Nombre de la recepción -->
+          <div class="form-group mb-3">
+            {{ form_recepcion.nombre.label(class='form-control-label mb-1') }}
+            {% if form_recepcion.nombre.errors %}
+              {{ form_recepcion.nombre(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_recepcion.nombre.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_recepcion.nombre(class='form-control form-control-lg')}}
+            {% endif %}
+          </div>
+          <div class="row form-group mb-3">
+            <!-- Carpeta -->
+            <div class="col-lg-6">
+              {{ form_recepcion.carpeta.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.carpeta.errors %}
+                {{ form_recepcion.carpeta(clas='form-control form-control-lg is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.carpeta.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.carpeta(class='form-control form-control-lg')}}
+              {% endif %}
+            </div>
+            <!-- Carpeta -->
+            <div class="col-lg-6">
+              {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.archivo.errors %}
+                {{ form_recepcion.archivo(class='form-control form-control-lg is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.archivo.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.archivo(class='form-control form-control-lg')}}
+              {% endif %}
+            </div>
+          </div>
+          <div class="row form-group mb-3">
+            <div class="col-lg-4">
+              {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
+              {% if form_recepcion.sd_recibe.errors %}
+                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_recepcion.sd_recibe.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
+              {% endif %}
+            </div>
+            <div class="col-lg-8 form-group">
+              <p class="form-control-label mb-1">Periodicidad de la recepción</p>
+              <div class="row mb-0">
+                <div class="col-lg-2"><p class="mb-0">En línea <input type="checkbox" name="periodicidad_checkbox" value="En línea"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_checkbox" value="Diario"></p></div>
+                <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_checkbox" value="Semanal"></P></div>
+                <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_checkbox" value="Mensual"></p></div>
+              </div>
+              <div class="row">
+                <div class='col-lg-2'>
+                  <p class="my-0">Ene <input type="checkbox" name="periodicidad_checkbox" value="1"></p>
+                  <p class="my-0">Feb <input type="checkbox" name="periodicidad_checkbox" value="2"></p>
+                  <p class="my-0">Mar <input type="checkbox" name="periodicidad_checkbox" value="3"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Abr <input type="checkbox" name="periodicidad_checkbox" value="4"></p>
+                  <p class="my-0">May <input type="checkbox" name="periodicidad_checkbox" value="5"></p>
+                  <p class="my-0">Jun <input type="checkbox" name="periodicidad_checkbox" value="6"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Jul <input type="checkbox" name="periodicidad_checkbox" value="7"></p>
+                  <p class="my-0">Ago <input type="checkbox" name="periodicidad_checkbox" value="8"></p>
+                  <p class="my-0">Sep <input type="checkbox" name="periodicidad_checkbox" value="9"></p>
+                </div>
+                <div class='col-lg-2'>
+                  <p class="my-0">Oct <input type="checkbox" name="periodicidad_checkbox" value="10"></p>
+                  <p class="my-0">Nov <input type="checkbox" name="periodicidad_checkbox" value="11"></p>
+                  <p class="my-0">Dic <input type="checkbox" name="periodicidad_checkbox" value="12"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="px-1" align='right'>
+            <button type=submit name="agregar_recepcion" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
   </div>
 
   <!-- Formulario para agregar WS -->
@@ -550,168 +861,29 @@
   </form>
   </div>
 
-  <!-- Formulario para agregar entregas batch -->
-  <div class="row border border-secondary rounded mb-3">
-    <h2>Recepción de información</h2>
-    <!-- Recepción asignadas -->
-    <legend class="mb-2">
-      <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
-      href="#verRecepcion" aria-expanded="false" aria-controls="verRecepcion">
-      Ver recepción <i class="fas fa-angle-down"></i></a></legend>
-    <div class="content-section collapse" id="verRecepcion">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope='col'>#</th>
-            <th scope='col'>Nombre</th>
-            <th scope='col'>Carpeta</th>
-            <th scope='col'>Archivo</th>
-            <th scope='col'>Periodicidad</th>
-            <th scope='col'>Subdirección</th>
-            <th scope='col'>Funciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>Información de pensionados</td>
-            <td>CONVENIO_AAAA</td>
-            <td>info_pensionados_mm_aaaa.csv</td>
-            <td>Ene, Jul, Nov</td>
-            <td>SDF</td>
-            <td>...</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Contratos truchos</td>
-            <td>CONTRATOS_MM_AAAA</td>
-            <td>truchos.txt</td>
-            <td>Mensual</td>
-            <td>SDAC</td>
-            <td>...</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Empleados en teletrabajo</td>
-            <td></td>
-            <td>empleados_teletrabajo.csv</td>
-            <td>Online</td>
-            <td>SDJ</td>
-            <td>...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Añadir recepción -->
-    <legend class="mb-2">
-      <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
-      href="#agregarRecepcion" aria-expanded="false" aria-controls="agregarRecepcion">
-      Agregar recepción <i class="fas fa-angle-down"></i></a></legend>
-    <div class="content-section collapse" id="agregarRecepcion">
-      <form method="POST" novalidate>
-        {{ form_recepcion.hidden_tag() }}
-        <fieldset>
-          <!-- Nombre de la recepción -->
-          <div class="form-group mb-3">
-            {{ form_recepcion.nombre.label(class='form-control-label mb-1') }}
-            {% if form_recepcion.nombre.errors %}
-              {{ form_recepcion.nombre(class='form-control form-control-lg is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_recepcion.nombre.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_recepcion.nombre(class='form-control form-control-lg')}}
-            {% endif %}
-          </div>
-          <div class="row form-group mb-3">
-            <!-- Carpeta -->
-            <div class="col-lg-6">
-              {{ form_recepcion.carpeta.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.carpeta.errors %}
-                {{ form_recepcion.carpeta(clas='form-control form-control-lg is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.carpeta.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_recepcion.carpeta(class='form-control form-control-lg')}}
-              {% endif %}
-            </div>
-            <!-- Carpeta -->
-            <div class="col-lg-6">
-              {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.archivo.errors %}
-                {{ form_recepcion.archivo(class='form-control form-control-lg is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.archivo.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_recepcion.archivo(class='form-control form-control-lg')}}
-              {% endif %}
-            </div>
-          </div>
-          <div class="row form-group mb-3">
-            <div class="col-lg-4">
-              {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.sd_recibe.errors %}
-                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.sd_recibe.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
-              {% endif %}
-            </div>
-            <div class="col-lg-8 form-group">
-              <p class="form-control-label mb-1">Periodicidad de la recepción</p>
-              <div class="row mb-0">
-                <div class="col-lg-2"><p class="mb-0">En línea <input type="checkbox" name="periodicidad_checkbox" value="En línea"></p></div>
-                <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_checkbox" value="Diario"></p></div>
-                <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_checkbox" value="Semanal"></P></div>
-                <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_checkbox" value="Mensual"></p></div>
-              </div>
-              <div class="row">
-                <div class='col-lg-2'>
-                  <p class="my-0">Ene <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Feb <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Mar <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                </div>
-                <div class='col-lg-2'>
-                  <p class="my-0">Abr <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">May <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Jun <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                </div>
-                <div class='col-lg-2'>
-                  <p class="my-0">Jul <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Ago <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Sep <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                </div>
-                <div class='col-lg-2'>
-                  <p class="my-0">Oct <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Nov <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                  <p class="my-0">Dic <input type="checkbox" name="periodicidad_checkbox" value="Enero"></p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="px-1" align='right'>
-            <button type=submit name="agregar_recepcion" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-
 </div>
 
+<!-- Modal -->
+<div class="modal" id="borrarHitoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        ¿Desea eliminar este hito?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+        <a class="btn btn-danger btn-ok">Eliminar</a>
+      </div>
+    </div>
+  </div>
+</div>
 
-
+<script type="text/javascript">
+  $('#borrarHitoModal').on('show.bs.modal', function(e) {
+    $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
+    console.log($(this).find('.btn-ok').attr('href'));
+});
+</script>
 
 
 <script type="text/javascript">

@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
-from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo
+from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio
 from sqlalchemy import and_
 from convenios_app.main.utils import formato_nombre, generar_nombre_convenio
 from wtforms.widgets import TextArea
@@ -305,18 +305,31 @@ class InfoConvenioForm(FlaskForm):
 
 
 class AgregarRecepcionForm(FlaskForm):
+    id_convenio = HiddenField('ID Convenio')
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
     carpeta = StringField('Carpeta', render_kw={'placeholder': 'Nombre de la carpeta'})
     archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'},  validators=[DataRequired(), Length(min=2)])
     sd_recibe = SelectField('Subdirección que recibe la información')
-    # medio_traspaso = StringField('Medio de traspaso', render_kw={'placerholder': 'Medio de traspaso de los archivos'})
-    # tipo_archivo = StringField('Tipo de archivo', render_kw={'placeholder': 'Tipo de archivo a recibir'})
-    # delimitador = StringField('Tipo de delimitador', render_kw={'placeholder': 'Delimitador de los archivos'})
 
     def validate_archivo(self, archivo):
-        #TODO: validar que el archivo no esté registrado (repeción)
-        pass
+        if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
+                                            RecepcionConvenio.archivo == archivo.data)).first():
+            raise ValidationError('El nombre de archivo ya existe para este convenio.')
 
     def validate_sd_recibe(self, sd_recibe):
         if int(sd_recibe.data) == 0:
-            raise ValidationError('Debe seleccionar una subdirección')
+            raise ValidationError('Debe seleccionar una subdirección.')
+
+
+class RegistrarHitoForm(FlaskForm):
+    id_convenio = HiddenField('ID Convenio')
+    hito = SelectField('Seleccione hito')
+    fecha = DateField('Fecha', default=date.today, widget=DateInput(), validators=[DataRequired()])
+    minuta = StringField('Link minuta', render_kw={'placeholder': 'Ingrese link de la minuta'})
+    grabacion = StringField('Link grabación', render_kw={'placeholder': 'Ingrese link de la grabación'})
+
+    def validate_hito(self, hito):
+        if int(hito.data) == 0:
+            raise ValidationError('Debe selecciona hito para registrar.')
+
+

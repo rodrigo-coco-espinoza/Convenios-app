@@ -5,6 +5,23 @@ from convenios_app.models import TrayectoriaEquipo, BitacoraAnalista, Convenio, 
 from convenios_app.main.utils import formato_nombre
 from flask_login import current_user
 from sqlalchemy import and_, or_
+import pandas as pd
+import holidays
+from numpy import busday_count
+from pprint import pprint
+
+FERIADOS= [pd.to_datetime(date[0], format='%Y-%m-%d').date() for
+           date in holidays.CL(years=[year for year in range(2015, 2026, 1)]).items()]
+
+
+def dias_habiles(ingreso, salida):
+    """
+    Devuelve los días hábiles entre dos fechas, tomando en cuenta los feriados en Chile (2015-2025)
+    :param ingreso: fecha de ingreso
+    :param salida: fecha de salida
+    :return: número de días entre la fechas
+    """
+    return int(busday_count(ingreso, salida, holidays=FERIADOS))
 
 
 def actualizar_trayectoria_equipo(id_trayectoria, id_equipo, fecha_formulario, id_convenio):

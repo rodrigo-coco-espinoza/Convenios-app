@@ -8,7 +8,7 @@ from convenios_app import db, bcrypt
 from convenios_app.users.utils import admin_only, analista_only
 from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy import and_, or_
-from convenios_app.bitacoras.utils import actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales
+from convenios_app.bitacoras.utils import actualizar_trayectoria_equipo, obtener_iniciales, dias_habiles
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias
 from datetime import datetime, date
@@ -35,8 +35,9 @@ def convenios_sd(id_persona):
     convenios_asignados = [
         {'id': convenio.id,
          'nombre': generar_nombre_convenio(convenio),
-         'dias_area': (date.today() - TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == convenio.id,
-                                                  TrayectoriaEquipo.salida == None, TrayectoriaEquipo.id_equipo == equipo.id)).first().ingreso).days,
+         'dias_area': dias_habiles(TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == convenio.id,
+                                                  TrayectoriaEquipo.salida == None, TrayectoriaEquipo.id_equipo == equipo.id)).first().ingreso,
+                                   date.today()),
          'etapa': obtener_etapa_actual_dias(convenio)}
         for convenio in Convenio.query.filter(Convenio.id.in_(ids_convenios_asignados))]
 
@@ -250,7 +251,6 @@ def mis_convenios(id_persona):
                            form_bitacora=form_bitacora, form_tarea=form_tarea, tabla_estado_actual=tabla_estado_actual)
 
 
-
 @users.route('/obtener_info_convenio/<int:id_convenio>')
 def obtener_info_convenio(id_convenio):
     convenio_query = Convenio.query.get(id_convenio)
@@ -263,7 +263,7 @@ def obtener_info_convenio(id_convenio):
     dias_proceso = 0
     for trayectoEtapa in TrayectoriaEtapa.query.filter(TrayectoriaEtapa.id_convenio == id_convenio).all():
         salida_etapa = (lambda salida: salida if salida != None else date.today())(trayectoEtapa.salida)
-        dias_proceso += (salida_etapa - trayectoEtapa.ingreso).days
+        dias_proceso += dias_habiles(trayectoEtapa.ingreso, salida_etapa)
 
     # Calcular áreas actuales y días en proceso
     equipos_query = TrayectoriaEquipo.query.filter(
@@ -275,7 +275,7 @@ def obtener_info_convenio(id_convenio):
             'id_trayectoEquipo': trayectoEquipo.id,
             'id_equipo': trayectoEquipo.id_equipo,
             'ingreso': datetime.strftime(trayectoEquipo.ingreso, '%Y-%m-%d'),
-            'dias_equipo': (date.today() - trayectoEquipo.ingreso).days
+            'dias_equipo': dias_habiles(trayectoEquipo.ingreso, date.today())
         })
     for i in range(4 - len(equipos_query)):
         equipos.append({
@@ -292,7 +292,7 @@ def obtener_info_convenio(id_convenio):
             'id_trayectoEtapa': etapa_query.id,
             'id_etapa': etapa_query.id_etapa,
             'fecha_etapa': datetime.strftime(etapa_query.ingreso, '%Y-%m-%d'),
-            'dias_etapa': (lambda etapa: (date.today() - etapa_query.ingreso).days if etapa != 5 else '')(etapa_query.id_etapa)
+            'dias_etapa': (lambda etapa: dias_habiles(etapa_query.ingreso, date.today()) if etapa != 5 else '')(etapa_query.id_etapa)
         },
         'equipos': equipos
 
