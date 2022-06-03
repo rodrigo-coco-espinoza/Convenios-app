@@ -536,7 +536,7 @@
             {% endif %}
           </div>
           <div class="col-lg-1 pt-1">
-            <button type=submit name="nuevo_hito" id='nuevo_hito' class="btn btn-outline-success btn-sm"><i class="fas fa-plus"></i></button>
+            <button type=submit name="nuevo_hito" class="btn btn-outline-success btn-sm"><i class="fas fa-plus"></i></button>
           </div>
 
         </fieldset>
@@ -552,76 +552,97 @@
   <div class="row border border-secondary rounded mb-4">
     <h2>Información a intercambiar</h2>
     <h4>Recepción</h4>
-    <form method="post" novalidate>
-      <div class="content-section mb-3">
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope='col'>#</th>
-              <th scope='col'>Nombre</th>
-              <th scope='col'>Carpeta</th>
-              <th scope='col'>Archivo</th>
-              <th scope='col'>Periodicidad</th>
-              <th scope='col'>Subdirección</th>
-              <th scope='col'></th>
-              <th scope='col'></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for recepcion in  recepciones %}
-              <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ recepcion.nombre }}</td>
-                <td>{{ recepcion.carpeta }}</td>
-                <td>{{ recepcion.archivo }}</td>
-                <td>{{ recepcion.periodo }}</td>
-                <td>{{ recepcion.sd }}</td>
-                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.estado }}></td>
-                <td>
-                  <a class='text-dark' href="#" data-href="{{ recepcion.id_recepcion }}" data-bs-toggle="modal" data-bs-target="#editarRecepcionModal">
-                    <i class="fa-solid fa-pen"></i>
-                  </a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <h4>Web Services</h4>
-      <div class="content-section">
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope='col'>#</th>
-              <th scope='col'>Nombre AIET</th>
-              <th scope='col'>Nombre SDI</th>
-              <th scope='col'>Método</th>
-              <th scope='col'></th>
-              <th scope='col'></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ws in ws_asignados %}
-              <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ ws.nombre_aiet }}</td>
-                <td>{{ ws.nombre_sdi }}</td>
-                <td>{{ ws.metodo }}</td>
-                <td><input type="checkbox" name="estadoWS_checkbox" value="{{ ws.id_asignado }}" {{ ws.activo }}></td>
-                <td><a href="{{ url_for('bitacoras.eliminar_ws', id_asignado=ws.id_asignado) }}"><i class="gray fas fa-trash"></i></a></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <div class="px-3" align='right'>
-        <button type=submit name="estados_intercambio" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>
-      </div>
-    </form>
+    <div class="content-section mb-3">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope='col'>Nombre</th>
+            <th scope='col'>Carpeta</th>
+            <th scope='col'>Archivo</th>
+            <th scope='col'>Periodicidad</th>
+            <th scope='col'>Subdirección</th>
+            <th scope='col'>Funciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Información de pensionados</td>
+            <td>CONVENIO_AAAA</td>
+            <td>info_pensionados_mm_aaaa.csv</td>
+            <td>Ene, Jul, Nov</td>
+            <td>SDF</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Contratos truchos</td>
+            <td>CONTRATOS_MM_AAAA</td>
+            <td>truchos.txt</td>
+            <td>Mensual</td>
+            <td>SDAC</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Empleados en teletrabajo</td>
+            <td></td>
+            <td>empleados_teletrabajo.csv</td>
+            <td>Online</td>
+            <td>SDJ</td>
+            <td>...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
+    <h4>Web Services</h4>
+    <div class="content-section">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope='col'>Nombre</th>
+            <th scope='col'>Carpeta</th>
+            <th scope='col'>Archivo</th>
+            <th scope='col'>Periodicidad</th>
+            <th scope='col'>Subdirección</th>
+            <th scope='col'>Funciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Información de pensionados</td>
+            <td>CONVENIO_AAAA</td>
+            <td>info_pensionados_mm_aaaa.csv</td>
+            <td>Ene, Jul, Nov</td>
+            <td>SDF</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Contratos truchos</td>
+            <td>CONTRATOS_MM_AAAA</td>
+            <td>truchos.txt</td>
+            <td>Mensual</td>
+            <td>SDAC</td>
+            <td>...</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Empleados en teletrabajo</td>
+            <td></td>
+            <td>empleados_teletrabajo.csv</td>
+            <td>Online</td>
+            <td>SDJ</td>
+            <td>...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- Formulario para agregar entregas batch -->
   <div class="row border border-secondary rounded mb-4">
@@ -645,7 +666,6 @@
               {{ form_recepcion.nombre(class='form-control form-control-lg')}}
             {% endif %}
           </div>
-          <!-- Carpeta y Archivo -->
           <div class="row form-group mb-3">
             <!-- Carpeta -->
             <div class="col-lg-6">
@@ -661,7 +681,7 @@
                 {{ form_recepcion.carpeta(class='form-control form-control-lg')}}
               {% endif %}
             </div>
-            <!-- Archivo -->
+            <!-- Carpeta -->
             <div class="col-lg-6">
               {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
               {% if form_recepcion.archivo.errors %}
@@ -676,9 +696,7 @@
               {% endif %}
             </div>
           </div>
-          <!-- SD que recibe y Periodicidad -->
           <div class="row form-group mb-3">
-            <!-- Subdirección -->
             <div class="col-lg-4">
               {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
               {% if form_recepcion.sd_recibe.errors %}
@@ -692,7 +710,6 @@
                 {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
               {% endif %}
             </div>
-            <!-- Periodicidad -->
             <div class="col-lg-8 form-group">
               <p class="form-control-label mb-1">Periodicidad de la recepción</p>
               <div class="row mb-0">
@@ -846,7 +863,7 @@
 
 </div>
 
-<!-- Modal borrar hito-->
+<!-- Modal -->
 <div class="modal" id="borrarHitoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -860,160 +877,10 @@
     </div>
   </div>
 </div>
+
 <script type="text/javascript">
   $('#borrarHitoModal').on('show.bs.modal', function(e) {
     $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
-});
-</script>
-
-
-<!-- Modal editar recepcion-->
-<div class="modal" id="editarRecepcionModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form method="POST" novalidate>
-        <fieldset>
-          {{ editar_recepcion_form.hidden_tag() }}
-          {{ editar_recepcion_form.id_recepcion_editar }}
-          <div class="modal-header">
-            ¿Desea eliminar este hito?
-          </div>
-          <div class="modal-body">
-            <!-- Nombre de la recepción -->
-            <div class="form-group mb-3">
-              {{ editar_recepcion_form.nombre_editar.label(class='form-control-label mb-1') }}
-              {% if editar_recepcion_form.nombre_editar.errors %}
-                {{ editar_recepcion_form.nombre_editar(class='form-control form-control-sm is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in editar_recepcion_form.nombre_editar.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ editar_recepcion_form.nombre_editar(class='form-control form-control-sm')}}
-              {% endif %}
-            </div>
-            <!-- Carpeta y Archivo -->
-            <div class="row form-group mb-3">
-              <!-- Carpeta -->
-              <div class="col-lg-6">
-                {{ editar_recepcion_form.carpeta_editar.label(class='form-control-label mb-1') }}
-                {% if editar_recepcion_form.carpeta_editar.errors %}
-                  {{ editar_recepcion_form.carpeta_editar(clas='form-control form-control-sm is-invalid') }}
-                  <div class="invalid-feedback">
-                    {% for error in editar_recepcion_form.carpeta_editar.errors %}
-                      <span>{{ error }}</span>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  {{ editar_recepcion_form.carpeta_editar(class='form-control form-control-sm')}}
-                {% endif %}
-              </div>
-              <!-- Archivo -->
-              <div class="col-lg-6">
-                {{ editar_recepcion_form.archivo_editar.label(class='form-control-label mb-1') }}
-                {% if editar_recepcion_form.archivo_editar.errors %}
-                  {{ editar_recepcion_form.archivo_editar(class='form-control form-control-sm is-invalid') }}
-                  <div class="invalid-feedback">
-                    {% for error in editar_recepcion_form.archivo_editar.errors %}
-                      <span>{{ error }}</span>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  {{ editar_recepcion_form.archivo_editar(class='form-control form-control-sm')}}
-                {% endif %}
-              </div>
-            </div>
-            <!-- SD que recibe y Periodicidad -->
-            <div class="row form-group mb-3">
-              <!-- Subdirección -->
-              <div class="col-lg-4">
-                {{ editar_recepcion_form.sd_recibe_editar.label(class='form-control-label mb-1') }}
-                {% if editar_recepcion_form.sd_recibe_editar.errors %}
-                  {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select is-invalid') }}
-                  <div class="invalid-feedback">
-                    {% for error in editar_recepcion_form.sd_recibe_editar.errors %}
-                      <span>{{ error }}</span>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select')}}
-                {% endif %}
-              </div>
-              <!-- Periodicidad -->
-              <div class="col-lg-8 form-group">
-                <p class="form-control-label mb-1">Periodicidad de la recepción</p>
-                <div class="row mb-0">
-                  <div class="col-lg-2"><p class="mb-0">Online <input type="checkbox" name="editarPeriodicidad_checkbox" value="En línea"></p></div>
-                  <div class="col-lg-2"><p class="mb-0">Día <input  type="checkbox" name="editarPeriodicidad_checkbox" value="Diario"></p></div>
-                  <div class="col-lg-2"><P class="mb-0">Sem <input type="checkbox" name="editarPeriodicidad_checkbox" value="Semanal"></P></div>
-                  <div class="col-lg-2"><p class="mb-0">Mes <input type="checkbox" name="editarPeriodicidad_checkbox" value="Mensual"></p></div>
-                </div>
-                <div class="row">
-                  <div class='col-lg-2'>
-                    <p class="my-0">Ene <input type="checkbox" name="editarPeriodicidad_checkbox" value="1"></p>
-                    <p class="my-0">Feb <input type="checkbox" name="editarPeriodicidad_checkbox" value="2"></p>
-                    <p class="my-0">Mar <input type="checkbox" name="editarPeriodicidad_checkbox" value="3"></p>
-                  </div>
-                  <div class='col-lg-2'>
-                    <p class="my-0">Abr <input type="checkbox" name="editarPeriodicidad_checkbox" value="4"></p>
-                    <p class="my-0">May <input type="checkbox" name="editarPeriodicidad_checkbox" value="5"></p>
-                    <p class="my-0">Jun <input type="checkbox" name="editarPeriodicidad_checkbox" value="6"></p>
-                  </div>
-                  <div class='col-lg-2'>
-                    <p class="my-0">Jul <input type="checkbox" name="editarPeriodicidad_checkbox" value="7"></p>
-                    <p class="my-0">Ago <input type="checkbox" name="editarPeriodicidad_checkbox" value="8"></p>
-                    <p class="my-0">Sep <input type="checkbox" name="editarPeriodicidad_checkbox" value="9"></p>
-                  </div>
-                  <div class='col-lg-2'>
-                    <p class="my-0">Oct <input type="checkbox" name="editarPeriodicidad_checkbox" value="10"></p>
-                    <p class="my-0">Nov <input type="checkbox" name="editarPeriodicidad_checkbox" value="11"></p>
-                    <p class="my-0">Dic <input type="checkbox" name="editarPeriodicidad_checkbox" value="12"></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Volver</button>
-            <button type="submit" name="editar_recepcion" class="btn btn-outline-success btn-sm float-end ">Editar</button>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-  </div>
-</div>
-<script type="text/javascript">
-  $('#editarRecepcionModal').on('show.bs.modal', function(e) {
-    const id_editar = $(e.relatedTarget).data('href');
-    fetch(Flask.url_for('bitacoras.obtener_info_recepcion', {'id_recepcion': id_editar}))
-    .then(response => response.json())
-    .then(data => {
-      $('#id_recepcion_editar').val(data.id_recepcion);
-      $('#nombre_editar').val(data.nombre);
-      $('#carpeta_editar').val(data.carpeta);
-      $('#archivo_editar').val(data.archivo);
-
-      var select = $("#sd_recibe_editar");
-      select.empty();
-      $.each(data.choices_sd, function(key, value) {
-        select.append($("<option></option>")
-          .attr("value", value).text(key));
-      });
-      select.val(data.sd);
-
-      var checkboxes = $("input[name='editarPeriodicidad_checkbox']");
-      checkboxes.each(function() {
-        if (jQuery.inArray($(this).val(), data.periodo) > -1){
-          $(this).prop('checked', true);
-        }
-        else {
-          $(this).prop('checked', false);
-        }
-      });
-
-    });
 });
 </script>
 
@@ -1050,7 +917,6 @@
       $('#nro_resolucion').prop('disabled', true);
       $('#link_resolucion').prop('disabled', true);
       $('#link_project').prop('disabled', true);
-      $('#nuevo_hito').prop('disabled', true);
     }
   });
 </script>

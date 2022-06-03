@@ -10,7 +10,7 @@ from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORE
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias
 
 from datetime import datetime, date
-#import pandas as pd
+import pandas as pd
 from pprint import pprint
 from math import ceil, floor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -391,32 +391,32 @@ scheduler.start()
 estadisticas_convenios()
 
 
-# @informes.route('/convenios_por_institucion')
-# def convenios_por_institucion():
-#     convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
-#                                                     or_(Convenio.estado == 'En proceso',
-#                                                         Convenio.estado == 'En producción'))).all()
-#     instituciones = [convenio.institucion.sigla for convenio in convenios_firmados]
-#     instituciones_dict = {i:{'total': instituciones.count(i),
-#                              'convenios':0,
-#                                 'adendum':0} for i in instituciones}
-#
-#     for convenio in convenios_firmados:
-#         if convenio.tipo == 'Convenio':
-#             instituciones_dict[convenio.institucion.sigla]['convenios'] += 1
-#         else:
-#             instituciones_dict[convenio.institucion.sigla]['adendum'] += 1
-#
-#     lista = []
-#     for nombre, cuenta in instituciones_dict.items():
-#         lista.append({'insittucion': nombre,
-#                       'convenios': cuenta['convenios'],
-#                       'adendum': cuenta['adendum'],
-#                       'total': cuenta['total']})
-#     df = pd.DataFrame.from_dict(lista)
-#     df.to_csv(r'instituciones.csv', index=False, header=True)
-#
-#     return 'hola'
+@informes.route('/convenios_por_institucion')
+def convenios_por_institucion():
+    convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
+                                                    or_(Convenio.estado == 'En proceso',
+                                                        Convenio.estado == 'En producción'))).all()
+    instituciones = [convenio.institucion.sigla for convenio in convenios_firmados]
+    instituciones_dict = {i:{'total': instituciones.count(i),
+                             'convenios':0,
+                                'adendum':0} for i in instituciones}
+
+    for convenio in convenios_firmados:
+        if convenio.tipo == 'Convenio':
+            instituciones_dict[convenio.institucion.sigla]['convenios'] += 1
+        else:
+            instituciones_dict[convenio.institucion.sigla]['adendum'] += 1
+
+    lista = []
+    for nombre, cuenta in instituciones_dict.items():
+        lista.append({'insittucion': nombre,
+                      'convenios': cuenta['convenios'],
+                      'adendum': cuenta['adendum'],
+                      'total': cuenta['total']})
+    df = pd.DataFrame.from_dict(lista)
+    df.to_csv(r'instituciones.csv', index=False, header=True)
+
+    return 'hola'
 
 @informes.route('/otros_convenios')
 def otros_convenios():

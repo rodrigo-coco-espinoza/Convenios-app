@@ -149,7 +149,6 @@ class Hito(db.Model):
     # Llaves foráneas
     id_etapa = db.Column(db.Integer, db.ForeignKey('etapa.id'), nullable=False)
 
-
 class Institucion(db.Model):
     """
     Representa las instituciones con las cuales el SII firma los convenios.
