@@ -6,13 +6,14 @@ from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvo
                                   RecepcionConvenio, Hito, HitosConvenio)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
-                                           RegistrarHitoForm, EditarRecepcionForm)
+                                           RegistrarHitoForm)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
-                                           dias_habiles, formato_meses)
+                                           dias_habiles)
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from datetime import datetime, date
+import pandas as pd
 
 bitacoras = Blueprint('bitacoras', __name__)
 
@@ -420,18 +421,9 @@ def bitacora_convenio(id_convenio):
         db.session.commit()
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
-    # WEB SERVICES
-    # WS asignados tabla
-    ws_asignados_query = WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()
-    ws_asignados = [{
-        'id_asignado': ws.id,
-        'activo': 'checked' if ws.estado else "",
-        'nombre_aiet': ws.ws.nombre_aiet,
-        'nombre_sdi': ws.ws.nombre_sdi,
-        'metodo': ws.ws.metodo
-        } for ws in ws_asignados_query]
     # Formulario para asignar WS
-    ws_asignados_id = [webservice.id_ws for webservice in ws_asignados_query]
+    ws_asignados_query = WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()
+    ws_asignados = [webservice.id_ws for webservice in ws_asignados_query]
     ws_contribuyentes_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de contribuyentes',
                                                            CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
     ws_contribuyentes = [
@@ -440,7 +432,7 @@ def bitacora_convenio(id_convenio):
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
-         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+         'asignado': 'checked' if ws.id in ws_asignados else ""
          }
         for ws in ws_contribuyentes_query]
     ws_contribuyentes.sort(key=lambda dict: dict['nombre_aiet'])
@@ -452,7 +444,7 @@ def bitacora_convenio(id_convenio):
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
-         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+         'asignado': 'checked' if ws.id in ws_asignados else ""
          }
         for ws in ws_tributaria_query]
     ws_tributaria.sort(key=lambda dict: dict['nombre_aiet'])
@@ -464,7 +456,7 @@ def bitacora_convenio(id_convenio):
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
-         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+         'asignado': 'checked' if ws.id in ws_asignados else ""
          }
         for ws in ws_bbrr_query]
     ws_bbrr.sort(key=lambda dict: dict['nombre_aiet'])
@@ -475,7 +467,7 @@ def bitacora_convenio(id_convenio):
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
-         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+         'asignado': 'checked' if ws.id in ws_asignados else ""
          }
         for ws in ws_pisee_query]
     ws_pisee.sort(key=lambda dict: dict['nombre_aiet'])
@@ -486,7 +478,7 @@ def bitacora_convenio(id_convenio):
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
-         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+         'asignado': 'checked' if ws.id in ws_asignados else ""
          }
         for ws in ws_no_disponibles_query]
     ws_no_disponibles.sort(key=lambda dict: dict['nombre_aiet'])
@@ -496,7 +488,7 @@ def bitacora_convenio(id_convenio):
         ws_seleccionados = request.form.getlist('ws_checkbox')
         # Agregar nuevos WS
         for ws in ws_seleccionados:
-            if int(ws) not in ws_asignados_id:
+            if ws not in ws_asignados:
                 nuevo_ws = WSConvenio(
                     id_convenio=id_convenio,
                     id_ws=int(ws),
@@ -525,18 +517,6 @@ def bitacora_convenio(id_convenio):
             flash('Se ha actualizado la información de Web Services.', 'success')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
-    # RECEPCIÓN
-    # Recepciones registradas
-    recepciones_query = RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()
-    recepciones_registradas = [{
-        'id_recepcion': recepcion.id,
-        'nombre': recepcion.nombre,
-        'carpeta': recepcion.carpeta if recepcion.carpeta else "",
-        'archivo': recepcion.archivo,
-        'periodo': formato_meses(recepcion.periodicidad) if '-' in recepcion.periodicidad else recepcion.periodicidad,
-        'sd': recepcion.sd.sigla,
-        'activo': 'checked' if recepcion.estado else ""
-    } for recepcion in recepciones_query]
     # Formulario recepción de información
     sd_asociadas = SdInvolucrada.query.filter(SdInvolucrada.id_convenio == id_convenio).all()
     form_recepcion = AgregarRecepcionForm(id_convenio=id_convenio)
@@ -574,7 +554,7 @@ def bitacora_convenio(id_convenio):
     hitos_registrados_query = HitosConvenio.query.filter(HitosConvenio.id_convenio == id_convenio).all()
     hitos_registrados = [{'id_registro': hito.id,
                           'hito': hito.hito.nombre,
-                          'fecha': datetime.strftime(hito.fecha, "%d-%m-%Y"),
+                          'fecha': hito.fecha,
                           'minuta': hito.minuta,
                           'grabacion': hito.grabacion
                           }
@@ -612,23 +592,12 @@ def bitacora_convenio(id_convenio):
         flash('Se ha registrado el hito exitosamente.', 'success')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
-    # Actualizar estados del intercambio de información
-    if 'estados_intercambio' in request.form:
-        return 'actualizar los intercambios'
-
-    # Editar recepción de información
-    editar_recepcion_form = EditarRecepcionForm()
-    if 'editar_recepcion' in request.form and editar_recepcion_form.validate_on_submit():
-        return editar_recepcion_form.sd_recibe_editar.data
-
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
                            form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
                            ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
-                           form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
-                           recepciones=recepciones_registradas, ws_asignados=ws_asignados,
-                           editar_recepcion_form=editar_recepcion_form)
+                           form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')
@@ -907,44 +876,6 @@ def eliminar_hito(id_hito):
     flash(f'Se ha eliminado el hito {nombre_hito}', 'success')
     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
-
-@bitacoras.route('/eliminar_ws/<int:id_asignado>')
-@login_required
-@analista_only
-def eliminar_ws(id_asignado):
-    ws_asignado = WSConvenio.query.get(id_asignado)
-    ws = ws_asignado.ws.nombre_aiet
-    id_convenio = ws_asignado.convenio.id
-    db.session.delete(ws_asignado)
-    db.session.commit()
-    flash(f'Se ha eliminado el WS {ws}', 'success')
-    return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-
-
-@bitacoras.route('/obtener_info_recepcion/<int:id_recepcion>')
-@login_required
-@analista_only
-def obtener_info_recepcion(id_recepcion):
-    recepcion_query = RecepcionConvenio.query.get(id_recepcion)
-
-    # Choices del select SD
-    choices_sd = {sd.subdireccion.sigla: sd.id_subdireccion for sd in SdInvolucrada.query.filter(SdInvolucrada.id_convenio == recepcion_query.id_convenio).all()}
-
-    recepcion = {
-        'id_recepcion': recepcion_query.id,
-        'nombre': recepcion_query.nombre,
-        'carpeta': recepcion_query.carpeta if recepcion_query.carpeta else "",
-        'archivo': recepcion_query.archivo,
-        'sd': recepcion_query.id_sd,
-        'choices_sd': choices_sd
-    }
-    # Periodicidad de la recepción
-    if '-' in recepcion_query.periodicidad:
-        recepcion['periodo'] = recepcion_query.periodicidad.split('-')
-    else:
-        recepcion['periodo'] = [recepcion_query.periodicidad]
-
-    return recepcion
 # @bitacoras.route('/obtener_convenio/<int:id_convenio>')
 # def obtener_convenio(id_convenio):
 #     # Buscar convenio a editar
