@@ -10,8 +10,20 @@ import holidays
 from numpy import busday_count
 from pprint import pprint
 
-FERIADOS= [pd.to_datetime(date[0], format='%Y-%m-%d').date() for
+FERIADOS = [pd.to_datetime(date[0], format='%Y-%m-%d').date() for
            date in holidays.CL(years=[year for year in range(2015, 2026, 1)]).items()]
+MESES = {'1':'Ene', '2':'Feb', '3':'Mar', '4':'Abr', '5':'May', '6':'Jun', '7':'Jul', '8':'Ago', '9':'Sep', '10':'Oct',
+         '11':'Nov', '12':'Dic'}
+
+
+def formato_meses(str_meses):
+    meses_num = str_meses.split('-')
+    periodo = ""
+    for num in meses_num:
+        periodo += f'{MESES[num]}, '
+
+    periodo = periodo.strip(', ')
+    return periodo
 
 
 def dias_habiles(ingreso, salida):

@@ -321,6 +321,19 @@ class AgregarRecepcionForm(FlaskForm):
             raise ValidationError('Debe seleccionar una subdirección.')
 
 
+class EditarRecepcionForm(FlaskForm):
+    id_recepcion_editar = HiddenField('ID Recepción')
+    nombre_editar = StringField('Nombre', validators=[DataRequired(), Length(min=2)])
+    carpeta_editar = StringField('Carpeta')
+    archivo_editar = StringField('Archivo',  validators=[DataRequired(), Length(min=2)])
+    sd_recibe_editar = SelectField('Subdirección', choices=[(0, '')], validate_choice=False)
+
+    # def validate_archivo(self, archivo):
+    #     if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
+    #                                         RecepcionConvenio.archivo == archivo.data)).first():
+    #         raise ValidationError('El nombre de archivo ya existe para este convenio.')
+
+
 class RegistrarHitoForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     hito = SelectField('Seleccione hito')
