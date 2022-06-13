@@ -110,7 +110,7 @@ class RecepcionConvenio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(), nullable=False)
     carpeta = db.Column(db.String(50), nullable=True)
-    archivo = db.Column(db.String(50), nullable=False)
+    archivo = db.Column(db.String(50), nullable=True)
     periodicidad = db.Column(db.String(), nullable=False)
     estado = db.Column(db.Boolean(), nullable=True)
 
