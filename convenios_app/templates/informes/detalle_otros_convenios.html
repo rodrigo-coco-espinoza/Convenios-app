@@ -25,7 +25,6 @@
         <p><strong>Publicado:</strong><br> Res. N°{{ informacion_convenio.nro_resolucion }} del {{ informacion_convenio.fecha_resolucion }}</p>
         <p><a target="_blank" style='color: #000; text-decoration: none;' href="{{ informacion_convenio.link_resolucion }}">Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
       {% endif %}
-
     </div>
     <!-- Subdirecciones involucradas -->
     <div class="col-lg-4">
@@ -75,7 +74,49 @@
           {% endif %}
         </p>
       {% endif%}
+    </div>
   </div>
+
+  <!-- Hitos del proceso -->
+  {% if hitos %}
+    <legend class="border-bottom mb-4">Hitos del proceso</legend>
+    <div class="content-section mb-5">
+      <table class='table'>
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope="col">Hito</th>
+            <th class="text-center" scope="col">Fecha</th>
+            <th class='text-center' scope="col">Minuta</th>
+            <th class="text-center" scope="col">Grabación</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%  for hito in hitos %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ hito.nombre }}</td>
+              <td class="text-center">{{ hito.fecha }}</td>
+              <td class="text-center">
+                {% if hito.minuta %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-link-slash gray"></i>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if hito.grabacion %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-video-slash gray"></i>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
 
   <!-- Información a Intercambiar -->
   <legend class="border-bottom mb-3">Información a intercambiar</legend>
@@ -181,48 +222,8 @@
     <div class='' id="bitacora"></div>
   </div>
 
-  <!-- Hitos del proceso -->
-  {% if hitos %}
-    <legend class="border-bottom mb-4">Hitos del proceso</legend>
-    <div class="content-section mb-5">
-      <table class='table'>
-        <thead>
-          <tr>
-            <th scope='col'>#</th>
-            <th scope="col">Hito</th>
-            <th class="text-center" scope="col">Fecha</th>
-            <th class='text-center' scope="col">Minuta</th>
-            <th class="text-center" scope="col">Grabación</th>
-          </tr>
-        </thead>
-        <tbody>
-          {%  for hito in hitos %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ hito.nombre }}</td>
-              <td class="text-center">{{ hito.fecha }}</td>
-              <td class="text-center">
-                {% if hito.minuta %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
-                {% else %}
-                  <i class="fa-solid fa-link-slash gray"></i>
-                {% endif %}
-              </td>
-              <td class="text-center">
-                {% if hito.grabacion %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
-                {% else %}
-                  <i class="fa-solid fa-video-slash gray"></i>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% endif %}
-  
 </div>
+
 
 
 

@@ -17,7 +17,7 @@ MESES = {'1':'Ene', '2':'Feb', '3':'Mar', '4':'Abr', '5':'May', '6':'Jun', '7':'
 
 
 def formato_periodicidad(str_meses):
-    if '-' in str_meses:
+    if '-' in str_meses or str_meses.isnumeric():
         meses_num = str_meses.split('-')
         periodo = ""
         for num in meses_num:

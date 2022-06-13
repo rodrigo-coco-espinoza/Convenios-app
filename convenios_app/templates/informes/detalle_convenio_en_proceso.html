@@ -92,6 +92,47 @@
     </div>
   </div>
 
+  <!-- Hitos del proceso -->
+  {% if hitos %}
+    <legend class="border-bottom mb-4">Hitos del proceso</legend>
+    <div class="content-section mb-5">
+      <table class='table'>
+        <thead>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope="col">Hito</th>
+            <th class="text-center" scope="col">Fecha</th>
+            <th class='text-center' scope="col">Minuta</th>
+            <th class="text-center" scope="col">Grabación</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%  for hito in hitos %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ hito.nombre }}</td>
+              <td class="text-center">{{ hito.fecha }}</td>
+              <td class="text-center">
+                {% if hito.minuta %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-link-slash gray"></i>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if hito.grabacion %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-video-slash gray"></i>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
   <!-- Información a Intercambiar -->
   <legend class="border-bottom mb-3">Información a intercambiar</legend>
   {% if recepciones or ws_asignados %}
@@ -196,46 +237,7 @@
     <div class='' id="bitacora"></div>
   </div>
 
-  <!-- Hitos del proceso -->
-  {% if hitos %}
-    <legend class="border-bottom mb-4">Hitos del proceso</legend>
-    <div class="content-section mb-5">
-      <table class='table'>
-        <thead>
-          <tr>
-            <th scope='col'>#</th>
-            <th scope="col">Hito</th>
-            <th class="text-center" scope="col">Fecha</th>
-            <th class='text-center' scope="col">Minuta</th>
-            <th class="text-center" scope="col">Grabación</th>
-          </tr>
-        </thead>
-        <tbody>
-          {%  for hito in hitos %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ hito.nombre }}</td>
-              <td class="text-center">{{ hito.fecha }}</td>
-              <td class="text-center">
-                {% if hito.minuta %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
-                {% else %}
-                  <i class="fa-solid fa-link-slash gray"></i>
-                {% endif %}
-              </td>
-              <td class="text-center">
-                {% if hito.grabacion %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
-                {% else %}
-                  <i class="fa-solid fa-video-slash gray"></i>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% endif %}
+
 
 </div>
 
