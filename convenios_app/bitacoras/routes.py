@@ -10,7 +10,7 @@ from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
-                                           dias_habiles, formato_meses)
+                                           dias_habiles, formato_periodicidad)
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from datetime import datetime, date
 
@@ -533,7 +533,7 @@ def bitacora_convenio(id_convenio):
         'nombre': recepcion.nombre,
         'carpeta': recepcion.carpeta if recepcion.carpeta else "",
         'archivo': recepcion.archivo,
-        'periodo': formato_meses(recepcion.periodicidad) if '-' in recepcion.periodicidad else recepcion.periodicidad,
+        'periodo': formato_periodicidad(recepcion.periodicidad),
         'sd': recepcion.sd.sigla,
         'activo': 'checked' if recepcion.estado else ""
     } for recepcion in recepciones_query]
@@ -614,12 +614,42 @@ def bitacora_convenio(id_convenio):
 
     # Actualizar estados del intercambio de información
     if 'estados_intercambio' in request.form:
-        return 'actualizar los intercambios'
+        # Actualizar estado de las recepciones
+        recepciones_form = request.form.getlist('estadoRecepcion_checkbox')
+        for recepcion in recepciones_registradas:
+            recepcion_por_actualizar = RecepcionConvenio.query.get(recepcion['id_recepcion'])
+            if str(recepcion['id_recepcion']) in recepciones_form:
+                recepcion_por_actualizar.estado = True
+            else:
+                recepcion_por_actualizar.estado = False
+
+        # Actualizar estado de los WS
+        ws_form = request.form.getlist('estadoWS_checkbox')
+        for ws in ws_asignados:
+            ws_por_actualizar = WSConvenio.query.get(ws['id_asignado'])
+            if str(ws['id_asignado']) in ws_form:
+                ws_por_actualizar.estado = True
+            else:
+                ws_por_actualizar.estado = False
+        db.session.commit()
+
+        return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     # Editar recepción de información
     editar_recepcion_form = EditarRecepcionForm()
     if 'editar_recepcion' in request.form and editar_recepcion_form.validate_on_submit():
-        return editar_recepcion_form.sd_recibe_editar.data
+        recepcion_a_editar = RecepcionConvenio.query.get(editar_recepcion_form.id_recepcion_editar.data)
+        recepcion_a_editar.nombre = editar_recepcion_form.nombre_editar.data
+        recepcion_a_editar.carpeta = editar_recepcion_form.carpeta_editar.data
+        recepcion_a_editar.archivo = editar_recepcion_form.archivo_editar.data
+        recepcion_a_editar.id_sd = editar_recepcion_form.sd_recibe_editar.data
+
+        periodicidad = request.form.getlist('editarPeriodicidad_checkbox')
+        recepcion_a_editar.periodicidad = '-'.join(periodicidad)
+        db.session.commit()
+
+        flash(f'Se ha actualizado la información de {editar_recepcion_form.nombre_editar.data}', 'success')
+        return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,

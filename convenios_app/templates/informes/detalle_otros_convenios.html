@@ -77,6 +77,60 @@
       {% endif%}
   </div>
 
+  <!-- Información a Intercambiar -->
+  <legend class="border-bottom mb-3">Información a intercambiar</legend>
+  <div class="mb-4">
+    <h5>Recepción de información</h5>
+    <table class='table'>
+      <thead>
+        <tr>
+          <th scope='col'>#</th>
+          <th scope='col'>Nombre</th>
+          <th scope='col'>Archivo</th>
+          <th scope='col'>Periodicidad</th>
+          <th scope='col'>Subdirección</th>
+          <th scope='col'>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for recepcion in recepciones %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ recepcion.nombre }}</td>
+            <td>{{ recepcion.archivo }}</td>
+            <td>{{ recepcion.periodicidad }}</td>
+            <td>{{ recepcion.sd }}</td>
+            <td>{{ recepcion.estado }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="mb-5">
+    <h5>Web Services</h5>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope='col'>#</th>
+          <th scope='col'>Nombre AIET</th>
+          <th scope='col'>Nombre SDI</th>
+          <th scope='col'>Método</th>
+          <th scope='col'>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ws in ws_asignados %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ ws.nombre_aiet }}</td>
+          <td>{{ ws.nombre_sdi }}</td>
+          <td>{{ ws.metodo }}</td>
+          <td> {{ ws.estado }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   <!-- Estadísticas e indicadores del proceso -->
   <legend class="border-bottom mb-4">Estadísticas del proceso</legend>
@@ -115,6 +169,45 @@
   <legend class="border-bottom mb-4">Bitácora</legend>
   <div class="mb-5 overflow-auto" style="height: 400px;">
     <div class='' id="bitacora"></div>
+  </div>
+
+  <!-- Hitos del proceso -->
+  <legend class="border-bottom mb-4">Hitos del proceso</legend>
+  <div class="content-section mb-5">
+    <table class='table'>
+      <thead>
+        <tr>
+          <th scope='col'>#</th>
+          <th scope="col">Hito</th>
+          <th class="text-center" scope="col">Fecha</th>
+          <th class='text-center' scope="col">Minuta</th>
+          <th class="text-center" scope="col">Grabación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%  for hito in hitos %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ hito.nombre }}</td>
+            <td class="text-center">{{ hito.fecha }}</td>
+            <td class="text-center">
+              {% if hito.minuta %}
+                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+              {% else %}
+                <i class="fa-solid fa-link-slash gray"></i>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if hito.grabacion %}
+                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+              {% else %}
+                <i class="fa-solid fa-video-slash gray"></i>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
 </div>

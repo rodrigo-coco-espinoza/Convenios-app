@@ -577,7 +577,7 @@
                 <td>{{ recepcion.archivo }}</td>
                 <td>{{ recepcion.periodo }}</td>
                 <td>{{ recepcion.sd }}</td>
-                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.estado }}></td>
+                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.activo }}></td>
                 <td>
                   <a class='text-dark' href="#" data-href="{{ recepcion.id_recepcion }}" data-bs-toggle="modal" data-bs-target="#editarRecepcionModal">
                     <i class="fa-solid fa-pen"></i>

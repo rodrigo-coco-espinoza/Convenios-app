@@ -330,7 +330,8 @@ class EditarRecepcionForm(FlaskForm):
 
     # def validate_archivo(self, archivo):
     #     if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
-    #                                         RecepcionConvenio.archivo == archivo.data)).first():
+    #                                         RecepcionConvenio.archivo == archivo.data,
+    #                                            RecepcionConvenio.id != )).first():
     #         raise ValidationError('El nombre de archivo ya existe para este convenio.')
 
 

@@ -9,21 +9,33 @@
 
   <div class="container mt-5">
     <div class="row text-center">
-      <div class="col-lg-3">
-        <h1>{{ data.firmados }} <i class="fa-solid fa-file-signature fa-fw fa-sm"></i></h1>
-        Convenios firmados
+      <div class="col-lg-6">
+        <div class="row">
+          <div class="col-lg-2"></div>
+          <div class="col-lg-4">
+            <h1>{{ data.firmados }} <i class="fa-solid fa-file-signature fa-fw fa-sm"></i></h1>
+            Convenios firmados
+          </div>
+          <div class="col-lg-4">
+            <h1>{{ data.por_firmar }} <i class="fa-solid fa-file"></i></h1>
+            Convenios por firmar
+          </div>
+          <div class="col-lg-2"></div>
+        </div>
       </div>
-      <div class="col-lg-3">
-        <h1>{{ data.por_firmar }} <i class="fa-solid fa-file"></i></h1>
-        Convenios por firmar
-      </div>
-      <div class="col-lg-3">
-        <h1>{{ data.en_produccion }} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
-        Convenios en producción
-      </div>
-      <div class="col-lg-3">
-        <h1>{{ data.en_proceso }} <i class="fa-solid fa-comments fa-fw fa-sm"></i></h1>
-        Convenios en proceso
+      <div class="col-lg-6">
+        <div class="row">
+          <div class="col-lg-2"></div>
+          <div class="col-lg-4">
+            <h1>{{ data.en_produccion }} <i class="fa-solid fa-right-left fa-fw fa-sm"></i></h1>
+            Convenios en producción
+          </div>
+          <div class="col-lg-4">
+            <h1>{{ data.en_proceso }} <i class="fa-solid fa-comments fa-fw fa-sm"></i></h1>
+            Convenios en proceso
+          </div>
+          <div class="col-lg-2"></div>
+        </div>
       </div>
     </div>
 
@@ -73,6 +85,14 @@
           <td>0</td>
           <th>26</th>
         </tr>
+        <tr>
+         <th scope="row">Mayo</th>
+         <td>26</td>
+         <td>1</td>
+         <td>0</td>
+         <td>0</td>
+         <th>27</th>
+       </tr>
           </tbody>
         </table>
       </div>
