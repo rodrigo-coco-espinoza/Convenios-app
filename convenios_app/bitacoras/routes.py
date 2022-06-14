@@ -439,6 +439,7 @@ def bitacora_convenio(id_convenio):
          'nombre_aiet': ws.nombre_aiet,
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
+         'url': ws.url,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
          'asignado': 'checked' if ws.id in ws_asignados_id else ""
          }
@@ -451,6 +452,7 @@ def bitacora_convenio(id_convenio):
          'nombre_aiet': ws.nombre_aiet,
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
+         'url': ws.url,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
          'asignado': 'checked' if ws.id in ws_asignados_id else ""
          }
@@ -463,6 +465,7 @@ def bitacora_convenio(id_convenio):
          'nombre_aiet': ws.nombre_aiet,
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
+         'url': ws.url,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
          'asignado': 'checked' if ws.id in ws_asignados_id else ""
          }
@@ -474,6 +477,7 @@ def bitacora_convenio(id_convenio):
          'nombre_aiet': ws.nombre_aiet,
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
+         'url': ws.url,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
          'asignado': 'checked' if ws.id in ws_asignados_id else ""
          }
@@ -485,6 +489,7 @@ def bitacora_convenio(id_convenio):
          'nombre_aiet': ws.nombre_aiet,
          'nombre_sdi': ws.nombre_sdi,
          'metodo': ws.metodo,
+         'url': ws.url,
          'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
          'asignado': 'checked' if ws.id in ws_asignados_id else ""
          }

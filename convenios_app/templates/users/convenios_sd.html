@@ -3,8 +3,8 @@
 <div class="content-section mx-2">
   <!-- Tabla recepciones del mes -->
   <legend class="border-bottom mb-3">Recepción de información pendiente Mayo</legend>
-  <table class="table table-stripped mb-5">
-    <thead>
+  <table class="table table-striped table-hover mb-5">
+    <thead class='table-dark'>
       <tr>
         <th scope='col'>#</th>
         <th scope='col'>Institución</th>
@@ -47,8 +47,8 @@
   </table>
   <!-- Tabla recepciones atrasadas -->
   <legend class="border-bottom mb-3">Recepción de información atrasadas</legend>
-  <table class="table table-stripped mb-5">
-    <thead>
+  <table class="table table-striped table-hover mb-5">
+    <thead class='table-dark'>
       <tr>
         <th scope='col'>#</th>
         <th scope='col'>Institución</th>
@@ -86,8 +86,9 @@
 
   <!-- Tabla convenios asignados -->
   <legend class="border-bottom mb-3">Convenios asignados a {{ equipo.sigla }}</legend>
-  <table class="table table-striped mb-5">
-    <thead>
+  {% if convenios_asignados %}
+    <table class="table table-striped table-hover mb-5">
+    <thead class='table-dark'>
       <th scope='col'>#</th>
       <th scope='col'>Nombre convenio</th>
       <th class="text-center" scope='col'>Días en área</th>
@@ -103,7 +104,10 @@
         </tr>
       {% endfor %}
     </tbody>
-  </table>
+    </table>
+  {% else %}
+    <p class="mb-5">No hay convenios asignados a {{ equipo.sigla }} actualmente.</p>
+  {% endif %}
   <!-- Tabla estado actual convenios asociados a SD -->
   <legend class="border-bottom mb-3">Estado actual convenios de {{ equipo.sigla }}</legend>
   <div  class="mb-5 overflow-auto" style="height: 700px;">

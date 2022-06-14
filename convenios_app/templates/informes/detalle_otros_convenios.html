@@ -81,8 +81,8 @@
   {% if hitos %}
     <legend class="border-bottom mb-4">Hitos del proceso</legend>
     <div class="content-section mb-5">
-      <table class='table'>
-        <thead>
+      <table class='table table-hover table-striped'>
+        <thead class='table-dark'>
           <tr>
             <th scope='col'>#</th>
             <th scope="col">Hito</th>
@@ -124,15 +124,15 @@
     {% if recepciones %}
       <div class="mb-4">
         <h5>Recepción de información</h5>
-        <table class='table'>
-          <thead>
+        <table class='table table-hover table-striped'>
+          <thead class='table-dark'>
             <tr>
               <th scope='col'>#</th>
               <th scope='col'>Nombre</th>
               <th scope='col'>Archivo</th>
               <th scope='col'>Periodicidad</th>
-              <th scope='col'>Subdirección</th>
-              <th scope='col'>Estado</th>
+              <th class="text-center" scope='col'>Subdirección</th>
+              <th class="text-center" scope='col'>Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -142,8 +142,8 @@
                 <td>{{ recepcion.nombre }}</td>
                 <td>{{ recepcion.archivo }}</td>
                 <td>{{ recepcion.periodicidad }}</td>
-                <td>{{ recepcion.sd }}</td>
-                <td>{{ recepcion.estado }}</td>
+                <td class="text-center">{{ recepcion.sd }}</td>
+                <td class="text-center">{{ recepcion.estado }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -153,14 +153,14 @@
     {% if ws_asignados %}
       <div class="mb-5">
         <h5>Web Services</h5>
-        <table class="table">
-          <thead>
+        <table class="table table-hover table-triped">
+          <thead class='table-dark'>
             <tr>
               <th scope='col'>#</th>
               <th scope='col'>Nombre AIET</th>
               <th scope='col'>Nombre SDI</th>
               <th scope='col'>Método</th>
-              <th scope='col'>Estado</th>
+              <th class="text-center" scope='col'>Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -170,7 +170,7 @@
               <td>{{ ws.nombre_aiet }}</td>
               <td>{{ ws.nombre_sdi }}</td>
               <td>{{ ws.metodo }}</td>
-              <td> {{ ws.estado }}</td>
+              <td class="text-center">{{ ws.estado }}</td>
             </tr>
             {% endfor %}
           </tbody>
