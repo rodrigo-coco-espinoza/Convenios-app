@@ -5,4 +5,5 @@ app = create_app()
 db.create_all(app=create_app())
 
 if __name__ == '__main__':
+    # Escoger según ambiente
     app.run(debug=True)
