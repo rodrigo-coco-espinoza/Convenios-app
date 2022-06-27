@@ -1,3 +1,13 @@
+.carousel-control-width {
+    width: 4%;
+    color:#000;
+    text-decoration: none;
+}
+
+.carousel-control-width:hover {
+  color:#000;
+}
+
 .green {
     color: #62BD69;
 }

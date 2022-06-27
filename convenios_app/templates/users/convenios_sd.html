@@ -1,88 +1,33 @@
 {% extends 'layout.html' %}
 {% block content %}
 <div class="content-section mx-2">
-  <!-- Tabla recepciones del mes -->
-  <legend class="border-bottom mb-3">Recepción de información pendiente Mayo</legend>
-  <table class="table table-striped table-hover mb-5">
-    <thead class='table-dark'>
-      <tr>
-        <th scope='col'>#</th>
-        <th scope='col'>Institución</th>
-        <th scope='col'>Convenio</th>
-        <th scope='col'>Entrega</th>
-        <th scope='col'>Archivo</th>
-        <th scope='col'>Respuesta</th>
-        <th scope='col'>Nota</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>IPS</td>
-        <td>(Ad) Entregas Semanales</td>
-        <td>Información de pensionados</td>
-        <td>info_pensionados_mm_aaaa.csv</td>
-        <td>...</td>
-        <td><input type="text" name="" value=""></td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>FOGAPE</td>
-        <td>Intercambio de Información</td>
-        <td>Créditos otorgados</td>
-        <td>creditos_mm.txt</td>
-        <td>...</td>
-        <td><input type="text" name="" value=""></td>
-      </tr>
-      <tr>
-        <td>3</td>
-        <td>INDAP</td>
-        <td>Convenio</td>
-        <td>Catastro de vacas</td>
-        <td>catastro_vacas.csv</td>
-        <td>...</td>
-        <td><input type="text" name="" value=""></td>
-      </tr>
-    </tbody>
-  </table>
-  <!-- Tabla recepciones atrasadas -->
-  <legend class="border-bottom mb-3">Recepción de información atrasadas</legend>
-  <table class="table table-striped table-hover mb-5">
-    <thead class='table-dark'>
-      <tr>
-        <th scope='col'>#</th>
-        <th scope='col'>Institución</th>
-        <th scope='col'>Convenio</th>
-        <th scope='col'>Entrega</th>
-        <th scope='col'>Archivo</th>
-        <th scope='col'>Mes</th>
-        <th scope='col'>Respuesta</th>
-        <th scope='col'>Nota</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>IPS</td>
-        <td>(Ad) Entregas Semanales</td>
-        <td>Información de pensionados</td>
-        <td>info_pensionados_mm_aaaa.csv</td>
-        <td>Abril</td>
-        <td>...</td>
-        <td><input type="text" name="" value=""></td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>FOGAPE</td>
-        <td>Intercambio de Información</td>
-        <td>Créditos otorgados</td>
-        <td>creditos_mm.txt</td>
-        <td>Marzo</td>
-        <td>...</td>
-        <td><input type="text" name="" value=""></td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Carousel recepciones por mes -->
+  <legend class="border-bottom mb-3">Recepción de información</legend>
+  <div id="carouselRecepcion" class="carousel slide mb-5" data-bs-interval="false">
+    <div class="carousel-inner px-5">
+      <div class="carousel-item active">
+        <div class="content-section" style="width: 400px; height: 400px; background-color:aqua">
+          <h3>Enero</h3>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="content-section" style="width: 400px; height: 400px; background-color:greenyellow">
+
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="content-section" style="width: 400px; height: 400px; background-color:maroon">
+
+        </div>
+      </div>
+    </div>
+    <a class="carousel-control-prev carousel-control-width" href="#carouselRecepcion" role="button" data-bs-slide="prev">
+      <i class="fa-solid fa-angle-left"></i>
+    </a>
+    <a class="carousel-control-next carousel-control-width" href="#carouselRecepcion" role="button" data-bs-slide="next">
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+  </div>
 
   <!-- Tabla convenios asignados -->
   <legend class="border-bottom mb-3">Convenios asignados a {{ equipo.sigla }}</legend>
@@ -137,7 +82,7 @@
     };
     var tablaEstadoActual = new google.visualization.Table(document.getElementById('tablaEstadoActual'));
     tablaEstadoActual.draw(dataTablaEstadoActual, optionsTablaEstadoActual);
-  }
+    }
 </script>
 
 {% endblock content %}
