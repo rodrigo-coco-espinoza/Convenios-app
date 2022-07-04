@@ -27,3 +27,24 @@ def adendum(data):
         return data['Adendum']
     except KeyError:
         return '-'
+
+
+def convenio_cuenta(data):
+    try:
+        return data['Convenio']
+    except KeyError:
+        return '-'
+
+
+def por_firmar(data):
+    try:
+        return data['por_firmar']
+    except KeyError:
+        return '-' 
+
+
+def otros(data):
+    try:
+        return data['otros']
+    except KeyError:
+        return '-'

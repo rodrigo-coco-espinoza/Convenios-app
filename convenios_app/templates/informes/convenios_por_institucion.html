@@ -6,14 +6,79 @@
   <div id="tablaInstituciones"></div>
 </div>
 
+<!-- Modal ver conveios institución -->
+<div class="modal" id="institucionModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 id="modalTitle" class="modal-title"></h5>
+        <button type="button" class="btn-modal-exit" data-bs-dismiss="modal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-5 overflow-auto" style="height: 400px;">
+          <div id="detalleInstitucion"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  $('#institucionModal').on('show.bs.modal', function(e) {
+    $(this).find('.modal-title').text(e.relatedTarget.text);
+  
+    // Obtener info de la institución
+    const id_institucion = $(e.relatedTarget).data('href');
+    fetch(Flask.url_for('informes.obtener_detalle_institucion', {'id_institucion': id_institucion}))
+    .then(response => response.json())
+    .then(data => {
+      // Tabla detalle institución
+      google.charts.load('current', {'packages': ['table']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var dataTablaDetalle = new google.visualization.DataTable();
+        dataTablaDetalle.addColumn('string', 'Convenio');
+        dataTablaDetalle.addColumn('string', 'Estado');
+        dataTablaDetalle.addColumn('string', 'Recepción');
+        dataTablaDetalle.addColumn('string', 'WebServices');
+
+        dataTablaDetalle.addRows(data);
+
+        optionsTablaDetalle = {
+          allowHtml: true,
+          width: '100%',
+        };
+
+        var tablaDetalle = new google.visualization.Table(document.getElementById('detalleInstitucion'));
+        tablaDetalle.draw(dataTablaDetalle, optionsTablaInstituciones);
+  
+      }
+    });
+
+  
+  });
+  
+</script>
+
+
+
+
+
+
+
+
 <script type="text/javascript">
   google.charts.load('current', {'packages': ['table']});
   google.charts.setOnLoadCallback(drawChart);
   function drawChart() {
+    // Tabla instituciones
     var dataTablaInstituciones = new google.visualization.DataTable();
     dataTablaInstituciones.addColumn('string', 'Institución');
     dataTablaInstituciones.addColumn('string', 'Convenios');
     dataTablaInstituciones.addColumn('string', 'Adendum');
+    dataTablaInstituciones.addColumn('string', 'Por firmar');
+    dataTablaInstituciones.addColumn('string', 'Otros');
     dataTablaInstituciones.addColumn('string', 'Recepciones');
     dataTablaInstituciones.addColumn('string', 'WebServices');
 
@@ -27,7 +92,7 @@
 
     var tablaInstituciones = new google.visualization.Table(document.getElementById('tablaInstituciones'));
     tablaInstituciones.draw(dataTablaInstituciones, optionsTablaInstituciones);
-
+  
   }
 </script>
 

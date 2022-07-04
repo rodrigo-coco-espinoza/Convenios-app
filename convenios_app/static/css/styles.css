@@ -93,3 +93,14 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
+
+
+.btn-modal-exit {
+  border-style: none;
+  background-color: transparent;
+}
+
+#institucionModal{
+
+
+}

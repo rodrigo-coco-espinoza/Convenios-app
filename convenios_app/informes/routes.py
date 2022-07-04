@@ -7,7 +7,7 @@ from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
-from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum
+from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum, convenio_cuenta, por_firmar, otros
 
 from datetime import datetime, date
 #import pandas as pd
@@ -1886,55 +1886,96 @@ def detalle_convenio_en_produccion(id_convenio):
 @informes.route('/convenios_por_institucion')
 def convenios_por_institucion():
 
-    convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
-                                                    or_(Convenio.estado == 'En proceso',
-                                                        Convenio.estado == 'En producción'))).all()
+    convenios = Convenio.query.all()
 
     instituciones= {}
-    for convenio in convenios_firmados:
-        # Agregar convenios y adendum por institución
-        try:
-            instituciones[convenio.institucion.sigla][convenio.tipo] += 1
-        except KeyError:
+    for convenio in convenios:
+        # Convenios en producción o en proceso
+        if convenio.estado == 'En producción' or convenio.estado == 'En proceso':
+            # Convenios firmados
+            if convenio.fecha_documento != None:
+                try:
+                    instituciones[convenio.institucion.sigla][convenio.tipo] += 1
+                except KeyError:
+                    try: 
+                        instituciones[convenio.institucion.sigla][convenio.tipo] = 1
+                    except:
+                        instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                        instituciones[convenio.institucion.sigla][convenio.tipo] = 1
+            # Convenios por firmar
+            else:
+                try:
+                    instituciones[convenio.institucion.sigla]["por_firmar"] += 1
+                except KeyError:
+                    try:
+                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1
+                    except KeyError:
+                        instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1                     
+        # Otros convenios
+        else:
             try:
-                instituciones[convenio.institucion.sigla][convenio.tipo] = 1
+                instituciones[convenio.institucion.sigla]['otros'] += 1
             except KeyError:
-                instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
-                instituciones[convenio.institucion.sigla][convenio.tipo] = 1
-
+                try: 
+                    instituciones[convenio.institucion.sigla]['otros'] = 1
+                except KeyError:
+                    instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                    instituciones[convenio.institucion.sigla]['otros'] = 1
+    
         # Agregar recepciones
-        recepciones = RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count()
+        recepciones = RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == convenio.id, RecepcionConvenio.estado == 1)).count()
         try:
             instituciones[convenio.institucion.sigla]['recepciones'] += recepciones
         except KeyError:
             instituciones[convenio.institucion.sigla]['recepciones'] = recepciones
         # Agregar WS
-        ws = WSConvenio.query.filter(WSConvenio.id_convenio == convenio.id).count()
+        ws = WSConvenio.query.filter(and_(WSConvenio.id_convenio == convenio.id, WSConvenio.estado == 1)).count()
         try:
             instituciones[convenio.institucion.sigla]['ws'] += ws
         except KeyError:
             instituciones[convenio.institucion.sigla]['ws'] = ws
-
+        # Agregar entregas
+        # PENDIENTE
+    
     # Tabla
     instituciones_data = []
     for institucion, data in instituciones.items():
         instituciones_data.append([
             institucion,
-            f"<p align='center'>{data['Convenio']}</p>",
+            f"<p align='center'>{convenio_cuenta(data)}</p>",
             f"<p align='center'>{adendum(data)}</p>",
+            f"<p align='center'>{por_firmar(data)}</p>",
+            f"<p align='center'>{otros(data)}</p>",
             f"<p align='center'>{data['recepciones'] if data['recepciones'] else '-'}</p>",
             f"<p align='center'>{data['ws'] if data['ws'] else '-'}</p>",
             data['id_institucion']
-        ])
+        ])   
     # Ordenar Tabla
     instituciones_data.sort(key=lambda lista:lista[0])
     # Agregar link y botar id
     for institucion in instituciones_data:
-        institucion[0] = f"<a class='simple-link' href='#' data-href={institucion[5]} data-bs-toggle='modal' data-bs-target='#institucionModal'>{institucion[0]} <i class='fa-solid fa-landmark fa-fw me-3'></a>"
+        institucion[0] = f"<a class='simple-link' href='#' data-href={institucion[7]} data-bs-toggle='modal' data-bs-target='#institucionModal'>{institucion[0]} <i class='fa-solid fa-landmark fa-fw me-3'></a>"
         institucion.pop()
+
 
     return render_template('informes/convenios_por_institucion.html', instituciones=instituciones_data)
 
+@informes.route('/obtener_detalle_institucion/<int:id_institucion>')
+def obtener_detalle_institucion(id_institucion):
+    convenios_institucion = Convenio.query.filter(Convenio.id_institucion == id_institucion).all()
+    detalle_institucion = []
+    for convenio in convenios_institucion:
+        print(RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count())
+        detalle_institucion.append([
+            generar_nombre_convenio(convenio),
+            convenio.estado,
+            f"<p align='center'>{RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count()}</p>",
+            f"<p align='center'>{WSConvenio.query.filter(WSConvenio.id_convenio == convenio.id).count()}</p>"
+        ])
+     
+
+    return jsonify(detalle_institucion)
 
 # def obtener_info_convenios_en_proceso():
 #     convenios_en_proceso = Convenio.query.filter(Convenio.estado == 'En proceso').all()
