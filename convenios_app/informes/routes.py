@@ -1966,14 +1966,19 @@ def obtener_detalle_institucion(id_institucion):
     convenios_institucion = Convenio.query.filter(Convenio.id_institucion == id_institucion).all()
     detalle_institucion = []
     for convenio in convenios_institucion:
-        print(RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count())
+        # Link según estado
+        if convenio.estado == 'En proceso':
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
+        elif convenio.estado == 'En producción':
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
+        else:
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
         detalle_institucion.append([
-            generar_nombre_convenio(convenio),
+            convenio_link,
             convenio.estado,
             f"<p align='center'>{RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count()}</p>",
             f"<p align='center'>{WSConvenio.query.filter(WSConvenio.id_convenio == convenio.id).count()}</p>"
         ])
-     
 
     return jsonify(detalle_institucion)
 

@@ -2,7 +2,7 @@
 {% block content %}
 {{ JSGlue.include() }}
 <legend class="border-bottom mb-2">Convenios por Institución</legend>
-<div class="mb-5 overflow-auto" style="height: 700px;">
+<div class="mb-5 overflow-auto">
   <div id="tablaInstituciones"></div>
 </div>
 
@@ -17,7 +17,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="mb-5 overflow-auto" style="height: 400px;">
+        <div class="mb-5 overflow-auto">
           <div id="detalleInstitucion"></div>
         </div>
       </div>
@@ -48,6 +48,7 @@
         optionsTablaDetalle = {
           allowHtml: true,
           width: '100%',
+          
         };
 
         var tablaDetalle = new google.visualization.Table(document.getElementById('detalleInstitucion'));
@@ -55,17 +56,8 @@
   
       }
     });
-
-  
   });
-  
 </script>
-
-
-
-
-
-
 
 
 <script type="text/javascript">
@@ -88,6 +80,7 @@
     optionsTablaInstituciones = {
       allowHtml: true,
       width: '100%',
+      
     };
 
     var tablaInstituciones = new google.visualization.Table(document.getElementById('tablaInstituciones'));
