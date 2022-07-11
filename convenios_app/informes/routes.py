@@ -1982,6 +1982,13 @@ def obtener_detalle_institucion(id_institucion):
 
     return jsonify(detalle_institucion)
 
+
+@informes.route('/documentos')
+def documentos():
+
+    return render_template('informes/documentos.html')
+
+
 # def obtener_info_convenios_en_proceso():
 #     convenios_en_proceso = Convenio.query.filter(Convenio.estado == 'En proceso').all()
 #     info_convenios = []
