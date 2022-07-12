@@ -20,3 +20,31 @@ def obtener_equipos_actual_dias(convenio):
         lista += f"<li>{equipo.equipo.sigla} ({dias_habiles(equipo.ingreso, date.today())})</li>"
     lista += '</u>'
     return lista
+
+
+def adendum(data):
+    try:
+        return data['Adendum']
+    except KeyError:
+        return '-'
+
+
+def convenio_cuenta(data):
+    try:
+        return data['Convenio']
+    except KeyError:
+        return '-'
+
+
+def por_firmar(data):
+    try:
+        return data['por_firmar']
+    except KeyError:
+        return '-' 
+
+
+def otros(data):
+    try:
+        return data['otros']
+    except KeyError:
+        return '-'

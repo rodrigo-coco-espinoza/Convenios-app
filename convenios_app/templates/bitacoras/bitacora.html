@@ -160,7 +160,7 @@
     // Otros convenio
     $('#selectOtrosConvenios').change(function(){
       var id = $(this).find(':selected').val();
-      window.location.replace(Flask.url_for('bitacoras.bitacoa_convenio', {'id_convenio': id}));
+      window.location.replace(Flask.url_for('bitacoras.bitacora_convenio', {'id_convenio': id}));
     });
   });
 </script>

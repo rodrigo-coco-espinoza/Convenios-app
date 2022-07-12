@@ -16,14 +16,17 @@ MESES = {'1':'Ene', '2':'Feb', '3':'Mar', '4':'Abr', '5':'May', '6':'Jun', '7':'
          '11':'Nov', '12':'Dic'}
 
 
-def formato_meses(str_meses):
-    meses_num = str_meses.split('-')
-    periodo = ""
-    for num in meses_num:
-        periodo += f'{MESES[num]}, '
+def formato_periodicidad(str_meses):
+    if '-' in str_meses or str_meses.isnumeric():
+        meses_num = str_meses.split('-')
+        periodo = ""
+        for num in meses_num:
+            periodo += f'{MESES[num]}, '
 
-    periodo = periodo.strip(', ')
-    return periodo
+        periodo = periodo.strip(', ')
+        return periodo
+    else:
+        return str_meses
 
 
 def dias_habiles(ingreso, salida):

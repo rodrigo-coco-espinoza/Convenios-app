@@ -92,9 +92,114 @@
     </div>
   </div>
 
+  <!-- Hitos del proceso -->
+  {% if hitos %}
+    <legend class="border-bottom mb-4">Hitos del proceso</legend>
+    <div class="content-section mb-5">
+      <table class='table table-striped table-hover'>
+        <thead class='table-dark'>
+          <tr>
+            <th scope='col'>#</th>
+            <th scope="col">Hito</th>
+            <th class="text-center" scope="col">Fecha</th>
+            <th class='text-center' scope="col">Minuta</th>
+            <th class="text-center" scope="col">Grabación</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%  for hito in hitos %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ hito.nombre }}</td>
+              <td class="text-center">{{ hito.fecha }}</td>
+              <td class="text-center">
+                {% if hito.minuta %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-link-slash gray"></i>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if hito.grabacion %}
+                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+                {% else %}
+                  <i class="fa-solid fa-video-slash gray"></i>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <!-- Información a Intercambiar -->
+  <legend class="border-bottom mb-3">Información a intercambiar</legend>
+  {% if recepciones or ws_asignados %}
+    {% if recepciones %}
+      <div class="mb-4">
+        <h5>Recepción de información</h5>
+        <table class='table table-hover table-striped'>
+          <thead class='table-dark'>
+            <tr>
+              <th scope='col'>#</th>
+              <th scope='col'>Nombre</th>
+              <th scope='col'>Archivo</th>
+              <th scope='col'>Periodicidad</th>
+              <th class="text-center" scope='col'>Recibe</th>
+              <th class="text-center" scope='col'>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for recepcion in recepciones %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ recepcion.nombre }}</td>
+                <td>{{ recepcion.archivo }}</td>
+                <td>{{ recepcion.periodicidad }}</td>
+                <td class="text-center">{{ recepcion.sd }}</td>
+                <td class="text-center">{{ recepcion.estado }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+    {% if ws_asignados %}
+      <div class="mb-5">
+        <h5>Web Services</h5>
+        <table class="table table-hover table-striped">
+          <thead class='table-dark'>
+            <tr>
+              <th scope='col'>#</th>
+              <th scope='col'>Nombre AIET</th>
+              <th scope='col'>Nombre SDI</th>
+              <th scope='col'>Método</th>
+              <th class="text-center" scope='col'>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ws in ws_asignados %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ ws.nombre_aiet }}</td>
+              <td>{{ ws.nombre_sdi }}</td>
+              <td>{{ ws.metodo }}</td>
+              <td class="text-center"> {{ ws.estado }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="mb-5">
+      Sin registro
+    </div>
+  {% endif %}
 
   <!-- Estadísticas e indicadores del proceso -->
-  <legend class="border-bottom mb-4">Estadísticas del proceso</legend>
+  <legend class="border-bottom mb-3">Estadísticas del proceso</legend>
   <!-- Información de días -->
   <div class="row mb-3" align='center'>
     <!-- Días en proceso -->
@@ -119,7 +224,7 @@
   </div>
 
   <!-- Trayectoria de etapas y equipos -->
-  <legend class="border-bottom mb-5">Trayectoria  <button id='timelineOriginal' style='border: none; background-color: transparent'><i class="fas fa-eraser"></i></button></legend>
+  <legend class="border-bottom mb-3">Trayectoria  <button id='timelineOriginal' style='border: none; background-color: transparent'><i class="fas fa-eraser"></i></button></legend>
   <div class="">
     <div id="timelineEtapas" style="height: 100px;"></div>
     <div id="timelineEquipos"></div>
@@ -131,6 +236,8 @@
   <div class="mb-5 overflow-auto" style="height: 400px;">
     <div class='' id="bitacora"></div>
   </div>
+
+
 
 </div>
 

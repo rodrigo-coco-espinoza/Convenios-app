@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Base de datos y archivos de la App
+convenios_app/convenios.db

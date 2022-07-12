@@ -1,13 +1,13 @@
 from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify, make_response, \
     send_from_directory, current_app
 from flask_login import current_user, login_required
-from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
-                                  BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo)
+from convenios_app.models import (Convenio, Institucion, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa, TrayectoriaEquipo,
+                                  HitosConvenio, RecepcionConvenio, WSConvenio)
 from convenios_app import db
 from sqlalchemy import and_, or_
-from convenios_app.bitacoras.utils import dias_habiles
+from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
-from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias
+from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum, convenio_cuenta, por_firmar, otros
 
 from datetime import datetime, date
 #import pandas as pd
@@ -391,33 +391,6 @@ scheduler.start()
 estadisticas_convenios()
 
 
-# @informes.route('/convenios_por_institucion')
-# def convenios_por_institucion():
-#     convenios_firmados = Convenio.query.filter(and_(Convenio.fecha_documento != None,
-#                                                     or_(Convenio.estado == 'En proceso',
-#                                                         Convenio.estado == 'En producción'))).all()
-#     instituciones = [convenio.institucion.sigla for convenio in convenios_firmados]
-#     instituciones_dict = {i:{'total': instituciones.count(i),
-#                              'convenios':0,
-#                                 'adendum':0} for i in instituciones}
-#
-#     for convenio in convenios_firmados:
-#         if convenio.tipo == 'Convenio':
-#             instituciones_dict[convenio.institucion.sigla]['convenios'] += 1
-#         else:
-#             instituciones_dict[convenio.institucion.sigla]['adendum'] += 1
-#
-#     lista = []
-#     for nombre, cuenta in instituciones_dict.items():
-#         lista.append({'insittucion': nombre,
-#                       'convenios': cuenta['convenios'],
-#                       'adendum': cuenta['adendum'],
-#                       'total': cuenta['total']})
-#     df = pd.DataFrame.from_dict(lista)
-#     df.to_csv(r'instituciones.csv', index=False, header=True)
-#
-#     return 'hola'
-
 @informes.route('/otros_convenios')
 def otros_convenios():
     # Select field convenios en proceso
@@ -499,6 +472,22 @@ def detalle_otros_convenios(id_convenio):
         }
     else:
         informacion_convenio['convenio_reemplazo'] = None
+
+    # Información a intercambiar
+    recepciones = [{
+        'nombre': recepcion.nombre,
+        'archivo': recepcion.archivo,
+        'periodicidad': formato_periodicidad(recepcion.periodicidad),
+        'sd': recepcion.sd.sigla,
+        'estado': 'Activo' if recepcion.estado else 'Inactivo'
+    } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    ws_asignados = [{
+        'nombre_aiet': ws.ws.nombre_aiet,
+        'nombre_sdi': ws.ws.nombre_sdi,
+        'metodo': ws.ws.metodo,
+        'estado': 'Activo' if ws.estado else 'Inactivo'
+    } for ws in WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()]
 
     # Estadísticas y Trayectoria
     trayectoria_etapas_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == id_convenio,
@@ -795,12 +784,23 @@ def detalle_otros_convenios(id_convenio):
                                                              BitacoraAnalista.estado != 'Eliminado')))).
             order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
 
+    # Hitos
+    hitos_query = HitosConvenio.query.filter(HitosConvenio.id_convenio == id_convenio).order_by(
+        HitosConvenio.fecha.asc()).all()
+    hitos = [{
+        'nombre': hito.hito.nombre,
+        'fecha': datetime.strftime(hito.fecha, "%d-%m-%Y"),
+        'minuta': hito.minuta,
+        'grabacion': hito.grabacion
+    } for hito in hitos_query]
+
     return render_template('informes/detalle_otros_convenios.html', id_convenio=id_convenio,
                            convenios_select=convenios_select, informacion_convenio=informacion_convenio,
                            bitacora=bitacora_dict,
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
-                           tareas_equipos=tareas_equipos)
+                           tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
+                           ws_asignados=ws_asignados)
 
 
 @informes.route('/convenios_en_proceso')
@@ -1005,6 +1005,22 @@ def detalle_convenio_en_proceso(id_convenio):
         informacion_convenio['adendum'].sort(key=lambda dict: dict['nombre_adendum'])
     else:
         informacion_convenio['adendum'] = None
+
+    # Información a intercambiar
+    recepciones = [{
+        'nombre': recepcion.nombre,
+        'archivo': recepcion.archivo,
+        'periodicidad': formato_periodicidad(recepcion.periodicidad),
+        'sd': recepcion.sd.sigla,
+        'estado': 'Activo' if recepcion.estado else 'Inactivo'
+        } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    ws_asignados = [{
+        'nombre_aiet': ws.ws.nombre_aiet,
+        'nombre_sdi': ws.ws.nombre_sdi,
+        'metodo': ws.ws.metodo,
+        'estado': 'Activo' if ws.estado else 'Inactivo'
+        } for ws in WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()]
 
     # Estadísticas y Trayectoria
     trayectoria_etapas_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == id_convenio,
@@ -1313,12 +1329,22 @@ def detalle_convenio_en_proceso(id_convenio):
                                                              BitacoraAnalista.estado != 'Eliminado')))).
             order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
 
+    # Hitos
+    hitos_query = HitosConvenio.query.filter(HitosConvenio.id_convenio == id_convenio).order_by(HitosConvenio.fecha.asc()).all()
+    hitos = [{
+        'nombre': hito.hito.nombre,
+        'fecha': datetime.strftime(hito.fecha, "%d-%m-%Y"),
+        'minuta': hito.minuta,
+        'grabacion': hito.grabacion
+    } for hito in hitos_query]
+
     return render_template('informes/detalle_convenio_en_proceso.html', id_convenio=id_convenio,
                            convenios_select=convenios_select,
                            informacion_convenio=informacion_convenio, bitacora=bitacora_dict,
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
-                           tareas_equipos=tareas_equipos)
+                           tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
+                           ws_asignados=ws_asignados)
 
 
 @informes.route('/convenios_en_produccion')
@@ -1526,6 +1552,22 @@ def detalle_convenio_en_produccion(id_convenio):
         informacion_convenio['adendum'].sort(key=lambda dict: dict['nombre_adendum'])
     else:
         informacion_convenio['adendum'] = None
+
+        # Información a intercambiar
+    recepciones = [{
+        'nombre': recepcion.nombre,
+        'archivo': recepcion.archivo,
+        'periodicidad': formato_periodicidad(recepcion.periodicidad),
+        'sd': recepcion.sd.sigla,
+        'estado': 'Activo' if recepcion.estado else 'Inactivo'
+    } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    ws_asignados = [{
+        'nombre_aiet': ws.ws.nombre_aiet,
+        'nombre_sdi': ws.ws.nombre_sdi,
+        'metodo': ws.ws.metodo,
+        'estado': 'Activo' if ws.estado else 'Inactivo'
+    } for ws in WSConvenio.query.filter(WSConvenio.id_convenio == id_convenio).all()]
 
     # Estadísticas y Trayectoria
     trayectoria_etapas_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == id_convenio,
@@ -1822,12 +1864,129 @@ def detalle_convenio_en_produccion(id_convenio):
                                                              BitacoraAnalista.estado != 'Eliminado')))).
             order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
 
+    # Hitos
+    hitos_query = HitosConvenio.query.filter(HitosConvenio.id_convenio == id_convenio).order_by(
+        HitosConvenio.fecha.asc()).all()
+    hitos = [{
+        'nombre': hito.hito.nombre,
+        'fecha': datetime.strftime(hito.fecha, "%d-%m-%Y"),
+        'minuta': hito.minuta,
+        'grabacion': hito.grabacion
+    } for hito in hitos_query]
+
     return render_template('informes/detalle_convenio_en_produccion.html', id_convenio=id_convenio,
                            convenios_select=convenios_select,
                            informacion_convenio=informacion_convenio, bitacora=bitacora_dict,
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
-                           tareas_equipos=tareas_equipos)
+                           tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
+                           ws_asignados=ws_asignados)
+
+
+@informes.route('/convenios_por_institucion')
+def convenios_por_institucion():
+
+    convenios = Convenio.query.all()
+
+    instituciones= {}
+    for convenio in convenios:
+        # Convenios en producción o en proceso
+        if convenio.estado == 'En producción' or convenio.estado == 'En proceso':
+            # Convenios firmados
+            if convenio.fecha_documento != None:
+                try:
+                    instituciones[convenio.institucion.sigla][convenio.tipo] += 1
+                except KeyError:
+                    try: 
+                        instituciones[convenio.institucion.sigla][convenio.tipo] = 1
+                    except:
+                        instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                        instituciones[convenio.institucion.sigla][convenio.tipo] = 1
+            # Convenios por firmar
+            else:
+                try:
+                    instituciones[convenio.institucion.sigla]["por_firmar"] += 1
+                except KeyError:
+                    try:
+                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1
+                    except KeyError:
+                        instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1                     
+        # Otros convenios
+        else:
+            try:
+                instituciones[convenio.institucion.sigla]['otros'] += 1
+            except KeyError:
+                try: 
+                    instituciones[convenio.institucion.sigla]['otros'] = 1
+                except KeyError:
+                    instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
+                    instituciones[convenio.institucion.sigla]['otros'] = 1
+    
+        # Agregar recepciones
+        recepciones = RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == convenio.id, RecepcionConvenio.estado == 1)).count()
+        try:
+            instituciones[convenio.institucion.sigla]['recepciones'] += recepciones
+        except KeyError:
+            instituciones[convenio.institucion.sigla]['recepciones'] = recepciones
+        # Agregar WS
+        ws = WSConvenio.query.filter(and_(WSConvenio.id_convenio == convenio.id, WSConvenio.estado == 1)).count()
+        try:
+            instituciones[convenio.institucion.sigla]['ws'] += ws
+        except KeyError:
+            instituciones[convenio.institucion.sigla]['ws'] = ws
+        # Agregar entregas
+        # PENDIENTE
+    
+    # Tabla
+    instituciones_data = []
+    for institucion, data in instituciones.items():
+        instituciones_data.append([
+            institucion,
+            f"<p align='center'>{convenio_cuenta(data)}</p>",
+            f"<p align='center'>{adendum(data)}</p>",
+            f"<p align='center'>{por_firmar(data)}</p>",
+            f"<p align='center'>{otros(data)}</p>",
+            f"<p align='center'>{data['recepciones'] if data['recepciones'] else '-'}</p>",
+            f"<p align='center'>{data['ws'] if data['ws'] else '-'}</p>",
+            data['id_institucion']
+        ])   
+    # Ordenar Tabla
+    instituciones_data.sort(key=lambda lista:lista[0])
+    # Agregar link y botar id
+    for institucion in instituciones_data:
+        institucion[0] = f"<a class='simple-link' href='#' data-href={institucion[7]} data-bs-toggle='modal' data-bs-target='#institucionModal'>{institucion[0]} <i class='fa-solid fa-landmark fa-fw me-3'></a>"
+        institucion.pop()
+
+    return render_template('informes/convenios_por_institucion.html', instituciones=instituciones_data)
+
+@informes.route('/obtener_detalle_institucion/<int:id_institucion>')
+def obtener_detalle_institucion(id_institucion):
+    convenios_institucion = Convenio.query.filter(Convenio.id_institucion == id_institucion).all()
+    detalle_institucion = []
+    for convenio in convenios_institucion:
+        # Link según estado
+        if convenio.estado == 'En proceso':
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
+        elif convenio.estado == 'En producción':
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
+        else:
+            convenio_link = f'<a class="simple-link" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>{generar_nombre_convenio(convenio)} <i class="fas fa-search btn-sm"></i></a>'
+        detalle_institucion.append([
+            convenio_link,
+            convenio.estado,
+            f"<p align='center'>{RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == convenio.id).count()}</p>",
+            f"<p align='center'>{WSConvenio.query.filter(WSConvenio.id_convenio == convenio.id).count()}</p>"
+        ])
+
+    return jsonify(detalle_institucion)
+
+
+@informes.route('/documentos')
+def documentos():
+
+    return render_template('informes/documentos.html')
+
 
 # def obtener_info_convenios_en_proceso():
 #     convenios_en_proceso = Convenio.query.filter(Convenio.estado == 'En proceso').all()

@@ -443,8 +443,8 @@
   <div class="row border border-secondary rounded mb-4">
   <h2>Hitos del proceso</h2>
   <div class="content-section mb-3">
-    <table class="table">
-      <thead>
+    <table class="table table-hover table-striped">
+      <thead class='table-dark'>
         <tr>
           <th scope="col">#</th>
           <th scope="col">Hito</th>
@@ -555,15 +555,15 @@
     <form method="post" novalidate>
       <div class="content-section mb-3">
 
-        <table class="table">
-          <thead>
+        <table class="table table-striped table-hover">
+          <thead class='table-dark'>
             <tr>
               <th scope='col'>#</th>
               <th scope='col'>Nombre</th>
               <th scope='col'>Carpeta</th>
               <th scope='col'>Archivo</th>
               <th scope='col'>Periodicidad</th>
-              <th scope='col'>Subdirección</th>
+              <th class="text-center" scope='col'>Recibe</th>
               <th scope='col'></th>
               <th scope='col'></th>
             </tr>
@@ -576,8 +576,8 @@
                 <td>{{ recepcion.carpeta }}</td>
                 <td>{{ recepcion.archivo }}</td>
                 <td>{{ recepcion.periodo }}</td>
-                <td>{{ recepcion.sd }}</td>
-                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.estado }}></td>
+                <td class="text-center">{{ recepcion.sd }}</td>
+                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.activo }}></td>
                 <td>
                   <a class='text-dark' href="#" data-href="{{ recepcion.id_recepcion }}" data-bs-toggle="modal" data-bs-target="#editarRecepcionModal">
                     <i class="fa-solid fa-pen"></i>
@@ -591,8 +591,8 @@
 
       <h4>Web Services</h4>
       <div class="content-section">
-        <table class="table">
-          <thead>
+        <table class="table table-hover table-striped">
+          <thead class='table-dark'>
             <tr>
               <th scope='col'>#</th>
               <th scope='col'>Nombre AIET</th>
@@ -752,7 +752,8 @@
                 <span class="text-danger">{{ ws.observacion }}</span><br>
               {% endif %}
               Nombre SDI: {{ws.nombre_sdi}} <br>
-              Método: {{ ws.metodo }}
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
             </small>
         </div>
         {% endfor %}
@@ -772,7 +773,8 @@
                 <span class="text-danger">{{ ws.observacion }}</span><br>
               {% endif %}
               Nombre SDI: {{ws.nombre_sdi}} <br>
-              Método: {{ ws.metodo }}
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
             </small>
         </div>
         {% endfor %}
@@ -792,7 +794,8 @@
                 <span class="text-danger">{{ ws.observacion }}</span><br>
               {% endif %}
               Nombre SDI: {{ws.nombre_sdi}} <br>
-              Método: {{ ws.metodo }}
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
             </small>
         </div>
         {% endfor %}
@@ -812,7 +815,8 @@
                 <span class="text-danger">{{ ws.observacion }}</span><br>
               {% endif %}
               Nombre SDI: {{ws.nombre_sdi}} <br>
-              Método: {{ ws.metodo }}
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
             </small>
         </div>
         {% endfor %}
@@ -832,7 +836,8 @@
                 <span class="text-danger">{{ ws.observacion }}</span><br>
               {% endif %}
               Nombre SDI: {{ws.nombre_sdi}} <br>
-              Método: {{ ws.metodo }}
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
             </small>
         </div>
         {% endfor %}

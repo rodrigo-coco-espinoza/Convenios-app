@@ -308,7 +308,7 @@ class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
     carpeta = StringField('Carpeta', render_kw={'placeholder': 'Nombre de la carpeta'})
-    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'},  validators=[DataRequired(), Length(min=2)])
+    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'})
     sd_recibe = SelectField('Subdirección que recibe la información')
 
     def validate_archivo(self, archivo):
@@ -325,12 +325,13 @@ class EditarRecepcionForm(FlaskForm):
     id_recepcion_editar = HiddenField('ID Recepción')
     nombre_editar = StringField('Nombre', validators=[DataRequired(), Length(min=2)])
     carpeta_editar = StringField('Carpeta')
-    archivo_editar = StringField('Archivo',  validators=[DataRequired(), Length(min=2)])
+    archivo_editar = StringField('Archivo')
     sd_recibe_editar = SelectField('Subdirección', choices=[(0, '')], validate_choice=False)
 
     # def validate_archivo(self, archivo):
     #     if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
-    #                                         RecepcionConvenio.archivo == archivo.data)).first():
+    #                                         RecepcionConvenio.archivo == archivo.data,
+    #                                            RecepcionConvenio.id != )).first():
     #         raise ValidationError('El nombre de archivo ya existe para este convenio.')
 
 
