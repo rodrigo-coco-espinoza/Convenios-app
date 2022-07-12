@@ -1,7 +1,7 @@
 from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify, make_response, \
     send_from_directory, current_app
 from flask_login import current_user, login_required
-from convenios_app.models import (Convenio, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa, TrayectoriaEquipo,
+from convenios_app.models import (Convenio, Institucion, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa, TrayectoriaEquipo,
                                   HitosConvenio, RecepcionConvenio, WSConvenio)
 from convenios_app import db
 from sqlalchemy import and_, or_
@@ -1887,9 +1887,12 @@ def detalle_convenio_en_produccion(id_convenio):
 def convenios_por_institucion():
 
     convenios = Convenio.query.all()
+    select_institucion = []
 
     instituciones= {}
     for convenio in convenios:
+        if convenio.institucion.sigla not in dict(select_institucion):
+            select_institucion.append((convenio.institucion.sigla, convenio.institucion.id))
         # Convenios en producción o en proceso
         if convenio.estado == 'En producción' or convenio.estado == 'En proceso':
             # Convenios firmados
@@ -1958,8 +1961,11 @@ def convenios_por_institucion():
         institucion[0] = f"<a class='simple-link' href='#' data-href={institucion[7]} data-bs-toggle='modal' data-bs-target='#institucionModal'>{institucion[0]} <i class='fa-solid fa-landmark fa-fw me-3'></a>"
         institucion.pop()
 
+    # Ordenar select
+    select_institucion.sort()
+    select_institucion.insert(0, ('Seleccione institución y presione Enter para ver', 0))
 
-    return render_template('informes/convenios_por_institucion.html', instituciones=instituciones_data)
+    return render_template('informes/convenios_por_institucion.html', instituciones=instituciones_data, select_institucion=select_institucion)
 
 @informes.route('/obtener_detalle_institucion/<int:id_institucion>')
 def obtener_detalle_institucion(id_institucion):

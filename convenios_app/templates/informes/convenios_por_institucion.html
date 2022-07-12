@@ -1,8 +1,13 @@
 {% extends 'layout.html' %}
 {% block content %}
 {{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#conveniosInstitucion')
+</script>
 <legend class="border-bottom mb-2">Convenios por Institución</legend>
 <div class="mb-5 overflow-auto">
+  <input type="text" class="form-control mb-3" id="searchInstitucion" onkeyup="search()" placeholder="Escriba una institución para filtrar">
   <div id="tablaInstituciones"></div>
 </div>
 
@@ -59,6 +64,27 @@
   });
 </script>
 
+<!-- Search box -->
+<script>
+  function search() {
+  // Declare variables
+  var input, filter, tableRows, a, i, txtValue;
+  input = document.getElementById('searchInstitucion');
+  filter = input.value.toUpperCase();
+  tableRows = document.querySelectorAll('tbody > tr');
+
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < tableRows.length; i++) {
+    a = tableRows[i].getElementsByTagName("a")[0];
+    txtValue = a.textContent || a.innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      tableRows[i].style.display = "";
+    } else {
+      tableRows[i].style.display = "none";
+    }
+  }
+}
+</script>
 
 <script type="text/javascript">
   google.charts.load('current', {'packages': ['table']});
