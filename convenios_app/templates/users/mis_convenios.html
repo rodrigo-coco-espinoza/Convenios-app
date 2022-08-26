@@ -317,12 +317,18 @@
       </div>
   </div>
 
-
   <!-- Estado actual de los convenios -->
   <legend class="border-bottom mb-4 mt-4">Estado actual de mis convenios</legend>
-  <div  class="mb-5 overflow-auto" style="height: 700px;">
+  <div  class="mb-5 overflow-auto" style="height: 500px;">
     <div id='tablaEstadoActual'></div>
   </div>
+
+  <!-- Estado actual de suplencias -->
+  <legend class="border-bottom mb-4 mt-4">Estado actual de mis suplencias</legend>
+  <div  class="mb-5 overflow-auto" style="height: 700px;">
+    <div id='tablaSuplencias'></div>
+  </div>
+
 </div>
 
 
@@ -453,6 +459,7 @@
   google.charts.load('current', {'packages': ['table']});
   google.charts.setOnLoadCallback(drawChart);
   function drawChart() {
+    // Tabla estado actual de mis convenios
     var dataTablaEstadoActual = new google.visualization.DataTable();
     dataTablaEstadoActual.addColumn('string', 'Convenio');
     dataTablaEstadoActual.addColumn('string', 'Estado');
@@ -471,6 +478,9 @@
     };
     var tablaEstadoActual = new google.visualization.Table(document.getElementById('tablaEstadoActual'));
     tablaEstadoActual.draw(dataTablaEstadoActual, optionsTablaEstadoActual);
+  
+    // Tabla estado actual de mis suplencias
+    
   }
 </script>
 {% endblock content %}
