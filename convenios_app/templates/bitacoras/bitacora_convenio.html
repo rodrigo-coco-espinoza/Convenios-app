@@ -560,7 +560,6 @@
             <tr>
               <th scope='col'>#</th>
               <th scope='col'>Nombre</th>
-              <th scope='col'>Carpeta</th>
               <th scope='col'>Archivo</th>
               <th scope='col'>Periodicidad</th>
               <th class="text-center" scope='col'>Recibe</th>
@@ -573,7 +572,6 @@
               <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ recepcion.nombre }}</td>
-                <td>{{ recepcion.carpeta }}</td>
                 <td>{{ recepcion.archivo }}</td>
                 <td>{{ recepcion.periodo }}</td>
                 <td class="text-center">{{ recepcion.sd }}</td>
@@ -646,35 +644,19 @@
             {% endif %}
           </div>
           <!-- Carpeta y Archivo -->
-          <div class="row form-group mb-3">
-            <!-- Carpeta -->
-            <div class="col-lg-6">
-              {{ form_recepcion.carpeta.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.carpeta.errors %}
-                {{ form_recepcion.carpeta(clas='form-control form-control-lg is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.carpeta.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_recepcion.carpeta(class='form-control form-control-lg')}}
-              {% endif %}
-            </div>
+          <div class="form-group mb-3">
             <!-- Archivo -->
-            <div class="col-lg-6">
-              {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.archivo.errors %}
-                {{ form_recepcion.archivo(class='form-control form-control-lg is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.archivo.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_recepcion.archivo(class='form-control form-control-lg')}}
-              {% endif %}
-            </div>
+            {{ form_recepcion.archivo.label(class='form-control-label mb-1') }}
+            {% if form_recepcion.archivo.errors %}
+              {{ form_recepcion.archivo(class='form-control form-control-lg is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_recepcion.archivo.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_recepcion.archivo(class='form-control form-control-lg')}}
+            {% endif %}        
           </div>
           <!-- SD que recibe y Periodicidad -->
           <div class="row form-group mb-3">

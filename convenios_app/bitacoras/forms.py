@@ -307,7 +307,6 @@ class InfoConvenioForm(FlaskForm):
 class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
-    carpeta = StringField('Carpeta', render_kw={'placeholder': 'Nombre de la carpeta'})
     archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'})
     sd_recibe = SelectField('Subdirección que recibe la información')
 
