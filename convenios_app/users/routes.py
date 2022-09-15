@@ -224,7 +224,7 @@ def mis_convenios(id_persona):
                                                                BitacoraAnalista.estado != 'Eliminado')).order_by(
             BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
         ultima_observacion = f'({datetime.strftime(observacion_query.fecha, "%d-%m-%Y")}) {observacion_query.observacion}'
-        etapa = convenio.estado
+        estado = convenio.estado
         suplente = f'<p align="center">{(lambda sup: obtener_iniciales(sup.nombre) if sup else "")(convenio.sup_sii)}</p>'
         link_resolucion = (lambda
                                link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
@@ -236,7 +236,7 @@ def mis_convenios(id_persona):
                                      f'<img class="text-center btn-lg" src="{url_for("static", filename="project.png")}"></a></div>' if link else
         f'<div class="text-center"><img class=" text-muted btn-lg" src="{url_for("static", filename="project_gray.png")}"></div>')(
             convenio.link_project)
-        tabla_estado_actual.append([nombre, etapa, ultima_observacion, suplente, link_project, link_resolucion, convenio.id])
+        tabla_estado_actual.append([nombre, estado, ultima_observacion, suplente, link_project, link_resolucion, convenio.id])
     # Ordenar tabla
     tabla_estado_actual.sort(key=lambda lista: lista[0])
     # Agregar link al nombre del convenio y botar el id
@@ -245,10 +245,36 @@ def mis_convenios(id_persona):
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
+    # Estado actual mis suplencias
+    suplencias_query = Convenio.query.filter(Convenio.id_sup_sii == id_persona).all()
+    tabla_suplencias = []
+    for convenio in suplencias_query:
+        nombre = generar_nombre_convenio(convenio)
+        estado = convenio.estado
+        observacion_query = BitacoraAnalista.query.filter(and_(BitacoraAnalista.id_convenio == convenio.id,
+            BitacoraAnalista.estado != 'Eliminado')).order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
+        ultima_observacion = f'({datetime.strftime(observacion_query.fecha, "%d-%m-%Y")}) {observacion_query.observacion}'
+        tarea_query = BitacoraTarea.query.filter(and_(BitacoraTarea.id_convenio == convenio.id,
+                                              BitacoraTarea.estado == 'Pendiente')).order_by(BitacoraTarea.plazo.asc()).first()
+        if tarea_query is None:
+            proxima_tarea = 'Sin tareas pendientes'
+        elif tarea_query.plazo <= date.today():
+            proxima_tarea = f'<p style="display:inline" class="text-danger">({datetime.strftime(tarea_query.plazo, "%d-%m-%Y")})</p> {tarea_query.tarea}'
+        else:
+            proxima_tarea = f'({datetime.strftime(tarea_query.plazo, "%d-%m-%Y")}) {tarea_query.tarea}'
+        coordinador = f'<p align="center">{(lambda coord: obtener_iniciales(coord.nombre) if coord else "")(convenio.coord_sii)}</p>'
+        tabla_suplencias.append([nombre, estado, ultima_observacion, proxima_tarea, coordinador, convenio.id])
+    # Ordernar tabla
+    tabla_suplencias.sort(key=lambda lista: lista[0])
+    # Agregar link al nombre del convenio
+    for convenio in tabla_suplencias:
+        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[5])}>' \
+                 f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
+        convenio.pop()
 
     return render_template('users/mis_convenios.html', tareas_pendientes=tareas_pendientes, hoy=date.today(),
                            id_persona=id_persona, convenios_select=convenios_select, form_info=form_info_convenio,
-                           form_bitacora=form_bitacora, form_tarea=form_tarea, tabla_estado_actual=tabla_estado_actual)
+                           form_bitacora=form_bitacora, form_tarea=form_tarea, tabla_estado_actual=tabla_estado_actual, tabla_suplencias=tabla_suplencias)
 
 
 @users.route('/obtener_info_convenio/<int:id_convenio>')

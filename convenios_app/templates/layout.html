@@ -68,7 +68,7 @@
           <a id='otrosConvenios' href="{{ url_for('informes.otros_convenios') }}" class="list-group-item list-group-item-action py-2 ripple">
             <i class="fa-solid fa-dumpster fa-fw me-3"></i><span>Otros convenios</span>
           </a>
-          <a id='conveniosInstitucion' href="{{ url_for('informes.convenios_por_institucion') }}" class="list-group-item list-group-item-action py-2 ripple">
+          <a id='conveniosInstitucion' href="{{ url_for('informes.convenios_por_institucion') }}" class="list-group-item list-group-item-action py-2 ripple mb-4">
             <i class="fa-solid fa-building-columns me-3"></i><span>C. por institución</span>
           </a>
         <!--  <a href="#" class="list-group-item list-group-item-action py-2 ripple">
@@ -77,6 +77,17 @@
           <a href="#" class="list-group-item list-group-item-action py-2 ripple">
             <i class="fa-solid fa-folder-tree fa-fw me-3"></i><span>Entrega</span></span>
           </a> -->
+
+          <!-- Documentos -->
+          <p class="sidebar-header mb-0 fw-bold">Documentos</p>
+          <a id='procesoConvenio' href="{{ url_for('documentos.proceso_de_convenio') }}" class="list-group-item list-group-item-action py-2 ripple" aria-current="true">
+            <i class="fa-solid fa-file-invoice fa-fw me-3"></i><span>Proceso de C.</span>
+          </a>
+          <!--
+          <a id='catalogoWS' href="{{ url_for('documentos.catalogo_ws') }}" class="list-group-item list-group-item-action py-2 ripple">
+            <i class="fa-solid fa-file-lines fa-fw me-3"></i><span>Catálogo de WS</span>
+          </a>
+          -->
 
         </div>
       </div>

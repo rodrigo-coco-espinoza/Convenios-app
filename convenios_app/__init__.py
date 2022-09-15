@@ -30,12 +30,14 @@ def create_app(config_class=Config):
     from convenios_app.users.routes import users
     from convenios_app.bitacoras.routes import bitacoras
     from convenios_app.informes.routes import informes
+    from convenios_app.documentos.routes import documentos
     #from convenios_app.errors.handlers import errors
 
     app.register_blueprint(main)
     app.register_blueprint(users)
     app.register_blueprint(bitacoras)
     app.register_blueprint(informes)
+    app.register_blueprint(documentos)
     #app.register_blueprint(errors)
 
     return app

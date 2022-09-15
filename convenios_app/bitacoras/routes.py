@@ -536,8 +536,7 @@ def bitacora_convenio(id_convenio):
     recepciones_registradas = [{
         'id_recepcion': recepcion.id,
         'nombre': recepcion.nombre,
-        'carpeta': recepcion.carpeta if recepcion.carpeta else "",
-        'archivo': recepcion.archivo,
+        'archivo': recepcion.archivo if recepcion.archivo else "",
         'periodo': formato_periodicidad(recepcion.periodicidad),
         'sd': recepcion.sd.sigla,
         'activo': 'checked' if recepcion.estado else ""
@@ -564,7 +563,6 @@ def bitacora_convenio(id_convenio):
             id_convenio=id_convenio,
             id_sd=form_recepcion.sd_recibe.data,
             nombre=form_recepcion.nombre.data,
-            carpeta=form_recepcion.carpeta.data,
             archivo=form_recepcion.archivo.data,
             periodicidad='-'.join(periodicidad),
             estado=0
@@ -645,7 +643,6 @@ def bitacora_convenio(id_convenio):
     if 'editar_recepcion' in request.form and editar_recepcion_form.validate_on_submit():
         recepcion_a_editar = RecepcionConvenio.query.get(editar_recepcion_form.id_recepcion_editar.data)
         recepcion_a_editar.nombre = editar_recepcion_form.nombre_editar.data
-        recepcion_a_editar.carpeta = editar_recepcion_form.carpeta_editar.data
         recepcion_a_editar.archivo = editar_recepcion_form.archivo_editar.data
         recepcion_a_editar.id_sd = editar_recepcion_form.sd_recibe_editar.data
 
