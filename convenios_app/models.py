@@ -120,7 +120,7 @@ class RecepcionConvenio(db.Model):
     id_sd = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
 
     def __repr__(self):
-        return f'<{self.nombre}: {self.convenio.institucion}>'
+        return f'<{self.nombre}: {self.convenio.institucion.sigla}>'
 
 
 class HitosConvenio(db.Model):

@@ -5,21 +5,37 @@
   <legend class="border-bottom mb-3">Recepción de información</legend>
   <div id="carouselRecepcion" class="carousel slide mb-5" data-bs-interval="false">
     <div class="carousel-inner px-5">
-      <div class="carousel-item active">
-        <div class="content-section" style="width: 400px; height: 400px; background-color:aqua">
-          <h3>Enero</h3>
+      <!-- Crear elementos solo de los periodos que hay recepción -->
+      {% for periodo, datos in recepciones.items() %}
+        {% if datos %}
+        <div class="carousel-item">
+          <div class="content-section">
+            <h3>{{ periodo }}</h3>
+            <div  class="overflow-auto" style="height: 500px;">
+              <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                  <th scope="col">#</th>
+                  <th scope="col">Institución</th>
+                  <th scope="col">Nombre entrega</th>
+                  <th scope="col">Nombre archivo</th>
+                </thead>
+                <tbody>
+                  {% for recepcion in datos %}
+                    <tr>
+                      <th>{{ loop.index }}</th>
+                      <td>{{ recepcion.institucion }}</td>
+                      <td>{{ recepcion.nombre }}</td>
+                      <td>{{ recepcion.archivo }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+          </div>
         </div>
-      </div>
-      <div class="carousel-item">
-        <div class="content-section" style="width: 400px; height: 400px; background-color:greenyellow">
-
-        </div>
-      </div>
-      <div class="carousel-item">
-        <div class="content-section" style="width: 400px; height: 400px; background-color:maroon">
-
-        </div>
-      </div>
+        {% endif %}
+      {% endfor %}
     </div>
     <a class="carousel-control-prev carousel-control-width" href="#carouselRecepcion" role="button" data-bs-slide="prev">
       <i class="fa-solid fa-angle-left"></i>
@@ -43,7 +59,7 @@
       {% for convenio in convenios_asignados %}
         <tr>
           <th> {{ loop.index }}</th>
-          <td><a style='text-decoration: none; color: #000;' href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=convenio.id) }}">{{ convenio.nombre }} <i class="fas fa-search btn-sm"></a></td>
+          <td><a class="simple-link" href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=convenio.id) }}">{{ convenio.nombre }} <i class="fas fa-search btn-sm"></a></td>
           <td class='text-center'>{{ convenio.dias_area }}</td>
           <td>{{ convenio.etapa }}</td>
         </tr>
@@ -59,6 +75,12 @@
     <div id='tablaEstadoActual'></div>
   </div>
 </div>
+
+<!-- Activar primer carousel -->
+<script>
+    var carousel = $('.carousel-item') [0]
+    carousel.classList.add('active');
+</script>
 
 <!-- Tabla estado actual de convenios -->
 <script type="text/javascript">

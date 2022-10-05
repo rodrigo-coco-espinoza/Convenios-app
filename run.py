@@ -6,5 +6,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # Escoger según ambiente
-    #app.run(host='10.36.1.91', port=8000, debug=True)
-    app.run(debug=True)
+    app.run(host='10.36.1.91', port=8000, debug=True)
+    #app.run(debug=True)
