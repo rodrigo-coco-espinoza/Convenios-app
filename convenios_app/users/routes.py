@@ -1,6 +1,6 @@
 from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
-                                  BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, User)
+                                  BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, User, RecepcionConvenio)
 from convenios_app.users.forms import RegistrationForm, LoginForm
 from convenios_app.bitacoras.forms import ETAPAS
 from convenios_app.informes.forms import MisConveniosInfoConvenioForm, MisConveniosBitacoraForm, MisConveniosTareaForm
@@ -19,7 +19,7 @@ users = Blueprint('users', __name__)
 
 @users.route('/convenios_sd/<int:id_persona>', methods=['GET', 'POST'])
 @login_required
-#@sd_only
+#@sd_only HACER!!
 def convenios_sd(id_persona):
     # Permitir acceso solo a la SD (o admin)
     if current_user.permisos != 'Admin':
@@ -29,6 +29,107 @@ def convenios_sd(id_persona):
 
     equipo = Persona.query.get(id_persona).equipo
 
+    # Recepción de información
+    recepciones_query = RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_sd == equipo.id, RecepcionConvenio.estado == True)).all()
+    recepciones = {key: [] for key in ['En línea', 'Diario', 'Semanal', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']}
+    #TODO: Ver si es necesario agregar periodicidad diario o semanal
+
+    for recepcion in recepciones_query:
+        # Verificar si la recepción es en múltiples meses
+        periodicidad = recepcion.periodicidad.split('-') if '-' in recepcion.periodicidad else [recepcion.periodicidad]
+
+        # Agregar recepciones según la periocididad que corresponda
+        if "En línea" in periodicidad:
+            recepciones['En línea'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if "Diario" in periodicidad:
+            recepciones['Diario'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if "Semanal" in periodicidad:
+            recepciones['Semanal'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if  any(item in ["Mensual", "1"] for item in periodicidad):
+            recepciones['Enero'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "2"] for item in periodicidad):
+            recepciones['Febrero'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "3"] for item in periodicidad):
+            recepciones['Marzo'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "4"] for item in periodicidad):
+            recepciones['Abril'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "5"] for item in periodicidad):
+            recepciones['Mayo'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "6"] for item in periodicidad):
+            recepciones['Junio'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "7"] for item in periodicidad):
+            recepciones['Julio'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "8"] for item in periodicidad):
+            recepciones['Agosto'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "9"] for item in periodicidad):
+            recepciones['Septiembre'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "10"] for item in periodicidad):
+            recepciones['Octubre'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "11"] for item in periodicidad):
+            recepciones['Noviembre'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+        if any(item in ["Mensual", "12"] for item in periodicidad):
+            recepciones['Diciembre'].append({
+                'institucion': recepcion.convenio.institucion.sigla,
+                'nombre': recepcion.nombre,
+                'archivo': recepcion.archivo
+            })
+    
     # Convenios asignados
     ids_convenios_asignados = [trayecto.id_convenio for trayecto in TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_equipo == equipo.id,
                                                                     TrayectoriaEquipo.salida == None)).all()]
@@ -77,7 +178,7 @@ def convenios_sd(id_persona):
         convenio.pop()
 
     return render_template('users/convenios_sd.html', equipo=equipo, convenios_asignados=convenios_asignados,
-                           tabla_convenios_asociados=tabla_convenios_asociados)
+                           tabla_convenios_asociados=tabla_convenios_asociados, recepciones=recepciones)
 
 
 @users.route('/mis_convenios/<int:id_persona>', methods=['GET', 'POST'])

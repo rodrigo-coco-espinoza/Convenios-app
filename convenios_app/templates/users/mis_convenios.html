@@ -474,7 +474,8 @@
     dataTablaEstadoActual.setProperty(0, 0, 'style', 'width: 250px');
     optionsTablaEstadoActual = {
       allowHtml: true,
-      width: '100%'
+      width: '100%',
+      sortColumn: 1,
     };
     var tablaEstadoActual = new google.visualization.Table(document.getElementById('tablaEstadoActual'));
     tablaEstadoActual.draw(dataTablaEstadoActual, optionsTablaEstadoActual);

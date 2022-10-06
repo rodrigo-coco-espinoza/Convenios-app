@@ -1011,6 +1011,37 @@
     convenio.value = {{ id_convenio }};
   });
 
+  // Cambiar fecha si se cambia de etapa o área
+  $('#etapa').change(function() {
+    const hoy = new Date().toJSON().slice(0, 10);
+    $('#fecha_etapa').val(hoy);
+    $('#fecha_etapa').focus();
+  });
+
+  $('#equipo_1').change(function() {
+    const hoy = new Date().toJSON().slice(0, 10);
+    $('#fecha_equipo_1').val(hoy);
+    $('#fecha_equipo_1').focus();
+  });
+
+  $('#equipo_2').change(function() {
+    const hoy = new Date().toJSON().slice(0, 10);
+    $('#fecha_equipo_2').val(hoy);
+    $('#fecha_equipo_2').focus();
+  });
+
+  $('#equipo_3').change(function() {
+    const hoy = new Date().toJSON().slice(0, 10);
+    $('#fecha_equipo_3').val(hoy);
+    $('#fecha_equipo_3').focus();
+  });
+
+  $('#equipo_4').change(function() {
+    const hoy = new Date().toJSON().slice(0, 10);
+    $('#fecha_equipo_4').val(hoy);
+    $('#fecha_equipo_4').focus();
+  });
+
   // Ir a bitácora del convenio cuando se seleccione uno
   const convenio = document.querySelector('#convenio');
   convenio.addEventListener('change', function(e) {
