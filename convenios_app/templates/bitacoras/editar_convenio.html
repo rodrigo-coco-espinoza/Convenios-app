@@ -194,36 +194,6 @@
       <!-- Mostrar estos campos solo si se está editando el convenio -->
       <div id='infoEditar'>
         <div class="row form-group mb-3">
-          <!-- Número de proyecto -->
-          <div class="col-lg-4">
-            {{ form_editar_convenio.proyecto.label(class='form-control-label mb-1') }}
-            {% if form_editar_convenio.proyecto.errors %}
-              {{ form_editar_convenio.proyecto(class='form-control form-control-lg is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_editar_convenio.proyecto.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_editar_convenio.proyecto(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-          <!-- Número Gabinete Electrónico -->
-          <div class="col-lg-4">
-            {{ form_editar_convenio.gabinete_electronico.label(class='form-control-label mb-1') }}
-            {% if form_editar_convenio.gabinete_electronico.errors %}
-              {{ form_editar_convenio.gabinete_electronico(class='form-control form-control-lg is-invalid') }}
-              <div class="invalid-feedback">
-                {% for error in form_editar_convenio.gabinete_electronico.errors %}
-                  <span>{{ error }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              {{ form_editar_convenio.gabinete_electronico(class="form-control form-control-lg") }}
-            {% endif %}
-          </div>
-        </div>
-        <div class="row form-group mb-3">
           <!-- Estado -->
           <div class="col-lg-4">
             {{ form_editar_convenio.estado.label(class='form-control-label mb-1') }}
@@ -288,10 +258,6 @@
     document.querySelector('#coord_ie').value = '{{ info_convenio.coord_ie}}';
     document.querySelector('#sup_ie').value = '{{ info_convenio.sup_ie}}';
     document.querySelector('#responsable_convenio_ie').value = '{{ info_convenio.responsable_convenio_ie}}';
-    {% if info_convenio.proyecto %}
-      document.querySelector('#proyecto').value = '{{ info_convenio.proyecto}}';
-    {% endif %}
-    document.querySelector('#gabinete_electronico').value = '{{ info_convenio.gabinete_electronico}}';
     document.querySelector('#estado').value = '{{ info_convenio.estado }}';
     document.querySelector('#convenio_reemplazo').value = '{{ info_convenio.convenio_reemplazo }}';
 
