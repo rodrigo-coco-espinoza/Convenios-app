@@ -171,6 +171,8 @@ class InfoConvenioForm(FlaskForm):
     gabinete_electronico = StringField('N° de GE')
     link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link de la resolución'})
     link_project = StringField('Link project', render_kw={'placeholder': 'Ingrese link del Project'})
+    link_protocolo = StringField('Link protocolo técnico', render_kw={'placeholder': 'Ingrese link del protocolo técnico'})
+    link_repositorio = StringField('Link repositorio', render_kw={'placeholder': 'Ingrese link del repositorio'})
 
     def validate_fecha_etapa(self, fecha_etapa):
         etapa_actual = TrayectoriaEtapa.query.get(self.id_trayectoria.data)

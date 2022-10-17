@@ -160,6 +160,8 @@ class Institucion(db.Model):
     rut = db.Column(db.String(20), nullable=True)
     direccion = db.Column(db.String(150), nullable=True)
     tipo = db.Column(db.String(20), nullable=False)
+    link_protocolo = db.Column(db.String(), nullable=True)
+    link_repositorio = db.Column(db.String(), nullable=True)
     # Llaves foráneas
     id_ministerio = db.Column(db.Integer, db.ForeignKey('ministerio.id'), nullable=True)
     # Relaciones -> es llave foránea en:
@@ -239,6 +241,7 @@ class Convenio(db.Model):
     nro_resolucion = db.Column(db.Integer, nullable=True)
     link_resolucion = db.Column(db.String(100), nullable=True)
     link_project = db.Column(db.String(100), nullable=True)
+
     # Llaves foráneas
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
     id_coord_sii = db.Column(db.Integer, db.ForeignKey('persona.id'), nullable=False)
