@@ -270,6 +270,10 @@ def bitacora_convenio(id_convenio):
             convenio),
         'link_project': (lambda convenio: convenio.link_project if convenio.link_project != None else "")(
             convenio),
+        'link_protocolo': (lambda institucion: institucion.link_protocolo if institucion.link_protocolo != None else "")(
+            convenio.institucion),
+        'link_repositorio': (lambda institucion: institucion.link_repositorio if institucion.link_repositorio != None else "")(
+            convenio.institucion),
         'estado': convenio.estado
     }
 
@@ -383,22 +387,27 @@ def bitacora_convenio(id_convenio):
             )
             db.session.add(observacion_fecha_resolucion)
 
+        # Actualizar número de resolución
         convenio.nro_resolucion = form_info.nro_resolucion.data
-        # Actualizar número de gabiente electrónico
-        convenio.gabinete_electronico = form_info.gabinete_electronico.data
-        if not convenio.link_resolucion and convenio.link_resolucion != form_info.link_resolucion.data:
-            convenio.link_resolucion = form_info.link_resolucion.data
-
-
         # Actualizar número de proyecto
         if convenio.proyecto is not None and form_info.proyecto.data == "":
             convenio.proyecto = None
         elif form_info.proyecto.data != '' and convenio.proyecto != int(form_info.proyecto.data):
             convenio.proyecto = form_info.proyecto.data
+        # Actualizar número de gabiente electrónico
+        convenio.gabinete_electronico = form_info.gabinete_electronico.data
 
         # Actualizar link project
         if not convenio.link_project and convenio.link_project != form_info.link_project.data:
             convenio.link_project = form_info.link_project.data
+        # Actualizar link resolución
+        if not convenio.link_resolucion and convenio.link_resolucion != form_info.link_resolucion.data:
+            convenio.link_resolucion = form_info.link_resolucion.data
+        # Actualizar link protocolo técnico
+        convenio.institucion.link_protocolo = form_info.link_protocolo.data
+        # Actualizar link repositorio
+        convenio.institucion.link_repositorio = form_info.link_repositorio.data
+
         db.session.commit()
 
         flash('Se ha actualizado la información del convenio.', 'success')

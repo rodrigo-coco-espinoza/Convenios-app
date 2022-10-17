@@ -296,41 +296,74 @@
 
       <!-- Cuarta fila -->
       <div class="row mb-3 border-bottom pb-2">
-        <div class="col-lg-6 pe-3">
-          <div class="row">
-            <!-- Link a al Project -->
-            {% if info_convenio.link_project != "" %}
-              <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_project }}"><img src="{{ url_for('static', filename='project.png') }}"> Ver Project</a>
+        <!-- Link a al Project -->
+        <div class="col-lg-3">
+
+          {% if info_convenio.link_project != "" %}
+            <a target="_blank" class="simple-link" href="{{ info_convenio.link_project }}"><img src="{{ url_for('static', filename='project.png') }}"> Ver Project</a>
+          {% else %}
+            {% if form_info.link_project.errors %}
+              {{ form_info.link_project(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_info.link_project.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
             {% else %}
-              {% if form_info.link_project.errors %}
-                {{ form_info.link_project(class='form-control form-control-sm is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_info.link_project.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_info.link_project(class="form-control form-control-sm") }}
-              {% endif %}
+              {{ form_info.link_project(class="form-control form-control-sm") }}
             {% endif %}
-          </div>
-          <div class="row pt-1">
-            <!-- Link a resolución en intranet -->
-            {% if info_convenio.link_resolucion != "" %}
-              <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución</a>
+          {% endif %}
+        </div>
+        <!-- Link a resolución en intranet -->
+        <div class="col-lg-3">       
+          {% if info_convenio.link_resolucion != "" %}
+            <a target="_blank" class="simple-link" href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución</a>
+          {% else %}
+            {% if form_info.link_resolucion.errors %}
+              {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_info.link_resolucion.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
             {% else %}
-              {% if form_info.link_resolucion.errors %}
-                {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_info.link_resolucion.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
-                </div>
-              {% else %}
-                {{ form_info.link_resolucion(class="form-control form-control-sm") }}
-              {% endif %}
+              {{ form_info.link_resolucion(class="form-control form-control-sm") }}
             {% endif %}
-          </div>
+          {% endif %}
+        </div>
+        <!-- Link al protocolo técnico -->
+        <div class="col-lg-3">       
+          {% if info_convenio.link_protocolo != "" %}
+            <a target="_blank" class="simple-link" href="{{ info_convenio.link_protocolo }}"><img class="pb-1" src="{{ url_for('static', filename='protocolo.png') }}"> Ver protocolo técnico</a>
+          {% else %}
+            {% if form_info.link_protocolo.errors %}
+              {{ form_info.link_protocolo(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_info.link_protocolo.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_info.link_protocolo(class="form-control form-control-sm") }}
+            {% endif %}
+          {% endif %}
+        </div>
+        <!-- Link al repositorio -->
+        <div class="col-lg-3">       
+          {% if info_convenio.link_repositorio != "" %}
+            <a target="_blank" class="simple-link" href="{{ info_convenio.link_repositorio }}"><img class="pb-1" src="{{ url_for('static', filename='repositorio.png') }}"> Ver repositorio</a>
+          {% else %}
+            {% if form_info.link_repositorio.errors %}
+              {{ form_info.link_repositorio(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_info.link_repositorio.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_info.link_repositorio(class="form-control form-control-sm") }}
+            {% endif %}
+          {% endif %}
         </div>
       </div>
 
@@ -1113,6 +1146,8 @@
       $('#gabinete_electronico').prop('disabled', true);
       $('#link_resolucion').prop('disabled', true);
       $('#link_project').prop('disabled', true);
+      $("#link_protocolo").prop('disabled', true);
+      $('#link_repositorio').prop('disabled', true);
       $('#nuevo_hito').prop('disabled', true);
 
       
