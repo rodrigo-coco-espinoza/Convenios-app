@@ -145,19 +145,7 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
     elif convenio.id_responsable_convenio_ie != int(form.responsable_convenio_ie.data) and form.responsable_convenio_ie.data != '0':
         convenio.id_responsable_convenio_ie = form.responsable_convenio_ie.data
         campos_actualizados.append('Responsable de convenio  IE')
-    if convenio.proyecto is not None and form.proyecto.data == "":
-        convenio.proyecto = None
-        campos_actualizados.append('Número de proyecto')
-    elif form.proyecto.data != '' and convenio.proyecto != int(form.proyecto.data):
-        convenio.proyecto = form.proyecto.data
-        campos_actualizados.append('Número de proyecto')
-    if convenio.gabinete_electronico is not None and form.gabinete_electronico.data == '':
-        convenio.gabinete_electronico = None
-        campos_actualizados.append('Número de Gabinete Electrónico')
-    elif form.gabinete_electronico.data != '' and convenio.gabinete_electronico != int(form.gabinete_electronico.data):
-        convenio.gabinete_electronico = form.gabinete_electronico.data
-        campos_actualizados.append('Número de Gabinete Electrónico')
-
+    
     # Subdirecciones involucradas
     # Agregar nuevas subdirecciones
     if sd_actuales != sd_seleccionadas:

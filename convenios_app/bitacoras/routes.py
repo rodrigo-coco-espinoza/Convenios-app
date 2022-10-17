@@ -265,12 +265,16 @@ def bitacora_convenio(id_convenio):
         'coord': convenio.coord_sii.nombre,
         'sup': (lambda convenio: convenio.sup_sii.nombre if convenio.id_sup_sii != None else "")(convenio),
         'equipos': trayectoria_equipos,
+        'proyecto': convenio.proyecto,
         'link_resolucion': (lambda convenio: convenio.link_resolucion if convenio.link_resolucion != None else "")(
             convenio),
         'link_project': (lambda convenio: convenio.link_project if convenio.link_project != None else "")(
-            convenio)
+            convenio),
+        'estado': convenio.estado
     }
+
     form_info = InfoConvenioForm(
+        id_convenio=id_convenio,
         id_trayectoria=etapa.id,
         etapa=etapa.id_etapa,
         fecha_etapa=etapa.ingreso,
@@ -289,7 +293,15 @@ def bitacora_convenio(id_convenio):
         fecha_firma_documento=convenio.fecha_documento,
         fecha_firma_resolucion=convenio.fecha_resolucion,
         nro_resolucion=convenio.nro_resolucion,
+        gabinete_electronico=convenio.gabinete_electronico
     )
+
+    ultimo_proyecto = (lambda convenio: convenio.proyecto if convenio.proyecto != None else 0)(
+    Convenio.query.order_by(Convenio.proyecto.desc()).first())
+    ultimo_proyecto_texto = (lambda
+                                 convenio: f'Último proyecto registrado: {ultimo_proyecto}' if not convenio.proyecto else convenio.proyecto)(convenio)
+    form_info.proyecto.render_kw = {'placeholder': ultimo_proyecto_texto}
+
     if 'informacion_convenio' in request.form and form_info.validate_on_submit():
 
         form_info_equipos = [
@@ -372,8 +384,17 @@ def bitacora_convenio(id_convenio):
             db.session.add(observacion_fecha_resolucion)
 
         convenio.nro_resolucion = form_info.nro_resolucion.data
+        # Actualizar número de gabiente electrónico
+        convenio.gabinete_electronico = form_info.gabinete_electronico.data
         if not convenio.link_resolucion and convenio.link_resolucion != form_info.link_resolucion.data:
             convenio.link_resolucion = form_info.link_resolucion.data
+
+
+        # Actualizar número de proyecto
+        if convenio.proyecto is not None and form_info.proyecto.data == "":
+            convenio.proyecto = None
+        elif form_info.proyecto.data != '' and convenio.proyecto != int(form_info.proyecto.data):
+            convenio.proyecto = form_info.proyecto.data
 
         # Actualizar link project
         if not convenio.link_project and convenio.link_project != form_info.link_project.data:
@@ -391,6 +412,7 @@ def bitacora_convenio(id_convenio):
                                                             BitacoraAnalista.estado != 'Eliminado')).
                              order_by(BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).all()]
     # TODO: cambiarlo a la función en main/utils
+
     form_nuevo = NuevaBitacoraAnalistaForm()
     if 'bitacora_analista' in request.form and form_nuevo.validate_on_submit():
         # Agregar nueva observación
@@ -744,8 +766,7 @@ def editar_convenio(id_convenio):
                                                       Convenio.id != convenio_seleccionado.id)).order_by(
                                Convenio.nombre.asc()).all()]
     convenios_reemplazo.insert(0, (0, 'Seleccionar'))
-    ultimo_proyecto = (lambda convenio: convenio.proyecto if convenio.proyecto != None else 0)(
-        Convenio.query.order_by(Convenio.proyecto.desc()).first())
+    
     form_editar_convenio = EditarConvenioForm()
     query = Convenio.query.filter(
         and_(Convenio.tipo == 'Convenio', Convenio.id_institucion == convenio_seleccionado.id_institucion)).all()
@@ -763,10 +784,7 @@ def editar_convenio(id_convenio):
     form_editar_convenio.convenio_reemplazo.choices = convenios_reemplazo
     form_editar_convenio.institucion.render_kw = {'disabled': 'disabled'}
 
-    ultimo_proyecto_texto = (lambda
-                                 convenio: f'Último proyecto registrado: {ultimo_proyecto}' if not convenio.proyecto else convenio.proyecto)(
-        convenio_seleccionado)
-    form_editar_convenio.proyecto.render_kw = {'placeholder': ultimo_proyecto_texto}
+    
 
     info_convenio = {
         'id_convenio': convenio_seleccionado.id,
@@ -784,7 +802,6 @@ def editar_convenio(id_convenio):
             lambda resp_ie: 0 if not resp_ie.id_responsable_convenio_ie else resp_ie.id_responsable_convenio_ie)(
             convenio_seleccionado),
         'sd_involucradas': sd_involucradas,
-        'proyecto': convenio_seleccionado.proyecto,
         'gabinete_electronico': (
             lambda convenio: "" if not convenio.gabinete_electronico else convenio.gabinete_electronico)(
             convenio_seleccionado),

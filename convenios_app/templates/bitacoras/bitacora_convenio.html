@@ -217,7 +217,7 @@
 
       <!-- Tercera fila -->
       <div class="row mb-3 border-bottom pb-2">
-        <!-- Documento -->
+        <!-- Fecha Documento -->
         <div class="col-lg-3">
           <div class='row ps-2'>
             {{ form_info.fecha_firma_documento.label(class='form-control-label mb-1 ps-0') }}
@@ -233,11 +233,10 @@
             {% endif %}
           </div>
         </div>
-        <!-- Resolución -->
-        <div class="col-lg-9 ps-3">
-          <div class='row'>
-            <div class="col-lg-3">
-              {{ form_info.fecha_firma_resolucion.label(class='form-control-label mb-1') }}
+        <!-- Fecha Resolución -->
+        <div class="col-lg-2 ps-3 pe-2">
+          <div class="row">
+            {{ form_info.fecha_firma_resolucion.label(class='px-1 form-control-label mb-1') }}
               {% if form_info.fecha_firma_resolucion.errors %}
                 {{ form_info.fecha_firma_resolucion(class='datepicker form-control form-control-sm is-invalid mb-1') }}
                 <div class="invalid-feedback">
@@ -248,57 +247,89 @@
               {% else %}
                 {{ form_info.fecha_firma_resolucion(class="datepicker form-control form-control-sm mb-1") }}
               {% endif %}
+          </div>
+        </div>
+        <!-- Número de resolución -->
+        <div class="col-lg-2 ps-2 pe-1">
+          {{ form_info.nro_resolucion.label(class='ps-1 form-control-label mb-1') }}
+          {% if form_info.nro_resolucion.errors %}
+            {{ form_info.nro_resolucion(class='form-control form-control-sm is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_info.nro_resolucion.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
             </div>
-            <div class="col-lg-3">
-              <!-- Número de resolución -->
-              {{ form_info.nro_resolucion.label(class='form-control-label mb-1') }}
-              {% if form_info.nro_resolucion.errors %}
-                {{ form_info.nro_resolucion(class='form-control form-control-sm is-invalid') }}
+          {% else %}
+            {{ form_info.nro_resolucion(class="form-control form-control-sm") }}
+          {% endif %}
+        </div>
+        <!-- Número de proyecto -->
+        <div class="col-lg-3 ps-0 pe-1">
+          {{ form_info.proyecto.label(class='ps-1 form-control-label mb-1') }}
+            {% if form_info.proyecto.errors %}
+              {{ form_info.proyecto(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in form_info.proyecto.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ form_info.proyecto(class="form-control form-control-sm") }}
+            {% endif %}
+        </div>
+        <!-- Número de Gabinete Electrónico -->
+        <div class="col-lg-2 ps-0">
+          {{ form_info.gabinete_electronico.label(class='ps1- form-control-label mb-1') }}
+          {% if form_info.gabinete_electronico.errors %}
+            {{ form_info.gabinete_electronico(class='form-control form-control-sm is-invalid') }}
+            <div class="invalid-feedback">
+              {% for error in form_info.gabinete_electronico.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form_info.gabinete_electronico(class="form-control form-control-sm") }}
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- Cuarta fila -->
+      <div class="row mb-3 border-bottom pb-2">
+        <div class="col-lg-6 pe-3">
+          <div class="row">
+            <!-- Link a al Project -->
+            {% if info_convenio.link_project != "" %}
+              <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_project }}"><img src="{{ url_for('static', filename='project.png') }}"> Ver Project</a>
+            {% else %}
+              {% if form_info.link_project.errors %}
+                {{ form_info.link_project(class='form-control form-control-sm is-invalid') }}
                 <div class="invalid-feedback">
-                  {% for error in form_info.nro_resolucion.errors %}
+                  {% for error in form_info.link_project.errors %}
                     <span>{{ error }}</span>
                   {% endfor %}
                 </div>
               {% else %}
-                {{ form_info.nro_resolucion(class="form-control form-control-sm") }}
+                {{ form_info.link_project(class="form-control form-control-sm") }}
               {% endif %}
-            </div>
-            <div class="col-lg-6 pe-3">
-              <div class="row">
-                <!-- Link a al Project -->
-                {% if info_convenio.link_project != "" %}
-                  <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_project }}"><img src="{{ url_for('static', filename='project.png') }}"> Ver Project</a>
-                {% else %}
-                  {% if form_info.link_project.errors %}
-                    {{ form_info.link_project(class='form-control form-control-sm is-invalid') }}
-                    <div class="invalid-feedback">
-                      {% for error in form_info.link_project.errors %}
-                        <span>{{ error }}</span>
-                      {% endfor %}
-                    </div>
-                  {% else %}
-                    {{ form_info.link_project(class="form-control form-control-sm") }}
-                  {% endif %}
-                {% endif %}
-              </div>
-              <div class="row pt-1">
-                <!-- Link a resolución en intranet -->
-                {% if info_convenio.link_resolucion != "" %}
-                  <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución</a>
-                {% else %}
-                  {% if form_info.link_resolucion.errors %}
-                    {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
-                    <div class="invalid-feedback">
-                      {% for error in form_info.link_resolucion.errors %}
-                        <span>{{ error }}</span>
-                      {% endfor %}
-                    </div>
-                  {% else %}
-                    {{ form_info.link_resolucion(class="form-control form-control-sm") }}
-                  {% endif %}
-                {% endif %}
-              </div>
-            </div>
+            {% endif %}
+          </div>
+          <div class="row pt-1">
+            <!-- Link a resolución en intranet -->
+            {% if info_convenio.link_resolucion != "" %}
+              <a target="_blank" style='color: #000; text-decoration: none;' href="{{ info_convenio.link_resolucion }}"><i class="fas fa-eye ps-0 pe-1 btn-sm"></i>Ver resolución</a>
+            {% else %}
+              {% if form_info.link_resolucion.errors %}
+                {{ form_info.link_resolucion(class='form-control form-control-sm is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in form_info.link_resolucion.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                {{ form_info.link_resolucion(class="form-control form-control-sm") }}
+              {% endif %}
+            {% endif %}
           </div>
         </div>
       </div>
@@ -1006,9 +1037,16 @@
 
 
 <script type="text/javascript">
-  // Marcar convenio seleccionado en el select
+  
   document.addEventListener('DOMContentLoaded', function() {
+    // Marcar convenio seleccionado en el select
     convenio.value = {{ id_convenio }};
+    // Asignar número de proyecto
+    {% if info_convenio.proyecto %}
+      document.querySelector('#proyecto').value = '{{ info_convenio.proyecto}}';
+    {% endif %}
+
+
   });
 
   // Cambiar fecha si se cambia de etapa o área
@@ -1052,6 +1090,11 @@
   // Desactivar formulario si el convenio está finalizado
   $(document).ready(function(){
     if ($("#etapa").val() == 5){
+      // Mostrar estado
+      var estado = 'Finalizado: ' + '{{ info_convenio.estado }}';
+      $('#etapa option:selected').text(estado);
+
+      // Desactivar botones
       $('button[name="informacion_convenio"]').prop('disabled', true);
       $('#etapa').prop('disabled', true);
       $('#fecha_etapa').prop('disabled', true);
@@ -1066,9 +1109,13 @@
       $('#fecha_firma_documento').prop('disabled', true);
       $('#fecha_firma_resolucion').prop('disabled', true);
       $('#nro_resolucion').prop('disabled', true);
+      $('#proyecto').prop('disabled', true);
+      $('#gabinete_electronico').prop('disabled', true);
       $('#link_resolucion').prop('disabled', true);
       $('#link_project').prop('disabled', true);
       $('#nuevo_hito').prop('disabled', true);
+
+      
     }
   });
 </script>

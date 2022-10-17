@@ -73,11 +73,6 @@ class EditarConvenioForm(FlaskForm):
     id_institucion = HiddenField('id_institucuion')
     nombre = StringField('Nombre del convenio', render_kw={'placeholder': 'Intercambio de información'},
                          validators=[DataRequired()])
-    estado = SelectField('Estado', choices=['En proceso',
-                                            'En producción',
-                                            'Pausado',
-                                            'Reemplazado',
-                                            'Cancelado'])
     tipo = SelectField('Tipo de documento', choices=['Seleccionar',
                                                      'Convenio',
                                                      'Adendum'])
@@ -85,8 +80,11 @@ class EditarConvenioForm(FlaskForm):
                                  choices=[(0, 'Seleccione una institución para ver los convenios')],
                                  validate_choice=False)
     convenio_reemplazo = SelectField('Convenio por el cual se reemplaza')
-    gabinete_electronico = StringField('Número de Gabinete Electrónico')
-    proyecto = StringField('Número de proyecto')
+    estado = SelectField('Estado', choices=['En proceso',
+                                    'En producción',
+                                    'Pausado',
+                                    'Reemplazado',
+                                    'Cancelado'])
     institucion = StringField('Institución con la que se firma el convenio')
     coord_sii = SelectField('Coordinador SII')
     sup_sii = SelectField('Suplente SII')
@@ -96,6 +94,8 @@ class EditarConvenioForm(FlaskForm):
                                           validate_choice=False)
     submit = SubmitField('Editar')
 
+
+    
     def validate_nombre(self, nombre):
         """
         Valida que no exista otro convenio con el mismo nombre con la institución
@@ -126,20 +126,6 @@ class EditarConvenioForm(FlaskForm):
         if sup_ie.data == self.coord_ie.data and int(sup_ie.data) != 0:
             raise ValidationError('Debe seleccionar un suplente distinto al coordinador de la IE.')
 
-    def validate_proyecto(self, proyecto):
-        if len(str(proyecto.data)) > 0:
-            try:
-                int(proyecto.data)
-            except:
-                raise ValidationError('Debe ingresar solo números.')
-
-        if proyecto.data != "":
-            nro_proyecto = Convenio.query.filter(
-                and_(Convenio.proyecto == proyecto.data, Convenio.id != int(self.id_convenio.data))).first()
-            if nro_proyecto:
-                raise ValidationError(
-                    f'El número de proyecto {proyecto.data} ya está registrado. Vuelva a seleccionar el convenio para editar')
-
     def validate_estado(self, estado):
         # Verificar que se haya finalizado el convenio
         etapa_actual = TrayectoriaEtapa.query.filter(TrayectoriaEtapa.id_convenio == self.id_convenio.data).order_by(TrayectoriaEtapa.salida.asc()).first()
@@ -148,14 +134,6 @@ class EditarConvenioForm(FlaskForm):
         # Verificar que existe convenio de reemplazo
         if estado.data == 'Reemplazado' and int(self.convenio_reemplazo.data) == 0:
             raise ValidationError('Debe seleccionar el convenio por el cual sera reemplazado. Vuelva a seleccionar el convenio para editar.')
-
-    def validate_gabinete_electronico(self, gabinete_electronico):
-        if len(str(gabinete_electronico.data)) > 0:
-            try:
-                int(gabinete_electronico.data)
-            except:
-                raise ValidationError('Debe ingresar solo números.')
-
 
 class NuevaBitacoraAnalistaForm(FlaskForm):
     observacion = StringField('Observación', render_kw={'placeholder': 'Observación'}, widget=TextArea(),
@@ -170,6 +148,7 @@ class NuevaTareaForm(FlaskForm):
 
 
 class InfoConvenioForm(FlaskForm):
+    id_convenio = HiddenField('id_convenio', default=0)
     id_trayectoria = HiddenField('id_trayectoria_etapa')
     etapa = SelectField('Etapa actual del convenio', choices=ETAPAS)
     fecha_etapa = DateField('Fecha', widget=DateInput())
@@ -188,6 +167,8 @@ class InfoConvenioForm(FlaskForm):
     fecha_firma_documento = DateField('Fecha firma documento', widget=DateInput(), validators=(validators.Optional(),))
     fecha_firma_resolucion = DateField('Fecha resolución', widget=DateInput(), validators=(validators.Optional(),))
     nro_resolucion = IntegerField('N° de resolución', validators=(validators.Optional(),), render_kw={"placeholder": 'N° de resolución'})
+    proyecto = StringField('N° de proyecto') 
+    gabinete_electronico = StringField('N° de GE')
     link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link de la resolución'})
     link_project = StringField('Link project', render_kw={'placeholder': 'Ingrese link del Project'})
 
@@ -195,6 +176,8 @@ class InfoConvenioForm(FlaskForm):
         etapa_actual = TrayectoriaEtapa.query.get(self.id_trayectoria.data)
         if etapa_actual.ingreso > fecha_etapa.data:
             raise ValidationError(f'No puede seleccionar una fecha anterior a {etapa_actual.ingreso}')
+        if fecha_etapa.data > date.today():
+            raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
     def validate_equipo_1(self, equipo_1):
         # Validar que se asigne al menos a un equipo
@@ -215,6 +198,8 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if equipo_actual.ingreso > self.fecha_equipo_1.data:
                 raise ValidationError(f'No puede seleccionar una fecha anterior a {equipo_actual.ingreso}')
+            if self.fecha_equipo_1.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
     def validate_equipo_2(self, equipo_2):
         # Validar que el equipo no esté repetido
@@ -240,10 +225,15 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if equipo_actual.ingreso > self.fecha_equipo_2.data:
                 raise ValidationError(f'No puede seleccionar una fecha anterior a {equipo_actual.ingreso}')
+            if self.fecha_equipo_2.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
-        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0' and self.fecha_equipo_2.data is None:
-            raise ValidationError('Debe seleccionar una fecha.')
+        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0': 
+            if self.fecha_equipo_2.data is None:
+                raise ValidationError('Debe seleccionar una fecha.')
+            if self.fecha_equipo_2.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
     def validate_equipo_3(self, equipo_3):
         # Validar que el equipo no esté repetido
@@ -269,10 +259,15 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if equipo_actual.ingreso > self.fecha_equipo_3.data:
                 raise ValidationError(f'No puede seleccionar una fecha anterior a {equipo_actual.ingreso}')
+            if self.fecha_equipo_3.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
-        if self.id_trayectoria_3.data == '0' and equipo_3.data != '0' and self.fecha_equipo_3.data is None:
-            raise ValidationError('Debe seleccionar una fecha.')
+        if self.id_trayectoria_3.data == '0' and equipo_3.data != '0':
+            if self.fecha_equipo_3.data is None:
+                raise ValidationError('Debe seleccionar una fecha.')
+            if self.fecha_equipo_3.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
     def validate_equipo_4(self, equipo_4):
         # Validar que el equipo no esté repetido
@@ -298,11 +293,36 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if equipo_actual.ingreso > self.fecha_equipo_4.data:
                 raise ValidationError(f'No puede seleccionar una fecha anterior a {equipo_actual.ingreso}')
+            if self.fecha_equipo_4.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
-        if self.id_trayectoria_4.data == '0' and equipo_4.data != '0' and self.fecha_equipo_4.data is None:
-            raise ValidationError('Debe seleccionar una fecha.')
+        if self.id_trayectoria_4.data == '0' and equipo_4.data != '0':
+            if self.fecha_equipo_4.data is None:
+                raise ValidationError('Debe seleccionar una fecha.')
+            if self.fecha_equipo_4.data > date.today():
+                raise ValidationError('No puede seleccionar una fecha en el futuro.')
+    
+    def validate_proyecto(self, proyecto):
+        if len(str(proyecto.data)) > 0:
+            try:
+                int(proyecto.data)
+            except:
+                raise ValidationError('Debe ingresar solo números.')
 
+        if proyecto.data != "":
+            nro_proyecto = Convenio.query.filter(
+                and_(Convenio.proyecto == proyecto.data, Convenio.id != int(self.id_convenio.data))).first()
+            if nro_proyecto:
+                raise ValidationError(
+                    f'El número de proyecto {proyecto.data} ya está registrado.')
+
+    def validate_gabinete_electronico(self, gabinete_electronico):
+        if len(str(gabinete_electronico.data)) > 0:
+            try:
+                int(gabinete_electronico.data)
+            except:
+                raise ValidationError('Debe ingresar solo números.')
 
 class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
