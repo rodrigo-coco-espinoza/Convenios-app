@@ -1937,12 +1937,19 @@ def convenios_por_institucion():
             instituciones[convenio.institucion.sigla]['ws'] = ws
         # Agregar entregas
         # PENDIENTE
+        # Agrega nombre del convenio
+        if '-' in convenio.institucion.sigla:
+            instituciones[convenio.institucion.sigla]['nombre'] = f'<b>{convenio.institucion.sigla}</b>'
+        else:
+            instituciones[convenio.institucion.sigla]['nombre'] = f'<b>{convenio.institucion.sigla}</b> {convenio.institucion.nombre}'
+
     
     # Tabla
     instituciones_data = []
+    pprint(instituciones)
     for institucion, data in instituciones.items():
         instituciones_data.append([
-            institucion,
+            data['nombre'],
             f"<p align='center'>{convenio_cuenta(data)}</p>",
             f"<p align='center'>{adendum(data)}</p>",
             f"<p align='center'>{por_firmar(data)}</p>",
