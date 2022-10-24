@@ -1,4 +1,4 @@
-from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify
+from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify, send_from_directory
 from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
@@ -21,7 +21,10 @@ documentos = Blueprint('documentos', __name__)
 def proceso_de_convenio():
     return render_template('documentos/proceso_de_convenio.html')
 
-
+@documentos.route('/files/<documento>')
+def files(documento):
+    return send_from_directory(directory='static/files', path=documento)
+    
 @documentos.route('/catalogo_ws')
 def catalogo_ws():
     return 'catalogo'
