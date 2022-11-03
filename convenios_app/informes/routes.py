@@ -1946,7 +1946,6 @@ def convenios_por_institucion():
     
     # Tabla
     instituciones_data = []
-    pprint(instituciones)
     for institucion, data in instituciones.items():
         instituciones_data.append([
             data['nombre'],
