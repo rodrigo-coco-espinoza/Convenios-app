@@ -5,7 +5,7 @@
 <script type="text/javascript">
   changeActive('#conveniosInstitucion')
 </script>
-<legend class="border-bottom mb-2">Convenios por Institución</legend>
+<legend class="border-bottom mb-2">Convenios por Institución <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_informes_institucion') }}"><i class="fa-solid fa-file-excel"></i></a></legend>
 <div class="mb-5 overflow-auto">
   <input type="text" class="form-control mb-3" id="searchInstitucion" onkeyup="search()" placeholder="Escriba una institución para filtrar">
   <div id="tablaInstituciones"></div>
