@@ -2,7 +2,7 @@
 {% block content %}
 <div class="content-section mx-2">
   <!-- Carousel recepciones por mes -->
-  <legend class="border-bottom mb-3">Recepción de información</legend>
+  <legend class="border-bottom mb-3">Recepción de información <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_sd_recepcion', equipo=equipo.id) }}"><i class="fa-solid fa-file-excel"></i></a></legend>
   <div id="carouselRecepcion" class="carousel slide mb-5" data-bs-interval="false">
     <div class="carousel-inner px-5">
       <!-- Crear elementos solo de los periodos que hay recepción -->
@@ -46,7 +46,11 @@
   </div>
 
   <!-- Tabla convenios asignados -->
-  <legend class="border-bottom mb-3">Convenios asignados a {{ equipo.sigla }}</legend>
+  <legend class="border-bottom mb-3">Convenios asignados a {{ equipo.sigla }}
+    {% if convenios_asignados %}
+      <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_sd_asignados', equipo=equipo.id) }}"><i class="fa-solid fa-file-excel"></i></a>
+    {% endif %}
+  </legend>
   {% if convenios_asignados %}
     <table class="table table-striped table-hover mb-5">
     <thead class='table-dark'>
@@ -70,7 +74,7 @@
     <p class="mb-5">No hay convenios asignados a {{ equipo.sigla }} actualmente.</p>
   {% endif %}
   <!-- Tabla estado actual convenios asociados a SD -->
-  <legend class="border-bottom mb-3">Estado actual convenios de {{ equipo.sigla }}</legend>
+  <legend class="border-bottom mb-3">Estado actual convenios de {{ equipo.sigla }} <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_sd_actual', equipo=equipo.id) }}"><i class="fa-solid fa-file-excel"></i></a></legend>
   <div  class="mb-5 overflow-auto" style="height: 700px;">
     <div id='tablaEstadoActual'></div>
   </div>

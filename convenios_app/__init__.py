@@ -31,6 +31,7 @@ def create_app(config_class=Config):
     from convenios_app.bitacoras.routes import bitacoras
     from convenios_app.informes.routes import informes
     from convenios_app.documentos.routes import documentos
+    from convenios_app.descargas.routes import descargas
     #from convenios_app.errors.handlers import errors
 
     app.register_blueprint(main)
@@ -38,6 +39,7 @@ def create_app(config_class=Config):
     app.register_blueprint(bitacoras)
     app.register_blueprint(informes)
     app.register_blueprint(documentos)
+    app.register_blueprint(descargas)
     #app.register_blueprint(errors)
 
     return app

@@ -47,12 +47,13 @@
     </table>
   </div>
   <!-- Tabla resumen -->
+  <legend class="mb-1"><a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_bitacora_proceso') }}"><i class="fa-solid fa-file-excel"></i></a></legend>
   <div  class="mb-5 scroll" style="height: 700px;">
     <div id='tablaConveniosProceso'></div>
   </div>
 </div>
 
-<!-- CONVENIOS EN PROCESO -->
+<!-- CONVENIOS EN PRODUCCIÓN -->
 <legend class="border-bottom mb-3">
   <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
   href="#conveniosEnProduccion" aria-expanded="false" aria-controls="conveniosEnProduccion">
@@ -94,6 +95,7 @@
     <small>{{sin_asignar_produccion}} convenios sin asignar.</small>
   </div>
   <!-- Tabla resumen -->
+  <legend class="mb-1"><a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_bitacora_produccion') }}"><i class="fa-solid fa-file-excel"></i></a></legend>
   <div  class="mb-5 scroll" style="height: 700px;">
     <div id='tablaConveniosProduccion'></div>
   </div>
@@ -112,6 +114,7 @@
     {% endfor %}
   </select>
   <!-- Tabla resumen -->
+  <legend class="mb-1"><a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_bitacora_otros') }}"><i class="fa-solid fa-file-excel"></i></a></legend>
   <div  class="mb-5 scroll" style="height: 700px;">
     <div id='tablaOtrosConvenios'></div>
   </div>
