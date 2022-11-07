@@ -700,91 +700,106 @@ def descargar_sd_recepcion(equipo):
             recepciones['En línea'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if "Diario" in periodicidad:
             recepciones['Diario'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if "Semanal" in periodicidad:
             recepciones['Semanal'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if  any(item in ["Mensual", "1"] for item in periodicidad):
             recepciones['Enero'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "2"] for item in periodicidad):
             recepciones['Febrero'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "3"] for item in periodicidad):
             recepciones['Marzo'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "4"] for item in periodicidad):
             recepciones['Abril'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "5"] for item in periodicidad):
             recepciones['Mayo'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "6"] for item in periodicidad):
             recepciones['Junio'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "7"] for item in periodicidad):
             recepciones['Julio'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "8"] for item in periodicidad):
             recepciones['Agosto'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "9"] for item in periodicidad):
             recepciones['Septiembre'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "10"] for item in periodicidad):
             recepciones['Octubre'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "11"] for item in periodicidad):
             recepciones['Noviembre'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
         if any(item in ["Mensual", "12"] for item in periodicidad):
             recepciones['Diciembre'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
-                'archivo': recepcion.archivo
+                'archivo': recepcion.archivo,
+                'metodo': recepcion.metodo
             })
     # Crear archivo excel para añadir hojas
     output = BytesIO()
@@ -797,13 +812,15 @@ def descargar_sd_recepcion(equipo):
             recepciones_periodo_df = pd.DataFrame({
                                         'Institución': pd.Series(dtype='str'),
                                         'Nombre entrega': pd.Series(dtype='str'),
-                                        'Nombre archivo': pd.Series(dtype='str')
+                                        'Nombre archivo': pd.Series(dtype='str'),
+                                        'Método': pd.Series(dtype='str')
                                         })
             # Recorrer periodo y agregar al df
             for recepcion in datos:
                 fila = {'Institución': recepcion['institucion'],
                         'Nombre entrega': recepcion['nombre'],
-                        'Nombre archivo': recepcion['archivo']
+                        'Nombre archivo': recepcion['archivo'],
+                        'Método': recepcion['metodo']
                         }
                 # Agregar fila
                 recepciones_periodo_df = pd.concat([recepciones_periodo_df, pd.DataFrame([fila])], ignore_index=True)          
@@ -820,13 +837,14 @@ def descargar_sd_recepcion(equipo):
             bold = workbook.add_format({'bold': True})
             worksheet.write(0, 0, texto, bold)
             # Formato de tabla
-            worksheet.add_table(f'A3:D{len(recepciones_periodo_df.index) + 3}',
+            worksheet.add_table(f'A3:E{len(recepciones_periodo_df.index) + 3}',
                                 {'style': 'Table Style Medium 1',
                                 'autofilter': False,
                                 'columns': [{'header': '#'},
                                             {'header': 'Institución'},
                                             {'header': 'Nombre entrega'},
-                                            {'header': 'Nombre archivo'}
+                                            {'header': 'Nombre archivo'},
+                                            {'header': 'Método'}
                                             ]})  
 
     # Guardar

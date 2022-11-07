@@ -331,6 +331,12 @@ class AgregarRecepcionForm(FlaskForm):
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
     archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'})
     sd_recibe = SelectField('Subdirección que recibe la información')
+    #TODO: COMPLETAR MÉTODOS DE TRASPASO
+    metodo = SelectField('Método de traspaso', choices=['Seleccione método',
+                                                        'SFTP',
+                                                        'En línea',
+                                                        'Correo electrónico',
+                                                        'Otro'])
 
     def validate_archivo(self, archivo):
         if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
@@ -341,6 +347,9 @@ class AgregarRecepcionForm(FlaskForm):
         if int(sd_recibe.data) == 0:
             raise ValidationError('Debe seleccionar una subdirección.')
 
+    def validate_metodo(self, metodo):
+        if metodo.data == 'Seleccione método':
+            raise ValidationError('Debe seleccionar método de traspaso de la información.')
 
 class EditarRecepcionForm(FlaskForm):
     id_recepcion_editar = HiddenField('ID Recepción')
@@ -348,6 +357,11 @@ class EditarRecepcionForm(FlaskForm):
     carpeta_editar = StringField('Carpeta')
     archivo_editar = StringField('Archivo')
     sd_recibe_editar = SelectField('Subdirección', choices=[(0, '')], validate_choice=False)
+    #TODO: COMPLETAR MÉTODOS DE TRASPASO
+    metodo_editar = SelectField('Método de traspaso', choices=['SFTP',
+                                                            'Correo electrónico',
+                                                            'En línea',
+                                                            'Otro'])
 
     # def validate_archivo(self, archivo):
     #     if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,

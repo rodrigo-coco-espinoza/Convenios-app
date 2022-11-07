@@ -113,6 +113,7 @@ class RecepcionConvenio(db.Model):
     archivo = db.Column(db.String(50), nullable=True)
     periodicidad = db.Column(db.String(), nullable=False)
     estado = db.Column(db.Boolean(), nullable=True)
+    metodo = db.Column(db.String(), nullable=False)
 
     # Llaves foráneas
     id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)

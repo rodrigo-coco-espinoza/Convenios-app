@@ -569,6 +569,7 @@ def bitacora_convenio(id_convenio):
         'nombre': recepcion.nombre,
         'archivo': recepcion.archivo if recepcion.archivo else "",
         'periodo': formato_periodicidad(recepcion.periodicidad),
+        'metodo': recepcion.metodo,
         'sd': recepcion.sd.sigla,
         'activo': 'checked' if recepcion.estado else ""
     } for recepcion in recepciones_query]
@@ -596,6 +597,7 @@ def bitacora_convenio(id_convenio):
             nombre=form_recepcion.nombre.data,
             archivo=form_recepcion.archivo.data,
             periodicidad='-'.join(periodicidad),
+            metodo=form_recepcion.metodo.data,
             estado=0
         )
         db.session.add(nueva_recepcion)
@@ -676,6 +678,7 @@ def bitacora_convenio(id_convenio):
         recepcion_a_editar.nombre = editar_recepcion_form.nombre_editar.data
         recepcion_a_editar.archivo = editar_recepcion_form.archivo_editar.data
         recepcion_a_editar.id_sd = editar_recepcion_form.sd_recibe_editar.data
+        recepcion_a_editar.metodo = editar_recepcion_form.metodo_editar.data
 
         periodicidad = request.form.getlist('editarPeriodicidad_checkbox')
         recepcion_a_editar.periodicidad = '-'.join(periodicidad)
@@ -993,6 +996,7 @@ def obtener_info_recepcion(id_recepcion):
         'nombre': recepcion_query.nombre,
         'carpeta': recepcion_query.carpeta if recepcion_query.carpeta else "",
         'archivo': recepcion_query.archivo,
+        'metodo': recepcion_query.metodo,
         'sd': recepcion_query.id_sd,
         'choices_sd': choices_sd
     }

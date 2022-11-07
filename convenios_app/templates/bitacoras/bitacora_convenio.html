@@ -625,6 +625,7 @@
               <th scope='col'>#</th>
               <th scope='col'>Nombre</th>
               <th scope='col'>Archivo</th>
+              <th scope='col'>Método</th>
               <th scope='col'>Periodicidad</th>
               <th class="text-center" scope='col'>Recibe</th>
               <th scope='col'></th>
@@ -637,6 +638,7 @@
                 <td>{{ loop.index }}</td>
                 <td>{{ recepcion.nombre }}</td>
                 <td>{{ recepcion.archivo }}</td>
+                <td>{{ recepcion.metodo}} </td>
                 <td>{{ recepcion.periodo }}</td>
                 <td class="text-center">{{ recepcion.sd }}</td>
                 <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ recepcion.id_recepcion }}" {{ recepcion.activo }}></td>
@@ -723,20 +725,40 @@
             {% endif %}        
           </div>
           <!-- SD que recibe y Periodicidad -->
-          <div class="row form-group mb-3">
-            <!-- Subdirección -->
+          <div class="row form-group mb-3">       
             <div class="col-lg-4">
-              {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
-              {% if form_recepcion.sd_recibe.errors %}
-                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select is-invalid') }}
-                <div class="invalid-feedback">
-                  {% for error in form_recepcion.sd_recibe.errors %}
-                    <span>{{ error }}</span>
-                  {% endfor %}
+              <!-- Subdirección -->
+              <div class="row form-group">
+                <div class="col mb-3">
+                  {{ form_recepcion.sd_recibe.label(class='form-control-label mb-1') }}
+                  {% if form_recepcion.sd_recibe.errors %}
+                    {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in form_recepcion.sd_recibe.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
+                  {% endif %}
                 </div>
-              {% else %}
-                {{ form_recepcion.sd_recibe(class='form-control form-control-lg form-select')}}
-              {% endif %}
+              </div>
+              <!-- Método -->
+              <div class="row form-group">
+                <div class="col">
+                  {{ form_recepcion.metodo.label(class='form-control-label mb-1') }}
+                  {% if form_recepcion.metodo.errors %}
+                    {{ form_recepcion.metodo(class='form-control form-control-lg form-select is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in form_recepcion.metodo.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form_recepcion.metodo(class='form-control form-control-lg form-select')}}
+                  {% endif %}
+                </div>
+              </div>     
             </div>
             <!-- Periodicidad -->
             <div class="col-lg-8 form-group">
@@ -977,19 +999,39 @@
             </div>
             <!-- SD que recibe y Periodicidad -->
             <div class="row form-group mb-3">
-              <!-- Subdirección -->
               <div class="col-lg-4">
-                {{ editar_recepcion_form.sd_recibe_editar.label(class='form-control-label mb-1') }}
-                {% if editar_recepcion_form.sd_recibe_editar.errors %}
-                  {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select is-invalid') }}
-                  <div class="invalid-feedback">
-                    {% for error in editar_recepcion_form.sd_recibe_editar.errors %}
-                      <span>{{ error }}</span>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select')}}
-                {% endif %}
+                <!-- Subdirección -->
+              <div class="row form-group">
+                <div class="col mb-3">
+                  {{ editar_recepcion_form.sd_recibe_editar.label(class='form-control-label mb-1') }}
+                  {% if editar_recepcion_form.sd_recibe_editar.errors %}
+                    {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-lg form-select is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in editar_recepcion_form.sd_recibe_editar.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-lg form-select')}}
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Método -->
+              <div class="row form-group">
+                <div class="col">
+                  {{ editar_recepcion_form.metodo_editar.label(class='form-control-label mb-1') }}
+                  {% if editar_recepcion_form.metodo_editar.errors %}
+                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-lg form-select is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in editar_recepcion_form.metodo_editar.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-lg form-select')}}
+                  {% endif %}
+                </div>
+              </div>
               </div>
               <!-- Periodicidad -->
               <div class="col-lg-8 form-group">
@@ -1045,6 +1087,8 @@
       $('#nombre_editar').val(data.nombre);
       $('#carpeta_editar').val(data.carpeta);
       $('#archivo_editar').val(data.archivo);
+      $('#metodo_editar').val(data.metodo);
+
 
       var select = $("#sd_recibe_editar");
       select.empty();
