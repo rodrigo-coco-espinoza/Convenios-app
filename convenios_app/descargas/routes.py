@@ -570,7 +570,7 @@ def descargar_sd_actual(equipo):
             'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
             'Estado': convenio.estado,
             'Coord': obtener_iniciales(convenio.coord_sii.nombre),
-            'Sup': obtener_iniciales(convenio.sup_sii.nombre)
+            'Sup': obtener_iniciales(convenio.sup_sii.nombre) if convenio.sup_sii else None
         }
         # Obtener última observación
         observacion_query = BitacoraAnalista.query.filter(and_(BitacoraAnalista.id_convenio == convenio.id,
