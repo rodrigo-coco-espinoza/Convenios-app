@@ -339,9 +339,10 @@ class AgregarRecepcionForm(FlaskForm):
                                                         'Otro'])
 
     def validate_archivo(self, archivo):
-        if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
-                                            RecepcionConvenio.archivo == archivo.data)).first():
-            raise ValidationError('El nombre de archivo ya existe para este convenio.')
+        if archivo.data != "":
+                  if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
+                                                      RecepcionConvenio.archivo == archivo.data)).first():
+                      raise ValidationError('El nombre de archivo ya existe para este convenio.')
 
     def validate_sd_recibe(self, sd_recibe):
         if int(sd_recibe.data) == 0:
