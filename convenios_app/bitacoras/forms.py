@@ -335,6 +335,7 @@ class AgregarRecepcionForm(FlaskForm):
     metodo = SelectField('Método de traspaso', choices=['Seleccione método',
                                                         'SFTP',
                                                         'En línea',
+                                                        'WMS/WFS',
                                                         'Correo electrónico',
                                                         'Otro'])
 
@@ -360,8 +361,9 @@ class EditarRecepcionForm(FlaskForm):
     sd_recibe_editar = SelectField('Subdirección', choices=[(0, '')], validate_choice=False)
     #TODO: COMPLETAR MÉTODOS DE TRASPASO
     metodo_editar = SelectField('Método de traspaso', choices=['SFTP',
-                                                            'Correo electrónico',
                                                             'En línea',
+                                                            'WMS/WFS',
+                                                            'Correo electrónico',
                                                             'Otro'])
 
     # def validate_archivo(self, archivo):
