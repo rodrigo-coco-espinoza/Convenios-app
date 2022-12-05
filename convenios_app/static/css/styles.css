@@ -108,3 +108,7 @@
   table-layout: fixed; 
   word-wrap: break-word;
 }
+
+.display-none {
+  display: none;
+}

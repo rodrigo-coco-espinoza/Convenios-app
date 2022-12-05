@@ -366,12 +366,35 @@ class EditarRecepcionForm(FlaskForm):
                                                             'Correo electrónico',
                                                             'Otro'])
 
-    # def validate_archivo(self, archivo):
-    #     if RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == self.id_convenio.data,
-    #                                         RecepcionConvenio.archivo == archivo.data,
-    #                                            RecepcionConvenio.id != )).first():
-    #         raise ValidationError('El nombre de archivo ya existe para este convenio.')
+class AgregarEntregaForm(FlaskForm):
+    id_convenio = HiddenField('ID Convenio')
+    nombre = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'})
+    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a entregar'})
+    sd_prepara = SelectField('Subdirección que prepara la información')
+    sd_envia = SelectField('Subdirección que envía la información')
+    metodo = SelectField('Método de traspaso', choices=['Seleccione método',
+                                                        'Gabiente Electrónico',
+                                                        'SFTP',
+                                                        'En línea',
+                                                        'Correo electrónico',
+                                                        'Otro'])
+    requiere_nomina = SelectField('¿Requiere nómina?', choices=['Escoga una',
+                                                        'Sí',
+                                                        'No'])
+    # Datos nómina
+    nomina_registrada = SelectField('Nóminas registradas')
+    nomina_archivo = StringField('Archivo nómina', render_kw={'placeholder': 'Nombre de la nómina para la extracción de datos'})
+    nomina_metodo = SelectField('Método de traspaso nómina', choices=['Seleccione método',
+                                                        'SFTP',
+                                                        'En línea',
+                                                        'Correo electrónico',
+                                                        'Otro'])
 
+    #VALIDATIONS
+
+class AgregarNominaForm(FlaskForm):
+    id_convenio = HiddenField('ID_Convneio')
+    
 
 class RegistrarHitoForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')

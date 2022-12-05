@@ -6,7 +6,7 @@ from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvo
                                   RecepcionConvenio, Hito, HitosConvenio)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
-                                           RegistrarHitoForm, EditarRecepcionForm)
+                                           RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
@@ -605,6 +605,18 @@ def bitacora_convenio(id_convenio):
         flash('Se ha agregado nueva recepción de información.', 'success')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
+    # ENTREGAS
+    # Formulario entrega de información
+    form_entrega = AgregarEntregaForm(id_convenio=id_convenio)
+    form_entrega.sd_prepara.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
+    form_entrega.sd_prepara.choices.sort(key=lambda tup: tup[1])
+    form_entrega.sd_prepara.choices.insert(0, (0, 'Seleccione Subidirección'))
+    form_entrega.sd_envia.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
+    form_entrega.sd_envia.choices.sort(key=lambda tup: tup[1])
+    form_entrega.sd_envia.choices.insert(0, (0, 'Seleccione Subidirección'))
+    # Obtener nóminas registradas en la institución y añadir al select
+    form_entrega.nomina_registrada.choices = [(0, 'Seleccione nómina existente o deje en blanco para agregar nueva'), (1, 'Nomina_pj.txt')]
+
     # HITOS
     # Ver hitos registrados
     hitos_registrados_query = HitosConvenio.query.filter(HitosConvenio.id_convenio == id_convenio).all()
@@ -694,7 +706,7 @@ def bitacora_convenio(id_convenio):
                            ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
                            form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
-                           editar_recepcion_form=editar_recepcion_form)
+                           editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')
