@@ -23,6 +23,7 @@ def descargar_informes_proceso():
     convenios_df = pd.DataFrame({
         'Institución': pd.Series(dtype='str'),
         'Convenio': pd.Series(dtype='str'),
+        'Días en proceso': pd.Series(dtype='int'),
         'Etapa actual': pd.Series(dtype='str'),
         'Días en etapa': pd.Series(dtype='int'),
         'Área 1': pd.Series(dtype='str'),
@@ -42,6 +43,15 @@ def descargar_informes_proceso():
             'Institución': convenio.institucion.sigla,
             'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo)
         }
+
+        # Obtener días en proceso
+        dias_en_proceso = 0
+        for etapa in TrayectoriaEtapa.query.filter(TrayectoriaEtapa.id_convenio == convenio.id).order_by(
+            TrayectoriaEtapa.ingreso.asc()).all():
+            salida_etapa = (lambda salida: salida if salida != None else date.today())(etapa.salida)
+            dias_en_proceso += dias_habiles(etapa.ingreso, salida_etapa)
+        fila['Días en proceso'] = dias_en_proceso
+
         # Obtener etapa actual
         etapa_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == convenio.id,
                                                         TrayectoriaEtapa.salida == None)).first()
@@ -95,11 +105,12 @@ def descargar_informes_proceso():
     bold = workbook.add_format({'bold': True})
     worksheet.write(0, 0, texto, bold)
     # Formato de tabla
-    worksheet.add_table(f'A3:M{len(convenios_df.index) + 3}', {'style': 'Table Style Medium 1',
+    worksheet.add_table(f'A3:N{len(convenios_df.index) + 3}', {'style': 'Table Style Medium 1',
                                     'autofilter': False,
                                     'columns': [{'header': '#'},
                                                 {'header': 'Institución'},
                                                 {'header': 'Convenio'},
+                                                {'header': 'Días en proceso'},
                                                 {'header': 'Etapa actual'},
                                                 {'header': 'Días en etapa'},
                                                 {'header': 'Área 1'},
