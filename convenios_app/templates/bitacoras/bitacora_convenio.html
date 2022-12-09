@@ -807,33 +807,34 @@
     <!-- Añadir entrega -->
     <div class="content-section">
       <form method="POST" novalidate>
+        {{ form_entrega.hidden_tag() }}
         <fieldset>
           <!-- Nombre de la entrega -->
           <div class="form-group mb-3">
-            {{ form_entrega.nombre.label(class='form-control-label mb-1') }}
-            {% if form_entrega.nombre.errors %}
-              {{ form_entrega.nombre(class='form-control form-control-lg is-invalid') }}
+            {{ form_entrega.nombre_entrega.label(class='form-control-label mb-1') }}
+            {% if form_entrega.nombre_entrega.errors %}
+              {{ form_entrega.nombre_entrega(class='form-control form-control-lg is-invalid') }}
               <div class="invalid-feedback">
-                {% for error in form_entrega.nombre.errors %}
+                {% for error in form_entrega.nombre_entrega.errors %}
                 <span>{{ error }}</span>
                 {% endfor %}
               </div>
             {% else %}
-              {{ form_entrega.nombre(class='form-control form-control-lg') }}
+              {{ form_entrega.nombre_entrega(class='form-control form-control-lg') }}
             {% endif %}  
           </div>
           <!-- Archivo -->
           <div class="form-group mb-3">
-            {{ form_entrega.archivo.label(class='form-control-label mb-1')}}
-            {% if form_entrega.archivo.errors %}
-              {{ form_entrega.archivo(class='form-control form-control-lg is-invalid') }}
+            {{ form_entrega.archivo_entrega.label(class='form-control-label mb-1')}}
+            {% if form_entrega.archivo_entrega.errors %}
+              {{ form_entrega.archivo_entrega(class='form-control form-control-lg is-invalid') }}
               <div class="invalid-feedback">
-                {% for error in form_entrega.archivo.errors %}
+                {% for error in form_entrega.archivo_entrega.errors %}
                   <span>{{ error }}</span>
                 {% endfor %}
               </div>
             {% else %}
-              {{ form_entrega.archivo(class='form-control form-control-lg') }}
+              {{ form_entrega.archivo_entrega(class='form-control form-control-lg') }}
             {% endif %}
           </div>
           <!-- SD prepara, envía y método de traspaso -->
@@ -868,16 +869,16 @@
             </div>
             <!-- Método de traspaso -->
             <div class="col-lg-4">
-              {{ form_entrega.metodo.label(class='form-control-label mb-1') }}
-              {% if form_entrega.metodo.errors %}
-                {{ form_entrega.metodo(class='form-control form-control-lg form-select is-invalid') }}
+              {{ form_entrega.metodo_entrega.label(class='form-control-label mb-1') }}
+              {% if form_entrega.metodo_entrega.errors %}
+                {{ form_entrega.metodo_entrega(class='form-control form-control-lg form-select is-invalid') }}
                 <div class="invalid-feedback">
-                  {% for error in form_entrega.metodo.errors %}
+                  {% for error in form_entrega.metodo_entrega.errors %}
                     <span>{{ error }}</span>
                   {% endfor %}
                 </div>                
               {% else %}
-                {{ form_entrega.metodo(class='form-control form-control-lg form-select') }}
+                {{ form_entrega.metodo_entrega(class='form-control form-control-lg form-select') }}
               {% endif %}
             </div>
           </div>
@@ -1008,6 +1009,9 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="px-1" align='right'>
+            <button type=submit name="agregar_entrega" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
           </div>
         </fieldset>
       </form>

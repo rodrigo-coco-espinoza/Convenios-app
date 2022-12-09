@@ -404,9 +404,11 @@ def bitacora_convenio(id_convenio):
         if not convenio.link_resolucion and convenio.link_resolucion != form_info.link_resolucion.data:
             convenio.link_resolucion = form_info.link_resolucion.data
         # Actualizar link protocolo técnico
-        convenio.institucion.link_protocolo = form_info.link_protocolo.data
+        if not convenio.institucion.link_protocolo and convenio.institucion.link_protocolo != form_info.link_protocolo.data:
+            convenio.institucion.link_protocolo = form_info.link_protocolo.data
         # Actualizar link repositorio
-        convenio.institucion.link_repositorio = form_info.link_repositorio.data
+        if not convenio.institucion.link_repositorio and convenio.institucion.link_repositorio != form_info.link_repositorio.data:
+            convenio.institucion.link_repositorio = form_info.link_repositorio.data
 
         db.session.commit()
 
@@ -606,8 +608,10 @@ def bitacora_convenio(id_convenio):
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     # ENTREGAS
+    # Entregas registradas
+
     # Formulario entrega de información
-    form_entrega = AgregarEntregaForm(id_convenio=id_convenio)
+    form_entrega = AgregarEntregaForm(id_convenio_entrega=id_convenio)
     form_entrega.sd_prepara.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
     form_entrega.sd_prepara.choices.sort(key=lambda tup: tup[1])
     form_entrega.sd_prepara.choices.insert(0, (0, 'Seleccione Subidirección'))
@@ -616,6 +620,10 @@ def bitacora_convenio(id_convenio):
     form_entrega.sd_envia.choices.insert(0, (0, 'Seleccione Subidirección'))
     # Obtener nóminas registradas en la institución y añadir al select
     form_entrega.nomina_registrada.choices = [(0, 'Seleccione nómina existente o deje en blanco para agregar nueva'), (1, 'Nomina_pj.txt')]
+
+    if 'agregar_entrega' in request.form and form_entrega.validate_on_submit():
+        flash('Se ha agregado nueva entrega de información.', 'success')
+        return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
     # HITOS
     # Ver hitos registrados

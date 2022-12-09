@@ -367,12 +367,12 @@ class EditarRecepcionForm(FlaskForm):
                                                             'Otro'])
 
 class AgregarEntregaForm(FlaskForm):
-    id_convenio = HiddenField('ID Convenio')
-    nombre = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'})
-    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a entregar'})
+    id_convenio_entrega = HiddenField('ID Convenio')
+    nombre_entrega = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'})
+    archivo_entrega = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a entregar'})
     sd_prepara = SelectField('Subdirección que prepara la información')
     sd_envia = SelectField('Subdirección que envía la información')
-    metodo = SelectField('Método de traspaso', choices=['Seleccione método',
+    metodo_entrega = SelectField('Método de traspaso', choices=['Seleccione método',
                                                         'Gabiente Electrónico',
                                                         'SFTP',
                                                         'En línea',

@@ -238,3 +238,14 @@ def obtener_institucion(id):
         'ministerio': (lambda inst: 0 if not inst.id_ministerio else inst.id_ministerio)(query)
     }
     return jsonify(institucion)
+
+
+@main.route('/obtener_convnios_todos')
+@login_required
+@analista_only
+def obtener_convenios_todos():
+    # Buscar todos los convenios
+    convenios_query = Convenio.query.all()
+    convenios = {generar_nombre_convenio(convenio): convenio.id  for convenio in convenios_query}
+
+    return jsonify(convenios)

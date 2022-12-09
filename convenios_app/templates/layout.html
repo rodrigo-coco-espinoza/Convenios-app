@@ -33,6 +33,7 @@
 
 
 <body>
+  {{ JSGlue.include() }}
   <!--Main Navigation-->
   <header>
     <!-- Sidebar -->
@@ -108,6 +109,17 @@
           <a href="{{ url_for('main.home') }}" id='brand-link'>Sistema de Convenios</a>
         </div>
 
+        <!-- Buscador -->
+        {% if current_user.is_authenticated %}
+          {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+            <div class="ps-4" style='width:600px;'>
+              <select class="form-control form-control-sm form-select" id="selectNavBar">
+                <option value="0">Seleccione convenio para ver bitácora</option>
+              </select>
+            </div> 
+          {% endif %}
+        {% endif %}
+      
         <!-- Right links -->
         <div class="navbar-nav ms-auto d-flex flex-row">
             {% if current_user.is_authenticated %}
@@ -160,7 +172,27 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 
+  <script>
+    
+    $(document).ready(function(){
+      // Completar el select con todos los convenios
+      var selectBar = $('#selectNavBar');
+      fetch(Flask.url_for('main.obtener_convenios_todos'))
+      .then(response => response.json())
+      .then(data => {
+        $.each(data, function(convenio, id){
+          selectBar.append(new Option(convenio, id));
+        });
+      });
 
+      // Ir a la página de convenio cuando se seleccione en el buscador
+      $('#selectNavBar').change(function(){
+      var id = $(this).find(":selected").val();
+      window.location.replace(Flask.url_for('bitacoras.bitacora_convenio', {'id_convenio': id}));
+    });
+
+    });
+  </script>
 
 </body>
 </html>
