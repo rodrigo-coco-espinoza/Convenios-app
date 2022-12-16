@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, CatalogoWS, WSConvenio,
-                                  RecepcionConvenio, Hito, HitosConvenio)
+                                  RecepcionConvenio, Hito, HitosConvenio, EntregaConvenio, NominaEntrega)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
                                            RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm)
@@ -97,7 +97,7 @@ def bitacora():
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_resumen_proceso:
         convenio[
-            0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
+            0] = f'<a class="simple-link" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
@@ -147,7 +147,7 @@ def bitacora():
                         suplente: f'<p align="center">{obtener_iniciales(suplente.nombre)}</p>' if suplente != None else '<p align="center">-</p>')(
             convenio.sup_sii)
         link_resolucion = (lambda
-                               link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                               link: f'<a target="_blank" class="text-center" class="simple-link" href="{link}">'
                                      f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -159,7 +159,7 @@ def bitacora():
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_resumen_produccion:
         convenio[
-            0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
+            0] = f'<a class="simple-link" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
@@ -194,7 +194,7 @@ def bitacora():
     # Agregar link a la bitácora
     for convenio in tabla_resumen_otros:
         convenio[
-            0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
+            0] = f'<a class="simple-link" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[4])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
@@ -619,9 +619,64 @@ def bitacora_convenio(id_convenio):
     form_entrega.sd_envia.choices.sort(key=lambda tup: tup[1])
     form_entrega.sd_envia.choices.insert(0, (0, 'Seleccione Subidirección'))
     # Obtener nóminas registradas en la institución y añadir al select
-    form_entrega.nomina_registrada.choices = [(0, 'Seleccione nómina existente o deje en blanco para agregar nueva'), (1, 'Nomina_pj.txt')]
+    nominas_registradas_lista = [(0, 'Seleccione nómina existente o deje en blanco para agregar nueva')]
+    nominas_registradas_query = NominaEntrega.query.filter(NominaEntrega.id_institucion == convenio.id_institucion).all()
+    for nomina in nominas_registradas_query:
+        nominas_registradas_lista.append((nomina.id, nomina.archivo))
+    form_entrega.nomina_registrada.choices = nominas_registradas_lista
 
     if 'agregar_entrega' in request.form and form_entrega.validate_on_submit():
+        # Comprobar que se seleccionó una periodicidad
+        periodicidad_entrega = request.form.getlist('periodicidad_entrega_checkbox')
+        if not periodicidad_entrega:
+            flash('Debe seleccionar la periodicidad de la entrega.', 'danger')
+            return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+        elif any(item in ['En línea', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_entrega) and len(periodicidad_entrega) > 1:
+            flash('No puede elegir más de una periodicidad para la entrega..', 'danger')
+            return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio)) 
+
+        # Agregar nómina si corresponde
+        if form_entrega.requiere_nomina.data == 'Sí' and int(form_entrega.nomina_registrada.data) == 0:
+                # Comprobar la periodicidad de la nómina
+                periodicidad_nomina = request.form.getlist('periodicidad_nomina_checkbox')
+                if not periodicidad_nomina:
+                    flash('Debe seleccionar la periodicidad de la nómina', 'danger')
+                    return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+                elif any(item in ['En línea', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
+                    flash('Np puede elegir más de una periodicidad para la nómina.', 'danger')
+                    return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+
+                # Añadir nómina la BBDD
+                nueva_nomina = NominaEntrega(
+                   archivo=form_entrega.nomina_archivo.data,
+                   metodo=form_entrega.nomina_metodo.data,
+                   periodicidad='-'.join(periodicidad_entrega),
+                   id_institucion=convenio.id_institucion
+                )
+                db.session.add(nueva_nomina)
+                db.session.commit()
+
+        # Agregar entrega
+        nueva_entrega = EntregaConvenio(
+            id_convenio=id_convenio,
+            nombre=form_entrega.nombre_entrega.data,
+            archivo=form_entrega.archivo_entrega.data,
+            periodicidad='-'.join(periodicidad_entrega),
+            metodo=form_entrega.metodo_entrega.data,
+            estado=0,
+            id_sd_prepara=form_entrega.sd_prepara.data,
+            id_sd_envia=form_entrega.sd_envia.data
+        )
+        # Vincular nómina con la entrega
+        if form_entrega.requiere_nomina.data == 'Sí':
+            if int(form_entrega.nomina_registrada.data) == 0:
+                nueva_entrega.id_nomina = nueva_nomina.id
+            else: 
+                nueva_entrega.id_nomina = form_entrega.nomina_registrada.data
+        
+        db.session.add(nueva_entrega)
+        db.session.commit()
+        
         flash('Se ha agregado nueva entrega de información.', 'success')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 

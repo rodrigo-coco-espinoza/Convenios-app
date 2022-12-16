@@ -142,23 +142,26 @@ class EntregaConvenio(db.Model):
     sd_prepara = db.relationship('Equipo', foreign_keys=[id_sd_prepara])
     id_sd_envia = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
     sd_envia = db.relationship('Equipo', foreign_keys=[id_sd_envia])
-    id_nomina = db.Column(db.Integer, db.ForeignKey('minuta_entrega.id'), nullable=True)
-    nomina = db.relationship('MinutaEntrega', foreign_keys=[id_nomina])
+    id_nomina = db.Column(db.Integer, db.ForeignKey('nomina_entrega.id'), nullable=True)
+    nomina = db.relationship('NominaEntrega', foreign_keys=[id_nomina])
     
 
     def __repr__(self):
         return f'<{self.nombre}: {self.convenio.institucion.sigla}>'
 
 
-class MinutaEntrega(db.Model):
+class NominaEntrega(db.Model):
     """
-    Representa las minutas que debe enviar una institución para la extracción de datos
+    Representa las nóminas que debe enviar una institución para la extracción de datos
     """
     id = db.Column(db.Integer, primary_key=True)
     archivo = db.Column(db.String(), nullable=False)
     metodo = db.Column(db.String(), nullable=False)
     periodicidad = db.Column(db.String(), nullable=False)
 
+    # Llaves foráneas
+    id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
+    institucion = db.relationship('Institucion', foreign_keys=[id_institucion])
 
 class HitosConvenio(db.Model):
     """

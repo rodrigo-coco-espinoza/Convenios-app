@@ -77,7 +77,7 @@
               </div>
             </div>
             <div class="col-lg-1">
-              <a class="text-center" style="text-decoration: none; color: #000;" href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=id_convenio) }}"><i class="fas fa-search btn-lg"></i></a>
+              <a class="text-center" class="simple-link" href="{{ url_for('informes.detalle_convenio_en_proceso', id_convenio=id_convenio) }}"><i class="fas fa-search btn-lg"></i></a>
             </div>
           </div>
 
@@ -526,14 +526,14 @@
             <td class="text-center">{{ hito.fecha }}</td>
             <td class="text-center">
               {% if hito.minuta %}
-                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+                <a target="_blank" class="simple-link" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
               {% else %}
                 <i class="fa-solid fa-link-slash gray"></i>
               {% endif %}
             </td>
             <td class="text-center">
               {% if hito.grabacion %}
-                <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+                <a target="_blank" class="simple-link" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
               {% else %}
                 <i class="fa-solid fa-video-slash gray"></i>
               {% endif %}
@@ -1025,7 +1025,7 @@
     <form class="" method="post" novalidate>
       <fieldset>
       <legend class="mb-2">
-        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionContribuyentes" aria-expanded="false" aria-controls="informacionContribuyentes">
         I. Información de contribuyentes <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionContribuyentes">
@@ -1046,7 +1046,7 @@
       </div>
 
       <legend class="mb-2">
-        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionEmpresas" aria-expanded="false" aria-controls="informacionEmpresas">
         II. Información tributaria <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionEmpresas">
@@ -1067,7 +1067,7 @@
       </div>
 
       <legend class="mb-2">
-        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionTributaria" aria-expanded="false" aria-controls="informacionTributaria">
         III. Información de bienes raíces <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionTributaria">
@@ -1088,7 +1088,7 @@
       </div>
 
       <legend class="mb-2">
-        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionBBRR" aria-expanded="false" aria-controls="informacionBBRR">
         IV. PISEE <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionBBRR">
@@ -1109,7 +1109,7 @@
       </div>
 
       <legend class="mb-2">
-        <a style="text-decoration: none; color: #000;" data-bs-toggle="collapse"
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#pisee" aria-expanded="false" aria-controls="pisee">
         V. No disponibles <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="pisee">

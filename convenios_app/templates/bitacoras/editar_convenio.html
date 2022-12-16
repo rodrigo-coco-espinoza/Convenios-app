@@ -52,6 +52,7 @@
       <!-- Nombre -->
       <div class="form-group mb-3">
         {{ form_editar_convenio.nombre.label(class='form-control-label mb-1') }}
+        <a class="simple-link push-right pe-1" href="{{ url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio) }}"><i class="fa-solid fa-keyboard fa-fw"></i></a>
         {% if form_editar_convenio.nombre.errors %}
           {{ form_editar_convenio.nombre(class='form-control form-control-lg is-invalid') }}
           <div class="invalid-feedback">
@@ -127,6 +128,9 @@
         <!-- Coordinador IE -->
         <div class="col-lg-4">
           {{ form_editar_convenio.coord_ie.label(class='form-control-label mb-1') }}
+          {% if info_convenio.coord_ie %}
+            <a class="simple-link push-right" href="{{ url_for('main.ver_persona') }}"><i class="fas fa-user fa-fw"></i></a>
+          {% endif %}
           {% if form_editar_convenio.coord_ie.errors %}
             {{ form_editar_convenio.coord_ie(class='form-control form-control-lg form-select is-invalid') }}
             <div class="invalid-feedback">
@@ -141,6 +145,7 @@
         <!-- Suplente IE -->
         <div class="col-lg-4">
           {{ form_editar_convenio.sup_ie.label(class='form-control-label mb-1') }}
+
           {% if form_editar_convenio.sup_ie.errors %}
             {{ form_editar_convenio.sup_ie(class='form-control form-control-lg form-select is-invalid') }}
             <div class="invalid-feedback">

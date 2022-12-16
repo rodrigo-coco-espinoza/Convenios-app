@@ -410,12 +410,12 @@ def otros_convenios():
     # Listado otros convenios
     listado_convenios = [[
         convenio.institucion.sigla,
-        f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>'
+        f'<a class="simple-link" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>'
         f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
         f'<i class="fas fa-search btn-sm"></i></a>',
         convenio.estado,
         (lambda
-             link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+             link: f'<a target="_blank" class="text-center" class="simple-link" href="{link}">'
                    f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -931,13 +931,13 @@ def convenios_en_proceso():
     # Listado convenios en proceso
     listado_convenios = [[
         convenio.institucion.sigla,
-        f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>'
+        f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>'
         f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
         f'<i class="fas fa-search btn-sm"></i></a>',
         obtener_etapa_actual_dias(convenio),
         obtener_equipos_actual_dias(convenio),
         (lambda
-             link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+             link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                    f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -1474,7 +1474,7 @@ def convenios_en_produccion():
     listado_convenios = [{
         'id_convenio': convenio.id,
         'institucion': convenio.institucion.sigla,
-        'nombre': f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>'
+        'nombre': f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>'
                   f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
                   f'<i class="fas fa-search btn-sm"></i></a>',
         'dia_firma': datetime.strftime(convenio.fecha_documento, '%d'),
@@ -1484,7 +1484,7 @@ def convenios_en_produccion():
                            convenio: f'N°{convenio.nro_resolucion} del {datetime.strftime(convenio.fecha_resolucion, "%d-%m-%Y")}' if convenio.fecha_resolucion != None else 'Sin resolución')(
             convenio),
         'link_resolucion': (lambda
-                                link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                                link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                                       f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
