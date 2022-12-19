@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
-from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio
+from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio, EntregaConvenio, NominaEntrega
 from sqlalchemy import and_
 from convenios_app.main.utils import formato_nombre, generar_nombre_convenio
 from wtforms.widgets import TextArea
@@ -368,7 +368,7 @@ class EditarRecepcionForm(FlaskForm):
 
 class AgregarEntregaForm(FlaskForm):
     id_convenio_entrega = HiddenField('ID Convenio')
-    nombre_entrega = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'})
+    nombre_entrega = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'}, validators=[DataRequired(), Length(min=2)])
     archivo_entrega = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a entregar'})
     sd_prepara = SelectField('Subdirección que prepara la información')
     sd_envia = SelectField('Subdirección que envía la información')
@@ -378,7 +378,7 @@ class AgregarEntregaForm(FlaskForm):
                                                         'En línea',
                                                         'Correo electrónico',
                                                         'Otro'])
-    requiere_nomina = SelectField('¿Requiere nómina?', choices=['Escoga una',
+    requiere_nomina = SelectField('¿Requiere nómina?', choices=['Escoja una',
                                                         'Sí',
                                                         'No'])
     # Datos nómina
@@ -390,7 +390,39 @@ class AgregarEntregaForm(FlaskForm):
                                                         'Correo electrónico',
                                                         'Otro'])
 
-    #VALIDATIONS
+    def validate_archivo_entrega(self, archivo_entrega):
+        if archivo_entrega.data != "":
+                  if EntregaConvenio.query.filter(and_(EntregaConvenio.id_convenio == self.id_convenio_entrega.data,
+                                                      EntregaConvenio.archivo == archivo_entrega.data)).first():
+                      raise ValidationError('El nombre de archivo ya existe para este convenio.')
+
+    def validate_sd_prepara(self, sd_prepara):
+        if int(sd_prepara.data) == 0:
+            raise ValidationError('Debe seleccionar subdirección.')
+
+    def validate_sd_envia(self, sd_envia):
+        if int(sd_envia.data) == 0:
+            raise ValidationError('Debe seleccionar subdirección.')
+
+    def validate_metodo_entrega(self, metodo_entrega):
+        if metodo_entrega.data == 'Seleccione método':
+            raise ValidationError('Debe seleccionar método de traspaso de la información.')
+
+    def validate_requiere_nomina(self, requiere_nomina):
+        if requiere_nomina.data == 'Escoja una':
+            raise ValidationError('Debe seleccionar si requiere o no nómina.')
+
+    def validate_nomina_archivo(self, nomina_archivo):
+        if self.requiere_nomina.data == 'Sí' and int(self.nomina_registrada.data) == 0:
+            institucion = Convenio.query.get(self.id_convenio_entrega.data).id_institucion
+            if nomina_archivo.data != "" and NominaEntrega.query.filter(and_(NominaEntrega.id_institucion == institucion,
+                                                                            NominaEntrega.archivo == nomina_archivo.data)).first():
+                 raise ValidationError('El nombre de archivo ya existe para esta nómina.')
+
+
+    def validate_nomina_metodo(self, nomina_metodo):
+        if self.requiere_nomina.data == 'Sí' and nomina_metodo.data == 'Seleccione método':
+            raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
 
 class AgregarNominaForm(FlaskForm):
     id_convenio = HiddenField('ID_Convneio')

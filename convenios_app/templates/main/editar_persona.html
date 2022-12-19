@@ -1,0 +1,163 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#personas')
+</script>
+
+<div class="content-section mx-4">
+  <!-- Select Personas -->
+  <select autofocus class="form-control form-control-lg form-select mb-5" id="persona" name="persona">
+    {% for persona in personas %}
+      <option value="{{ persona[0] }}">{{ persona[1] }}</option>
+    {% endfor %}
+  </select>
+
+
+<!-- Formulario Nueva persona -->
+
+<form id="formPersona" method="POST" novalidate>
+  {{ form_editar_persona.hidden_tag() }}
+  {{ form_editar_persona.id_persona()}}
+  <fieldset>
+    <div class="row form-group mb-3">
+      <!-- Legenda -->
+      <div class="col-lg-8">
+        <legend>
+          Editar persona
+        </legend>
+      </div>
+    <!-- Nombre -->
+    <div class="form-group mb-3">
+      {{ form_editar_persona.nombre.label(class='form-control-label mb-1') }}
+      {% if form_editar_persona.nombre.errors %}
+        {{ form_editar_persona.nombre(class='form-control form-control-lg is-invalid') }}
+        <div class="invalid-feedback">
+          {% for error in form_editar_persona.nombre.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        {{ form_editar_persona.nombre(class="form-control form-control-lg") }}
+      {% endif %}
+    </div>
+
+    <div class="row form-group mb-3">
+      <!-- Correo -->
+      <div class="col-lg-4">
+        {{ form_editar_persona.correo.label(class='form-control-label mb-1') }}
+        {% if form_editar_persona.correo.errors %}
+          {{ form_editar_persona.correo(class='form-control form-control-lg is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_editar_persona.correo.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_editar_persona.correo(class="form-control form-control-lg") }}
+        {% endif %}
+      </div>
+      <!-- Teléfono -->
+      <div class="col-lg-4">
+        {{ form_editar_persona.telefono.label(class='form-control-label mb-1') }}
+        {% if form_editar_persona.telefono.errors %}
+          {{ form_editar_persona.telefono(class='form-control form-control-lg is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_editar_persona.telefono.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_editar_persona.telefono(class="form-control form-control-lg") }}
+        {% endif %}
+      </div>
+      <!-- Equipo -->
+      <div class="col-lg-4">
+        {{ form_editar_persona.equipo.label(class='form-control-label mb-1') }}
+        {% if form_editar_persona.equipo.errors %}
+          {{ form_editar_persona.equipo(class='form-control form-control-lg form-select is-invalid') }}
+          <div class="invalid-feedback">
+            {% for error in form_editar_persona.equipo.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form_editar_persona.equipo(class="form-control form-control-lg form-select") }}
+        {% endif %}
+      </div>
+    </div>
+    <!-- Institución -->
+    <div class="form-group mb-4">
+      {{ form_editar_persona.institucion.label(class='form-control-label mb-1') }}
+      {% if form_editar_persona.institucion.errors %}
+        {{ form_editar_persona.institucion(class='form-control form-control-lg form-select is-invalid') }}
+        <div class="invalid-feedback">
+          {% for error in form_editar_persona.institucion.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        {{ form_editar_persona.institucion(class="form-control form-control-lg form-select") }}
+      {% endif %}
+    </div>
+    <!-- Área -->
+    <div class="form-group mb-3">
+      {{ form_editar_persona.area.label(class='form-control-label mb-1') }}
+      {% if form_editar_persona.area.errors %}
+        {{ form_editar_persona.area(class='form-control form-control-lg is-invalid') }}
+        <div class="invalid-feedback">
+          {% for error in form_editar_persona.area.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        {{ form_editar_persona.area(class="form-control form-control-lg") }}
+      {% endif %}
+    </div>
+    <!-- Cargo -->
+    <div class="form-group mb-3">
+      {{ form_editar_persona.cargo.label(class='form-control-label mb-1') }}
+      {% if form_editar_persona.cargo.errors %}
+        {{ form_editar_persona.cargo(class='form-control form-control-lg is-invalid') }}
+        <div class="invalid-feedback">
+          {% for error in form_editar_persona.cargo.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        {{ form_editar_persona.cargo(class="form-control form-control-lg") }}
+      {% endif %}
+    </div>
+  </fieldset>
+  {{ form_editar_persona.submit(class="btn btn-outline-primary float-end mb-5") }}
+
+</form>
+</div>
+
+<script type="text/javascript">
+    // Cuando se hace click en el select field
+    var selection = document.querySelector("#persona");
+    selection.addEventListener('change', function(e) {
+        if (selection.value == 0) {
+            window.location.replace(Flask.url_for('main.ver_persona'));
+        }
+        else {
+            window.location.replace(Flask.url_for('main.editar_persona', {'id_persona': selection.value}));
+        }});
+
+    // Llenar los campos del formulario con la información de la persona
+    $(document).ready(function(){
+        $('#persona').val('{{ info_persona.id_persona }}');
+        $('#id_persona').val('{{ info_persona.id_persona }}');
+        $('#nombre').val('{{ info_persona.nombre }}');
+        $('#correo').val('{{ info_persona.correo }}');
+        $('#telefono').val('{{ info_persona.telefono }}');
+        $('#cargo').val('{{ info_persona.cargo }}');
+        $('#area').val('{{ info_persona.area }}');
+        $('#institucion').val('{{ info_persona.id_institucion }}');
+        $('#equipo').val('{{ info_persona.id_equipo }}');
+    });
+</script>
+
+{% endblock content %}

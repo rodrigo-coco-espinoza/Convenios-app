@@ -247,7 +247,7 @@ class Persona(db.Model):
 
     def actualizar_persona(self, form):
         """
-        Actualiza la base de datos con el formulario de /ver_persona.
+        Actualiza la base de datos con el formulario de /editar_persona.
         :param form: información ingresada por el usuario en el formulario para editar.
         :return: cambia los parámetros en la base datos.
         """

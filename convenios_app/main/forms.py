@@ -83,3 +83,33 @@ class PersonaForm(FlaskForm):
             institucion = Institucion.query.get(self.institucion.data)
             raise ValidationError(f' Ya existe {nombre.data} registrado en {institucion.nombre}.')
 
+
+class EditarPersonaForm(FlaskForm):
+    id_persona = HiddenField('id_persona', default=0)
+    nombre = StringField('Nombre', validators=[DataRequired()], render_kw={'placeholder': 'Nombre Apellido'})
+    correo = StringField('Email', validators=[Email()])
+    telefono = StringField('Telefono')
+    cargo = StringField('Cargo')
+    area = StringField('Área/Departamento')
+    institucion = SelectField('Institución a la que pertenece')
+    equipo = SelectField('Equipo de trabajo')
+    submit = SubmitField('Actualizar')
+
+    def validate_institucion(self, institucion):
+        if int(institucion.data) == 0:
+            raise ValidationError('Debe seleccionar una institución.')
+
+    def validate_equipo(self, equipo):
+        if int(equipo.data) == 0:
+            raise ValidationError('Debe seleccionar un equipo.')
+
+    def validate_nombre(self, nombre):
+        """
+        Valida que no exista otra persona con el mismo nombre en la misma institución
+        """
+        persona = Persona.query.filter(and_(Persona.nombre == formato_nombre(nombre.data),
+                                            Persona.id_institucion == int(self.institucion.data),
+                                            Persona.id != int(self.id_persona.data))).first()
+        if persona:
+            institucion = Institucion.query.get(self.institucion.data)
+            raise ValidationError(f' Ya existe {nombre.data} registrado en {institucion.nombre}.')    
