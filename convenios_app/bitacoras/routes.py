@@ -609,7 +609,17 @@ def bitacora_convenio(id_convenio):
 
     # ENTREGAS
     # Entregas registradas
-
+    entregas_query = EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()
+    entregas_registradas = [{
+        'id_entrega': entrega.id,
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo if entrega.archivo else "",
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'metodo': entrega.metodo,
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'nomina': 'Sí' if entrega.nomina else 'No',
+        'activo': 'checked' if entrega.estado else ''
+    } for entrega in entregas_query]
     # Formulario entrega de información
     form_entrega = AgregarEntregaForm(id_convenio_entrega=id_convenio)
     form_entrega.sd_prepara.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
@@ -769,7 +779,7 @@ def bitacora_convenio(id_convenio):
                            ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
                            form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
-                           editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega)
+                           editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')
