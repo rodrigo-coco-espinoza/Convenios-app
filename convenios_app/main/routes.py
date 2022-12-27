@@ -9,7 +9,7 @@ from convenios_app.users.utils import admin_only, analista_only
 from sqlalchemy import and_, or_, distinct, func
 
 from convenios_app import db
-from convenios_app.main.forms import InstitucionForm, PersonaForm
+from convenios_app.main.forms import InstitucionForm, PersonaForm, EditarPersonaForm
 from convenios_app.main.utils import generar_nombre_institucion, formato_nombre, generar_nombre_convenio
 from convenios_app.models import Ministerio, Institucion, Equipo, Persona, Convenio, TrayectoriaEtapa
 from convenios_app.bitacoras.forms import ETAPAS
@@ -150,14 +150,50 @@ def ver_persona():
             flash(f'Se ha agregado {nueva_persona.nombre} correctamente.', 'success')
             return redirect(url_for('main.ver_persona'))
 
-        else:
-            # EDITAR PERSONA
-            editar_persona = Persona.query.get(int(form_persona.id_persona.data))
-            editar_persona.actualizar_persona(form=form_persona)
-            flash(f'Se ha actualizado {editar_persona.nombre}', 'success')
-            return redirect(url_for('main.ver_persona'))
+
 
     return render_template('main/personas.html', form_persona=form_persona, personas=personas)
+
+
+@main.route('/editar_persona/<int:id_persona>', methods=['GET', 'POST'])
+@login_required
+@analista_only
+def editar_persona(id_persona):
+    # Persona a editar
+    persona_seleccionada = Persona.query.get(id_persona)
+
+    # Crear select field con personas
+    personas = [(persona.id, persona.nombre) for persona in Persona.query.order_by(Persona.nombre.asc()).all()]
+    personas.insert(0, (0, 'Agregar nueva persona'))
+
+    # Crear formulario editar persona
+    instituciones = [(institucion.id, generar_nombre_institucion(institucion)) for institucion in Institucion.query.order_by(Institucion.nombre.asc()).all()]
+    instituciones.insert(0, (0, 'Seleccionar'))
+    equipos = [(equipo.id, equipo.sigla) for equipo in Equipo.query.order_by(Equipo.sigla.asc()).all()]
+    equipos.insert(0, (0, 'Seleccionar'))
+    form_editar_persona = EditarPersonaForm()
+    form_editar_persona.institucion.choices = instituciones
+    form_editar_persona.equipo.choices = equipos
+
+    # Datos persona para rellenar el formulario
+    info_persona = {
+        'id_persona': persona_seleccionada.id,
+        'nombre': persona_seleccionada.nombre,
+        'correo': persona_seleccionada.correo,
+        'telefono': persona_seleccionada.telefono,
+        'cargo': persona_seleccionada.cargo,
+        'area': persona_seleccionada.area,
+        'id_institucion': persona_seleccionada.id_institucion,
+        'id_equipo': persona_seleccionada.id_equipo
+    }
+    
+    if form_editar_persona.validate_on_submit():
+        persona_seleccionada.actualizar_persona(form=form_editar_persona)
+        flash(f'Se ha editado {persona_seleccionada.nombre} correctamente.', 'success')
+        return redirect(url_for('main.editar_persona', id_persona=id_persona))
+
+    return render_template('main/editar_persona.html', form_editar_persona=form_editar_persona, 
+                            personas=personas, info_persona=info_persona)
 
 
 @main.route('/info_persona/<int:id>', methods=['GET', 'POST'])
@@ -238,3 +274,14 @@ def obtener_institucion(id):
         'ministerio': (lambda inst: 0 if not inst.id_ministerio else inst.id_ministerio)(query)
     }
     return jsonify(institucion)
+
+
+@main.route('/obtener_convnios_todos')
+@login_required
+@analista_only
+def obtener_convenios_todos():
+    # Buscar todos los convenios
+    convenios_query = Convenio.query.all()
+    convenios = {generar_nombre_convenio(convenio): convenio.id  for convenio in convenios_query}
+
+    return jsonify(convenios)

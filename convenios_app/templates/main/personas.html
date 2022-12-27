@@ -28,13 +28,6 @@
           Agregar nueva persona
         </legend>
       </div>
-      <!-- Botón eliminar persona
-      <div class="col-lg-4">
-        <a id="eliminarPersona" class="eliminar-btn float-end" href="#" style='display: none'>
-          <i class="fas fa-trash-alt"></i>
-        </a>
-      </div>
-    </div> -->
     <!-- Nombre -->
     <div class="form-group mb-3">
       {{ form_persona.nombre.label(class='form-control-label mb-1') }}
@@ -143,44 +136,11 @@
 </div>
 
 <script type="text/javascript">
-  // Cuando se hace click en el select field
+  // Redireccionar cuando se seleccionar persona a editar
   var selection = document.querySelector("#persona");
   selection.addEventListener('change', function(e) {
-    if (selection.value == 0) {
-      document.querySelector('#id_persona').value = 0;
-      document.querySelector('#nombre').value = "";
-      document.querySelector('#correo').value = "";
-      document.querySelector('#telefono').value = "";
-      document.querySelector('#cargo').value = "";
-      document.querySelector('#area').value = "";
-      document.querySelector('#institucion').value = 0;
-      document.querySelector('#equipo').value = 0;
-
-      document.querySelector('legend').innerHTML = "Agregar nueva persona"
-      document.querySelector('#submit').value = "Agregar"
-      // document.querySelector('#eliminarPersona').style.display = 'none'
-
-    }
-    // Si se selecciona, obtener info y mostrar formulario editar precargado
-    else {
-      fetch(Flask.url_for('main.obtener_persona', {'id': selection.value}))
-      .then(response => response.json())
-      .then(data => {
-        document.querySelector('#id_persona').value = data.id;
-        document.querySelector('#nombre').value = data.nombre;
-        document.querySelector('#correo').value = data.correo;
-        document.querySelector('#telefono').value = data.telefono;
-        document.querySelector('#cargo').value = data.cargo;
-        document.querySelector('#area').value = data.area;
-        document.querySelector('#institucion').value = data.institucion;
-        document.querySelector('#equipo').value = data.equipo;
-
-        // Mostrar botón de eliminar y cambiar textos
-        document.querySelector('legend').innerHTML = "Editar persona";
-        document.querySelector('#submit').value = "Actualizar";
-        // document.querySelector('#eliminarPersona').style.display = 'block';
-        // document.querySelector('#eliminarPersona').href = Flask.url_for('main.eliminar_persona', {'id_persona': selection.value});
-    })}});
+    window.location.replace(Flask.url_for('main.editar_persona', {'id_persona': selection.value}));
+   });
 </script>
 
 {% endblock content %}

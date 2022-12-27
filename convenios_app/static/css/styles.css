@@ -108,3 +108,12 @@
   table-layout: fixed; 
   word-wrap: break-word;
 }
+
+.display-none {
+  display: none;
+}
+
+.fondo {
+  position: absolute;
+  bottom: 0;
+}

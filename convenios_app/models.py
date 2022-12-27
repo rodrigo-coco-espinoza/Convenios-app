@@ -124,6 +124,45 @@ class RecepcionConvenio(db.Model):
         return f'<{self.nombre}: {self.convenio.institucion.sigla}>'
 
 
+class EntregaConvenio(db.Model):
+    """
+    Representa las entregas de información comprometidas para cada convenio.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(), nullable=False)
+    archivo = db.Column(db.String(), nullable=True)
+    periodicidad = db.Column(db.String(), nullable=False)
+    metodo = db.Column(db.String(), nullable=False)
+    estado = db.Column(db.Boolean(), nullable=True)
+
+    # Llaves foráneas
+    id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
+    convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
+    id_sd_prepara = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+    sd_prepara = db.relationship('Equipo', foreign_keys=[id_sd_prepara])
+    id_sd_envia = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+    sd_envia = db.relationship('Equipo', foreign_keys=[id_sd_envia])
+    id_nomina = db.Column(db.Integer, db.ForeignKey('nomina_entrega.id'), nullable=True)
+    nomina = db.relationship('NominaEntrega', foreign_keys=[id_nomina])
+    
+
+    def __repr__(self):
+        return f'<{self.nombre}: {self.convenio.institucion.sigla}>'
+
+
+class NominaEntrega(db.Model):
+    """
+    Representa las nóminas que debe enviar una institución para la extracción de datos
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    archivo = db.Column(db.String(), nullable=False)
+    metodo = db.Column(db.String(), nullable=False)
+    periodicidad = db.Column(db.String(), nullable=False)
+
+    # Llaves foráneas
+    id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
+    institucion = db.relationship('Institucion', foreign_keys=[id_institucion])
+
 class HitosConvenio(db.Model):
     """
     Registra los del proceso convenio
@@ -208,7 +247,7 @@ class Persona(db.Model):
 
     def actualizar_persona(self, form):
         """
-        Actualiza la base de datos con el formulario de /ver_persona.
+        Actualiza la base de datos con el formulario de /editar_persona.
         :param form: información ingresada por el usuario en el formulario para editar.
         :return: cambia los parámetros en la base datos.
         """

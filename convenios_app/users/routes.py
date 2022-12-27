@@ -159,7 +159,7 @@ def convenios_sd(id_persona):
         coordinador = f'<p align="center">{obtener_iniciales(convenio.coord_sii.nombre)}<br>' \
                       f'{(lambda sup: f"({obtener_iniciales(sup.nombre)})" if sup else "")(convenio.sup_sii)}</p>'
         link_resolucion = (lambda
-                               link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                               link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                                      f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -170,11 +170,11 @@ def convenios_sd(id_persona):
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_convenios_asociados:
         if convenio[1] == 'En proceso':
-            convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
+            convenio[0] = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
         elif convenio[1] == 'En producción':
-            convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
+            convenio[0] = f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
         else:
-            convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
+            convenio[0] = f'<a class="simple-link" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio[5])}>{convenio[0]} <i class="fas fa-search btn-sm"></i></a>'
         convenio.pop()
 
     return render_template('users/convenios_sd.html', equipo=equipo, convenios_asignados=convenios_asignados,
@@ -328,12 +328,12 @@ def mis_convenios(id_persona):
         estado = convenio.estado
         suplente = f'<p align="center">{(lambda sup: obtener_iniciales(sup.nombre) if sup else "")(convenio.sup_sii)}</p>'
         link_resolucion = (lambda
-                               link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                               link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                                      f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
         link_project = (lambda
-                               link: f'<div class="text-center"><a target="_blank" style="text-decoration: none; color: #000;" href="{link}">'
+                               link: f'<div class="text-center simple-link"><a target="_blank" href="{link}">'
                                      f'<img class="text-center btn-lg" src="{url_for("static", filename="project.png")}"></a></div>' if link else
         f'<div class="text-center"><img class=" text-muted btn-lg" src="{url_for("static", filename="project_gray.png")}"></div>')(
             convenio.link_project)
@@ -342,7 +342,7 @@ def mis_convenios(id_persona):
     tabla_estado_actual.sort(key=lambda lista: lista[0])
     # Agregar link al nombre del convenio y botar el id
     for convenio in tabla_estado_actual:
-        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[6])}>' \
+        convenio[0] = f'<a class="simple-link" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[6])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 
@@ -369,7 +369,7 @@ def mis_convenios(id_persona):
     tabla_suplencias.sort(key=lambda lista: lista[0])
     # Agregar link al nombre del convenio
     for convenio in tabla_suplencias:
-        convenio[0] = f'<a style="text-decoration: none; color: #000;" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[5])}>' \
+        convenio[0] = f'<a class="simple-link" href={url_for("bitacoras.bitacora_convenio", id_convenio=convenio[5])}>' \
                  f'{convenio[0]} <i class="fa-solid fa-keyboard fa-fw"></i></a>'
         convenio.pop()
 

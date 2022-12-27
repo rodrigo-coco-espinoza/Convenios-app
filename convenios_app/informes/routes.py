@@ -2,7 +2,7 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
     send_from_directory, current_app
 from flask_login import current_user, login_required
 from convenios_app.models import (Convenio, Institucion, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa, TrayectoriaEquipo,
-                                  HitosConvenio, RecepcionConvenio, WSConvenio)
+                                  HitosConvenio, RecepcionConvenio, WSConvenio, EntregaConvenio)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
@@ -410,12 +410,12 @@ def otros_convenios():
     # Listado otros convenios
     listado_convenios = [[
         convenio.institucion.sigla,
-        f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>'
+        f'<a class="simple-link" href={url_for("informes.detalle_otros_convenios", id_convenio=convenio.id)}>'
         f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
         f'<i class="fas fa-search btn-sm"></i></a>',
         convenio.estado,
         (lambda
-             link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+             link: f'<a target="_blank" class="text-center" class="simple-link" href="{link}">'
                    f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -482,6 +482,15 @@ def detalle_otros_convenios(id_convenio):
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
     } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
 
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
+
+    print(entregas)
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
         'nombre_sdi': ws.ws.nombre_sdi,
@@ -800,7 +809,7 @@ def detalle_otros_convenios(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_en_proceso')
@@ -931,13 +940,13 @@ def convenios_en_proceso():
     # Listado convenios en proceso
     listado_convenios = [[
         convenio.institucion.sigla,
-        f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>'
+        f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_proceso", id_convenio=convenio.id)}>'
         f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
         f'<i class="fas fa-search btn-sm"></i></a>',
         obtener_etapa_actual_dias(convenio),
         obtener_equipos_actual_dias(convenio),
         (lambda
-             link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+             link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                    f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -1014,6 +1023,14 @@ def detalle_convenio_en_proceso(id_convenio):
         'sd': recepcion.sd.sigla,
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
         } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
 
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
@@ -1344,7 +1361,7 @@ def detalle_convenio_en_proceso(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_en_produccion')
@@ -1474,7 +1491,7 @@ def convenios_en_produccion():
     listado_convenios = [{
         'id_convenio': convenio.id,
         'institucion': convenio.institucion.sigla,
-        'nombre': f'<a style="text-decoration: none; color: #000;" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>'
+        'nombre': f'<a class="simple-link" href={url_for("informes.detalle_convenio_en_produccion", id_convenio=convenio.id)}>'
                   f'{(lambda tipo: convenio.nombre if tipo == "Convenio" else f"(Ad) {convenio.nombre}")(convenio.tipo)}'
                   f'<i class="fas fa-search btn-sm"></i></a>',
         'dia_firma': datetime.strftime(convenio.fecha_documento, '%d'),
@@ -1484,7 +1501,7 @@ def convenios_en_produccion():
                            convenio: f'N°{convenio.nro_resolucion} del {datetime.strftime(convenio.fecha_resolucion, "%d-%m-%Y")}' if convenio.fecha_resolucion != None else 'Sin resolución')(
             convenio),
         'link_resolucion': (lambda
-                                link: f'<a target="_blank" class="text-center" style="text-decoration: none; color: #000;" href="{link}">'
+                                link: f'<a target="_blank" class="text-center simple-link" href="{link}">'
                                       f'<i class="fas fa-eye pt-2 text-center btn-lg"></i></a>' if link else
         '<div class="text-center"><i class="fas fa-eye-slash pt-2 text-center text-muted btn-lg"></i></div>')(
             convenio.link_resolucion)
@@ -1561,6 +1578,14 @@ def detalle_convenio_en_produccion(id_convenio):
         'sd': recepcion.sd.sigla,
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
     } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
 
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
@@ -1880,7 +1905,7 @@ def detalle_convenio_en_produccion(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_por_institucion')

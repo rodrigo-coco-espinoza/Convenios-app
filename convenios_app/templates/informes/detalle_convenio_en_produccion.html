@@ -23,7 +23,7 @@
         <p><strong>Publicado:</strong><br> Sin resolución</p>
       {% else %}
         <p><strong>Publicado:</strong><br> Res. N°{{ informacion_convenio.nro_resolucion }} del {{ informacion_convenio.fecha_resolucion }}</p>
-        <p><a target="_blank" style='color: #000; text-decoration: none;' href="{{ informacion_convenio.link_resolucion }}">Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
+        <p><a target="_blank" class="simple-link" href="{{ informacion_convenio.link_resolucion }}">Ver resolución <i class="fas fa-eye ps-0 pe-1 btn-sm"></i></a></p>
       {% endif %}
     </div>
     <!-- Subdirecciones involucradas -->
@@ -59,7 +59,7 @@
       <!-- Agrega convenio padre si es adendum -->
       {% if informacion_convenio.convenio_padre %}
         <p><strong>Convenio al cual pertenece el adendum:</strong>
-          <br><a style='color: #000; text-decoration: none;'
+          <br><a class="simple-link"
           href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=informacion_convenio.convenio_padre.id_convenio_padre) }}">
           {{ informacion_convenio.convenio_padre.nombre_convenio_padre }}<i class="fas fa-search btn-sm"></i></a></p>
       {% endif%}
@@ -70,9 +70,9 @@
           {% for adendum in informacion_convenio.adendum %}
             <br>
             {% if adendum.estado_adendum == 'En producción'%}
-              <a style='color: #000; text-decoration: none;' href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=adendum.id_adendum) }}">{{ adendum.nombre_adendum }} <i class="fas fa-search btn-sm"></i></a>
+              <a class="simple-link" href="{{ url_for('informes.detalle_convenio_en_produccion', id_convenio=adendum.id_adendum) }}">{{ adendum.nombre_adendum }} <i class="fas fa-search btn-sm"></i></a>
             {% elif adendum.estado_adendum == 'En proceso' %}
-              <a style='color: #000; text-decoration: none;' href='{{ url_for("informes.detalle_convenio_en_proceso", id_convenio=adendum.id_adendum)}}'>{{ adendum.nombre_adendum }} (En proceso) <i class="fas fa-search btn-sm"></i></a>
+              <a class="simple-link" href='{{ url_for("informes.detalle_convenio_en_proceso", id_convenio=adendum.id_adendum)}}'>{{ adendum.nombre_adendum }} (En proceso) <i class="fas fa-search btn-sm"></i></a>
             {% endif %}
           {% endfor %}
       {% endif %}
@@ -101,14 +101,14 @@
               <td class="text-center">{{ hito.fecha }}</td>
               <td class="text-center">
                 {% if hito.minuta %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
+                  <a target="_blank" class="simple-link" href="{{ hito.minuta }}"><i class="fa-solid fa-link"></i></a>
                 {% else %}
                   <i class="fa-solid fa-link-slash gray"></i>
                 {% endif %}
               </td>
               <td class="text-center">
                 {% if hito.grabacion %}
-                  <a target="_blank" style="text-decoration: none; color: #000;" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
+                  <a target="_blank" class="simple-link" href="{{ hito.grabacion }}"><i class="fa-solid fa-video"></i></a>
                 {% else %}
                   <i class="fa-solid fa-video-slash gray"></i>
                 {% endif %}
@@ -123,7 +123,7 @@
 
   <!-- Información a Intercambiar -->
   <legend class="border-bottom mb-3">Información a intercambiar</legend>
-  {% if recepciones or ws_asignados %}
+  {% if recepciones or ws_asignados or entregas %}
     {% if recepciones %}
       <div class="mb-4">
         <h5>Recepción de información</h5>
@@ -152,6 +152,35 @@
           </tbody>
         </table>
       </div>
+    {% endif %}
+    {% if entregas %}
+    <div class="mb-4">
+      <h5>Entrega de información</h5>
+      <table class="table table-hover table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Archivo</th>
+            <th scope="col">Periodicidad</th>
+            <th class="text-center" scope="col">Prepara/Envía</th>
+            <th class="text-center" scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entrega in entregas %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ entrega.nombre }}</td>
+            <td>{{ entrega.archivo }}</td>
+            <td>{{ entrega.periodo }}</td>
+            <td class="text-center">{{ entrega.sd }}</td>
+            <td class="text-center">{{ entrega.estado }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% endif %}
     {% if ws_asignados %}
       <div class="mb-5">

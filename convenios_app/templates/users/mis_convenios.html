@@ -17,7 +17,7 @@
         {% for tarea in tareas_pendientes %}
           <tr>
             <th>{{ loop.index }}</th>
-            <td><a style="text-decoration: none; color: #000;" href="{{ url_for('bitacoras.bitacora_convenio', id_convenio=tarea.id_convenio) }}">{{ tarea.nombre_convenio }} <i class="fa-solid fa-keyboard fa-fw"></a></td>
+            <td><a class="simple-link" href="{{ url_for('bitacoras.bitacora_convenio', id_convenio=tarea.id_convenio) }}">{{ tarea.nombre_convenio }} <i class="fa-solid fa-keyboard fa-fw"></a></td>
             <td>{{ tarea.tarea }}</td>
             {% if tarea.plazo <= hoy %}
               <td class='text-danger'>{{ tarea.plazo }}
