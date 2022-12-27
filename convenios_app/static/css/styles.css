@@ -113,3 +113,7 @@
   display: none;
 }
 
+.fondo {
+  position: absolute;
+  bottom: 0;
+}

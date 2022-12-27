@@ -120,7 +120,7 @@
 
   <!-- Información a Intercambiar -->
   <legend class="border-bottom mb-3">Información a intercambiar</legend>
-  {% if recepciones or ws_asignados %}
+  {% if recepciones or ws_asignados or entregas %}
     {% if recepciones %}
       <div class="mb-4">
         <h5>Recepción de información</h5>
@@ -149,6 +149,35 @@
           </tbody>
         </table>
       </div>
+    {% endif %}
+    {% if entregas %}
+    <div class="mb-4">
+      <h5>Entrega de información</h5>
+      <table class="table table-hover table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Archivo</th>
+            <th scope="col">Periodicidad</th>
+            <th class="text-center" scope="col">Prepara/Envía</th>
+            <th class="text-center" scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entrega in entregas %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ entrega.nombre }}</td>
+            <td>{{ entrega.archivo }}</td>
+            <td>{{ entrega.periodo }}</td>
+            <td class="text-center">{{ entrega.sd }}</td>
+            <td class="text-center">{{ entrega.estado }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% endif %}
     {% if ws_asignados %}
       <div class="mb-5">

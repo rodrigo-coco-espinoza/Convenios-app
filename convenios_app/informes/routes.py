@@ -2,7 +2,7 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
     send_from_directory, current_app
 from flask_login import current_user, login_required
 from convenios_app.models import (Convenio, Institucion, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa, TrayectoriaEquipo,
-                                  HitosConvenio, RecepcionConvenio, WSConvenio)
+                                  HitosConvenio, RecepcionConvenio, WSConvenio, EntregaConvenio)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
@@ -482,6 +482,15 @@ def detalle_otros_convenios(id_convenio):
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
     } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
 
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
+
+    print(entregas)
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
         'nombre_sdi': ws.ws.nombre_sdi,
@@ -800,7 +809,7 @@ def detalle_otros_convenios(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_en_proceso')
@@ -1014,6 +1023,14 @@ def detalle_convenio_en_proceso(id_convenio):
         'sd': recepcion.sd.sigla,
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
         } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
 
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
@@ -1344,7 +1361,7 @@ def detalle_convenio_en_proceso(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_en_produccion')
@@ -1561,6 +1578,14 @@ def detalle_convenio_en_produccion(id_convenio):
         'sd': recepcion.sd.sigla,
         'estado': 'Activo' if recepcion.estado else 'Inactivo'
     } for recepcion in RecepcionConvenio.query.filter(RecepcionConvenio.id_convenio == id_convenio).all()]
+
+    entregas = [{
+        'nombre': entrega.nombre,
+        'archivo': entrega.archivo,
+        'periodo': formato_periodicidad(entrega.periodicidad),
+        'sd': f'{entrega.sd_prepara.sigla}/{entrega.sd_envia.sigla}',
+        'estado': 'Activo' if entrega.estado else 'Inactivo'
+    } for entrega in EntregaConvenio.query.filter(EntregaConvenio.id_convenio == id_convenio).all()]
 
     ws_asignados = [{
         'nombre_aiet': ws.ws.nombre_aiet,
@@ -1880,7 +1905,7 @@ def detalle_convenio_en_produccion(id_convenio):
                            trayectoria_etapas=trayectoria_etapas, trayectoria_equipos=trayectoria_equipos,
                            dias_etapas=dias_etapas, dias_equipos=dias_equipos, dias_proceso=dias_proceso,
                            tareas_equipos=tareas_equipos, hitos=hitos, recepciones=recepciones,
-                           ws_asignados=ws_asignados)
+                           ws_asignados=ws_asignados, entregas=entregas)
 
 
 @informes.route('/convenios_por_institucion')

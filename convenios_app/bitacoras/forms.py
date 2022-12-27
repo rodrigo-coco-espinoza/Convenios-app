@@ -424,6 +424,30 @@ class AgregarEntregaForm(FlaskForm):
         if self.requiere_nomina.data == 'Sí' and nomina_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
 
+class EditarEntregaForm(FlaskForm):
+    id_entrega_editar = HiddenField('ID Entrega')
+    id_nomina_editar = HiddenField('ID Nómina')
+    nombre_entrega_editar = StringField('Nombre', render_kw={'placeholder': 'Nombre de la entrega según convenio'})
+    archivo_entrega_editar = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a entregar'})
+    sd_prepara_editar = SelectField('Subdirección que prepara la información', validate_choice=False)
+    sd_envia_editar = SelectField('Subdirección que envía la información', validate_choice=False)
+    metodo_entrega_editar = SelectField('Método de traspaso', validate_choice=False, choices=['Gabiente Electrónico',
+                                                                                            'SFTP',
+                                                                                            'En línea',
+                                                                                            'Correo electrónico',
+                                                                                            'Otro'])
+    requiere_nomina_editar = SelectField('¿Requiere nómina?', validate_choice=False, choices=['Sí',
+                                                                                            'No'])
+    # Datos nómina
+    nomina_registrada_editar = SelectField('Nóminas registradas', validate_choice=False)
+    nomina_archivo_editar = StringField('Archivo nómina', render_kw={'placeholder': 'Nombre de la nómina para la extracción de datos'})
+    nomina_metodo_editar = SelectField('Método de traspaso nómina', validate_choice=False, choices=['Seleccione método',
+                                                                                                    'SFTP',
+                                                                                                    'En línea',
+                                                                                                    'Correo electrónico',
+                                                                                                    'Otro'])
+
+
 class AgregarNominaForm(FlaskForm):
     id_convenio = HiddenField('ID_Convneio')
     

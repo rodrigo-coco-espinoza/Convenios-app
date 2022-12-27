@@ -663,8 +663,8 @@
               <th scope='col'>Archivo</th>
               <th scope='col' style="width:100px;">Método</th>
               <th scope='col' style="width:120px;">Periodicidad</th>
-              <th class="text-center" scope='col' style="width:125px;">Prepara/Envía</th>
-              <th class="text-center" scope='col' style="width:100px;">Minuta</th>
+              <th class="text-center" scope='col' style="width:135px;">Prepara/Envía</th>
+              <th class="text-center" scope='col' style="width:100px;">Nómina</th>
               <th scope='col' style="width:30px;"></th>
               <th scope='col' style="width:35px;"></th>
             </tr>
@@ -679,9 +679,9 @@
                 <td>{{ entrega.periodo }}</td>
                 <td class="text-center">{{ entrega.sd }}</td>
                 <td class="text-center">{{ entrega.nomina }}</td>
-                <td><input type="checkbox" name="estadoRecepcion_checkbox" value="{{ entrega.id_entrega }}" {{ entrega.activo }}></td>
+                <td><input type="checkbox" name="estadoEntrega_checkbox" value="{{ entrega.id_entrega }}" {{ entrega.activo }}></td>
                 <td>
-                  <a class='text-dark' href="#" data-href="{{ entrega.id_entrega }}" data-bs-toggle="modal" data-bs-target="#editarRecepcionModal">
+                  <a class='text-dark' href="#" data-href="{{ entrega.id_entrega }}" data-bs-toggle="modal" data-bs-target="#editarEntregaModal">
                     <i class="fa-solid fa-pen"></i>
                   </a>
                 </td>
@@ -1205,7 +1205,7 @@
           {{ editar_recepcion_form.hidden_tag() }}
           {{ editar_recepcion_form.id_recepcion_editar }}
           <div class="modal-header">
-            ¿Desea eliminar este hito?
+            ¿Desea editar esta recepción?
           </div>
           <div class="modal-body">
             <!-- Nombre de la recepción -->
@@ -1368,6 +1368,295 @@
 });
 </script>
 
+<!-- Modal editar entrega -->
+<div class="modal" id="editarEntregaModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <form method="POST" novalidate>
+        {{ editar_entrega_form.hidden_tag() }}
+        {{ editar_entrega_form.id_entrega_editar }}
+        {{ editar_entrega_form.id_nomina_editar }}
+        <div class="modal-header">
+          ¿Desea editar esta entrega?
+        </div>
+        <div class="modal-body">
+          <!-- Nombre de la entrega -->
+          <div class="form-group mb-3">
+            {{ editar_entrega_form.nombre_entrega_editar.label(class='form-control-label mb-1') }}
+            {% if editar_entrega_form.nombre_entrega_editar.errors %}
+              {{ editar_entrega_form.nombre_entrega_editar(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in editar_entrega_form.nombre_entrega_editar.errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ editar_entrega_form.nombre_entrega_editar(class='form-control form-control-sm') }}
+            {% endif %}  
+          </div>
+          <!-- Archivo -->
+          <div class="form-group mb-3">
+            {{ editar_entrega_form.archivo_entrega_editar.label(class='form-control-label mb-1')}}
+            {% if editar_entrega_form.archivo_entrega_editar.errors %}
+              {{ editar_entrega_form.archivo_entrega_editar(class='form-control form-control-sm is-invalid') }}
+              <div class="invalid-feedback">
+                {% for error in editar_entrega_form.archivo_entrega_editar.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              {{ editar_entrega_form.archivo_entrega_editar(class='form-control form-control-sm') }}
+            {% endif %}
+          </div>
+          <!-- SD prepara, envía y método de traspaso -->
+          <div class="row form-group mb-3">
+            <!-- Subdirección que prepara -->
+            <div class="col-lg-4">
+              {{ editar_entrega_form.sd_prepara_editar.label(class='form-control-label mb-1') }}
+              {% if editar_entrega_form.sd_prepara_editar.errors %}
+                {{ editar_entrega_form.sd_prepara_editar(class='form-control form-control-sm form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in editar_entrega_form.sd_prepara_editar.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>                
+              {% else %}
+                {{ editar_entrega_form.sd_prepara_editar(class='form-control form-control-sm form-select') }}
+              {% endif %}
+            </div>
+            <!-- Subdirección que recibe la información -->
+            <div class="col-lg-4">
+              {{ editar_entrega_form.sd_envia_editar.label(class='form-control-label mb-1') }}
+              {% if editar_entrega_form.sd_envia_editar.errors %}
+                {{ editar_entrega_form.sd_envia_editar(class='form-control form-control-sm form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in editar_entrega_form.sd_envia_editar.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>                
+              {% else %}
+                {{ editar_entrega_form.sd_envia_editar(class='form-control form-control-sm form-select') }}
+              {% endif %}
+            </div>
+            <!-- Método de traspaso -->
+            <div class="col-lg-4" style="position: relative;">
+              <div class="fondo">
+                {{ editar_entrega_form.metodo_entrega_editar.label(class='form-control-label mb-1') }}
+                {% if editar_entrega_form.metodo_entrega_editar.errors %}
+                  {{ editar_entrega_form.metodo_entrega_editar(class='form-control form-control-sm form-select is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in editar_entrega_form.metodo_entrega_editar.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>                
+                {% else %}
+                  {{ editar_entrega_form.metodo_entrega_editar(class='form-control form-control-sm form-select') }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <!-- Periodicidad de envío -->
+          <div class="form-group mb-3">
+            <p class="form-control-label mb-1">Periodicidad de la entrega</p>
+            <div class="row mb-0">
+              <div class="col-lg-2"><p class="mb-0">En línea <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="En línea"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Diario"></p></div>
+                <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Semanal"></P></div>
+                <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Mensual"></p></div>
+            </div>
+            <div class="row">
+              <div class='col-lg-2'>
+                <p class="my-0">Enero <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="1"></p>
+                <p class="my-0">Febrero <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="2"></p>
+                <p class="my-0">Marzo <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="3"></p>
+              </div>
+              <div class='col-lg-2'>
+                <p class="my-0">Abril <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="4"></p>
+                <p class="my-0">Mayo <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="5"></p>
+                <p class="my-0">Junio <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="6"></p>
+              </div>
+              <div class='col-lg-2'>
+                <p class="my-0">Julio <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="7"></p>
+                <p class="my-0">Agosto <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="8"></p>
+                <p class="my-0">Septiembre <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="9"></p>
+              </div>
+              <div class='col-lg-2'>
+                <p class="my-0">Octubre <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="10"></p>
+                <p class="my-0">Noviembre <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="11"></p>
+                <p class="my-0">Diciembre <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="12"></p>
+              </div>
+            </div>
+          </div>
+          <!-- ¿Require nómina?-->
+          <div class="form-group row mb-3">
+            <div class="col-lg-3">
+            {{ editar_entrega_form.requiere_nomina_editar.label(class='form-control-label mb-1') }}
+              {% if editar_entrega_form.requiere_nomina_editar.errors %}
+                {{ editar_entrega_form.requiere_nomina_editar(class='form-control form-control-sm form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in editar_entrega_form.requiere_nomina_editar.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>                
+              {% else %}
+                {{ editar_entrega_form.requiere_nomina_editar(class='form-control form-control-sm form-select') }}
+              {% endif %}
+            </div>
+            <!-- Escoger nómina anterior -->
+            <div id="nominas_registradas_editar" class="col-lg-9 display-none">
+            {{ editar_entrega_form.nomina_registrada_editar.label(class='form-control-label mb-1') }}
+              {% if editar_entrega_form.nomina_registrada_editar.errors %}
+                {{ editar_entrega_form.nomina_registrada_editar(class='form-control form-control-sm form-select is-invalid') }}
+                <div class="invalid-feedback">
+                  {% for error in editar_entrega_form.nomina_registrada_editar.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>                
+              {% else %}
+                {{ editar_entrega_form.nomina_registrada_editar(class='form-control form-control-sm form-select') }}
+              {% endif %}
+            </div>
+            <!-- Ocultar datos de nómina -->
+            <div id='datos_nomina_editar' class="display-none">
+              <!-- Archivo nómina -->
+              <div class="form-group mb-3">
+                {{ editar_entrega_form.nomina_archivo_editar.label(class='form-control-label mb-1')}}
+                {% if editar_entrega_form.nomina_archivo_editar.errors %}
+                  {{ editar_entrega_form.nomina_archivo_editar(class='form-control form-control-sm is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in editar_entrega_form.nomina_archivo_editar.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ editar_entrega_form.nomina_archivo_editar(class='form-control form-control-sm') }}
+                {% endif %}
+              </div>
+              <!-- Metódo y periodicidad -->
+              <div class="row form-group mb-3">
+                <!-- Método de traspaso de nómina-->
+                <div class="col-lg-3">
+                  {{ editar_entrega_form.nomina_metodo_editar.label(class='form-control-label mb-1') }}
+                  {% if editar_entrega_form.nomina_metodo_editar.errors %}
+                    {{ editar_entrega_form.nomina_metodo_editar(class='form-control form-control-sm form-select is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in editar_entrega_form.nomina_metodo_editar.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>                
+                  {% else %}
+                    {{ editar_entrega_form.nomina_metodo_editar(class='form-control form-control-sm form-select') }}
+                  {% endif %}
+                </div>
+                <!-- Periodicidad de traspaso de nómina -->
+                <div class="col-lg-9">
+                  <p class="form-control-label mb-1">Periodicidad de la entrega</p>
+                  <div class="row mb-0">
+                    <div class="col-lg-2"><p class="mb-0">En línea <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="En línea"></p></div>
+                      <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Diario"></p></div>
+                      <div class="col-lg-2"><P class="mb-0">Semana <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Semanal"></P></div>
+                      <div class="col-lg-2"><p class="mb-0">Mes <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Mensual"></p></div>
+                  </div>
+                  <div class="row">
+                    <div class='col-lg-2'>
+                      <p class="my-0">Ene <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="1"></p>
+                      <p class="my-0">Feb <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="2"></p>
+                      <p class="my-0">Mar <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="3"></p>
+                    </div>
+                    <div class='col-lg-2'>
+                      <p class="my-0">Abr <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="4"></p>
+                      <p class="my-0">May <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="5"></p>
+                      <p class="my-0">Jun <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="6"></p>
+                    </div>
+                    <div class='col-lg-2'>
+                      <p class="my-0">Jul <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="7"></p>
+                      <p class="my-0">Ago <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="8"></p>
+                      <p class="my-0">Sep <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="9"></p>
+                    </div>
+                    <div class='col-lg-2'>
+                      <p class="my-0">Oct <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="10"></p>
+                      <p class="my-0">Nov <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="11"></p>
+                      <p class="my-0">Dic <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="12"></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Volver</button>
+          <button type="submit" name="editar_entrega" class="btn btn-outline-success btn-sm float-end">Editar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  $('#editarEntregaModal').on('show.bs.modal', function(e) {
+    const id_entrega = $(e.relatedTarget).data('href');
+    // Obtener datos de la entrega a editar
+    fetch(Flask.url_for('bitacoras.obtener_info_entrega', {'id_entrega': id_entrega}))
+    .then(response => response.json())
+    .then(data => {
+      // Llenar datos base
+      $('#id_entrega_editar').val(data.id_entrega);
+      $('#nombre_entrega_editar').val(data.nombre);
+      $('#archivo_entrega_editar').val(data.archivo);
+      $('#sd_prepara_editar').val(data.sd_prepara);
+      $('#sd_envia_editar').val(data.sd_envia);
+      $('#metodo_entrega_editar').val(data.metodo);
+
+      // Marcar checkboxes
+      var entrega_checkboxes = $('input[name="editar_periodicidad_entrega_checkbox"]');
+      entrega_checkboxes.each(function(){
+        if (jQuery.inArray($(this).val(), data.periodo) > -1){
+          $(this).prop('checked', true);
+        }
+        else {
+          $(this).prop('checked', false);
+        }
+      });
+      // Nómina
+      $('#requiere_nomina_editar').val(data.requiere_nomina);
+      if (data.requiere_nomina == 'Sí'){
+        $('#nominas_registradas_editar').removeClass('display-none');
+        $('#datos_nomina_editar').removeClass('display-none');
+        $('#id_nomina_editar').val(data.id_nomina);
+        $('#nomina_registrada_editar').val(data.id_nomina);
+        $('#nomina_archivo_editar').val(data.archivo_nomina);
+        $('#nomina_metodo_editar').val(data.metodo_nomina);
+
+        var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+        nomina_checkboxes_editar.each(function(){
+          if (jQuery.inArray($(this).val(), data.periodo_nomina) > -1){
+            $(this).prop('checked', true);
+          }
+          else{
+            $(this).prop('checked', false);
+          }
+        });
+      }
+      // Borrar los campos de nómina y ocultar
+      else {
+        $('#nominas_registradas_editar').addClass('display-none');
+        $('#datos_nomina_editar').addClass('display-none');
+        $('#nomina_archivo_editar').val('');
+        $('#nomina_metodo_editar').val('Seleccione método');
+        $('#nomina_registrada_editar').val(0);
+        // Desmarcar checkboxes
+        var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+        nomina_checkboxes_editar.each(function(){
+          $(this).prop('checked', false);
+        });
+      }
+
+    });
+  });
+</script>
+
+
+
 
 <script type="text/javascript">
   
@@ -1459,13 +1748,14 @@
       $('#nominas_registradas').removeClass('display-none');
       $('#datos_nomina').removeClass('display-none');
     }
-    else if ($('#requiere_nomina').val() == 'No' || $('#requiere_nomina').val() == 'Escoga una'){
+    else if ($('#requiere_nomina').val() == 'No' || $('#requiere_nomina').val() == 'Escoja una'){
       // Esconder campos
       $('#nominas_registradas').addClass('display-none');
       $('#datos_nomina').addClass('display-none');
       // Borrar campos
       $('#nomina_archivo').val("");
       $('#nomina_metodo').val('Seleccione método');
+      $('#nomina_registrada').val(0);
       // Desmarcar checkboxes
       var nomina_checkboxes = $("input[name='periodicidad_nomina_checkbox']");
       nomina_checkboxes.each(function() {
@@ -1493,6 +1783,70 @@
       });
     }
   });
+
+  // Ocultar mostrar campos de editar nómina
+  $('#requiere_nomina_editar').change(function() {
+    if ($('#requiere_nomina_editar').val() == 'Sí'){
+      // Mostrar campos
+      $('#nominas_registradas_editar').removeClass('display-none');
+      $('#datos_nomina_editar').removeClass('display-none');
+    }
+    else if ($('#requiere_nomina_editar').val() == 'No' || $('#requiere_nomina_editar').val() == 'Escoja una'){
+      // Esconder campos
+      $('#nominas_registradas_editar').addClass('display-none');
+      $('#datos_nomina_editar').addClass('display-none');
+      // Borrar campos
+      $('#nomina_archivo_editar').val('');
+      $('#nomina_metodo_editar').val('Seleccione método');
+      $('#nomina_registrada_editar').val(0);
+      // Desmarcar checkboxes
+      var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+      nomina_checkboxes_editar.each(function(){
+        $(this).prop('checked', false);
+      });
+    }
+  });
+
+  // Ocultar campos de editar nómina si se escoge una existente
+  $('#nominas_registradas_editar').change(function(){
+    if ($('#nominas_registradas_editar option:selected').val() == '0'){
+      // Mostrar campos en blanco
+      $('#datos_nomina_editar').removeClass('display-none');
+      $('#nomina_archivo_editar').val('');
+      $('#nomina_metodo_editar').val('Seleccione método');
+      // Desmarcar checkboxes editar
+      var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+      nomina_checkboxes_editar.each(function(){
+        $(this).prop('checked', false);
+      });
+    }
+    else {
+      $('#datos_nomina_editar').removeClass('display-none');
+      // Obtener datos de la nómina y completar
+      var id_nomina = $('#nominas_registradas_editar option:selected').val();
+      fetch(Flask.url_for('bitacoras.obtener_info_nomina', {'id_nomina': id_nomina}))
+      .then(response => response.json())
+      .then(data => {
+        $('#nominas_registradas_editar').removeClass('display-none');
+        $('#datos_nomina_editar').removeClass('display-none');
+        $('#id_nomina_editar').val(data.id_nomina);
+        $('#nomina_registrada_editar').val(data.id_nomina);
+        $('#nomina_archivo_editar').val(data.archivo_nomina);
+        $('#nomina_metodo_editar').val(data.metodo_nomina);
+
+        var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+        nomina_checkboxes_editar.each(function(){
+          if (jQuery.inArray($(this).val(), data.periodo_nomina) > -1){
+            $(this).prop('checked', true);
+          }
+          else{
+            $(this).prop('checked', false);
+          }
+        });
+      });
+    }
+  });
+
 </script>
 
 

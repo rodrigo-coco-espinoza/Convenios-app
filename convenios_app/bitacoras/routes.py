@@ -6,7 +6,8 @@ from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvo
                                   RecepcionConvenio, Hito, HitosConvenio, EntregaConvenio, NominaEntrega)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
-                                           RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm)
+                                           RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm,
+                                           EditarEntregaForm)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
@@ -625,9 +626,7 @@ def bitacora_convenio(id_convenio):
     form_entrega.sd_prepara.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
     form_entrega.sd_prepara.choices.sort(key=lambda tup: tup[1])
     form_entrega.sd_prepara.choices.insert(0, (0, 'Seleccione Subidirección'))
-    form_entrega.sd_envia.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
-    form_entrega.sd_envia.choices.sort(key=lambda tup: tup[1])
-    form_entrega.sd_envia.choices.insert(0, (0, 'Seleccione Subidirección'))
+    form_entrega.sd_envia.choices = form_entrega.sd_prepara.choices
     # Obtener nóminas registradas en la institución y añadir al select
     nominas_registradas_lista = [(0, 'Seleccione nómina existente o deje en blanco para agregar nueva')]
     nominas_registradas_query = NominaEntrega.query.filter(NominaEntrega.id_institucion == convenio.id_institucion).all()
@@ -744,6 +743,15 @@ def bitacora_convenio(id_convenio):
             else:
                 recepcion_por_actualizar.estado = False
 
+        # Actualizar estado de las entregas
+        entregas_form = request.form.getlist('estadoEntrega_checkbox')
+        for entrega in entregas_registradas:
+            entrega_por_actualizar = EntregaConvenio.query.get(entrega['id_entrega'])
+            if str(entrega['id_entrega']) in entregas_form:
+                entrega_por_actualizar.estado = True
+            else:
+                entrega_por_actualizar.estado = False
+
         # Actualizar estado de los WS
         ws_form = request.form.getlist('estadoWS_checkbox')
         for ws in ws_asignados:
@@ -772,6 +780,60 @@ def bitacora_convenio(id_convenio):
         flash(f'Se ha actualizado la información de {editar_recepcion_form.nombre_editar.data}', 'success')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
+    # Editar entrega de información
+    editar_entrega_form = EditarEntregaForm()
+    editar_entrega_form.sd_prepara_editar.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
+    editar_entrega_form.sd_envia_editar.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
+    editar_entrega_form.nomina_registrada_editar.choices =  form_entrega.nomina_registrada.choices
+    if 'editar_entrega' in request.form and editar_entrega_form.validate_on_submit():
+        # Actualizar datos de la entrega
+        entrega_a_editar = EntregaConvenio.query.get(editar_entrega_form.id_entrega_editar.data)
+        print(entrega_a_editar)
+        entrega_a_editar.nombre = editar_entrega_form.nombre_entrega_editar.data
+        entrega_a_editar.archivo = editar_entrega_form.archivo_entrega_editar.data
+        entrega_a_editar.id_sd_prepara = int(editar_entrega_form.sd_prepara_editar.data)
+        entrega_a_editar.id_sd_envia = int(editar_entrega_form.sd_envia_editar.data)
+        entrega_a_editar.metodo = editar_entrega_form.metodo_entrega_editar.data
+
+        periodicida_entrega = request.form.getlist('editar_periodicidad_entrega_checkbox')
+        entrega_a_editar.periodicidad = '-'.join(periodicida_entrega)
+
+        # Actualizar o agregar datos de nómina
+        if editar_entrega_form.requiere_nomina_editar.data == 'Sí':
+            periodicidad_nomina = request.form.getlist('editar_periodicidad_nomina_checkbox')
+            # Si utiliza una nómina registrada
+            if int(editar_entrega_form.nomina_registrada_editar.data) != 0:
+                # Actualizar nómina actual
+                if entrega_a_editar.id_nomina and int(entrega_a_editar.id_nomina) == int(editar_entrega_form.nomina_registrada_editar.data):
+                    nomina_a_editar = NominaEntrega.query.get(editar_entrega_form.nomina_registrada_editar.data)
+                    nomina_a_editar.archivo = editar_entrega_form.nomina_archivo_editar.data
+                    nomina_a_editar.metodo = editar_entrega_form.nomina_metodo_editar.data
+                    nomina_a_editar.periodicidad = '-'.join(periodicidad_nomina)
+
+                else:    
+                # Cambiar de nómina
+                    entrega_a_editar.id_nomina = editar_entrega_form.nomina_registrada_editar.data
+            # Si se agrega nueva nómina
+            else:
+                 # Añadir nómina la BBDD
+                nueva_nomina = NominaEntrega(
+                   archivo=editar_entrega_form.nomina_archivo_editar.data,
+                   metodo=editar_entrega_form.nomina_metodo_editar.data,
+                   periodicidad='-'.join(periodicidad_nomina),
+                   id_institucion=convenio.id_institucion
+                )
+                db.session.add(nueva_nomina)
+                db.session.commit()
+                # Asignar nómina a la entrega
+                entrega_a_editar.id_nomina = nueva_nomina.id
+                
+        else:
+            entrega_a_editar.id_nomina = None
+        db.session.commit()
+
+        flash(f'Se ha actualizado la información de {editar_entrega_form.nombre_entrega_editar.data}', 'success')
+        return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+
     return render_template('bitacoras/bitacora_convenio.html', convenios=convenios, id_convenio=id_convenio,
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
@@ -779,7 +841,8 @@ def bitacora_convenio(id_convenio):
                            ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
                            form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
-                           editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas)
+                           editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas,
+                           editar_entrega_form=editar_entrega_form)
 
 
 @bitacoras.route('/borrar_bitacora_analista/<int:id_comentario>/<int:id_convenio>')
@@ -1080,7 +1143,7 @@ def obtener_info_recepcion(id_recepcion):
         'id_recepcion': recepcion_query.id,
         'nombre': recepcion_query.nombre,
         'carpeta': recepcion_query.carpeta if recepcion_query.carpeta else "",
-        'archivo': recepcion_query.archivo,
+        'archivo': recepcion_query.archivo if recepcion_query.archivo else "",
         'metodo': recepcion_query.metodo,
         'sd': recepcion_query.id_sd,
         'choices_sd': choices_sd
@@ -1092,57 +1155,59 @@ def obtener_info_recepcion(id_recepcion):
         recepcion['periodo'] = [recepcion_query.periodicidad]
 
     return recepcion
-# @bitacoras.route('/obtener_convenio/<int:id_convenio>')
-# def obtener_convenio(id_convenio):
-#     # Buscar convenio a editar
-#     query = Convenio.query.get(id_convenio)
-#     convenio = {
-#         'id': query.id,
-#         'nombre': query.nombre,
-#         'estado': query.estado,
-#         'tipo': query.tipo,
-#         'id_convenio_padre': (lambda convenio: 0 if not convenio.id_convenio_padre else convenio.id_convenio_padre)(
-#             query),
-#         'id_convenio_reemplazo': (
-#             lambda convenio: 0 if not convenio.id_convenio_reemplazo else convenio.id_convenio_reemplazo)(query),
-#         'gabinete_electronico': query.gabinete_electronico,
-#         'proyecto': query.proyecto,
-#         'id_institucion': query.id_institucion,
-#         'id_coord_sii': query.id_coord_sii,
-#         'id_sup_sii': (lambda sup_sii: 0 if not sup_sii.id_sup_sii else sup_sii.id_sup_sii)(query)
-#     }
-#
-#     return jsonify(convenio)
 
 
-# @bitacoras.route('/obtener_personas_convenio/<int:id_convenio>')
-# def obtener_personas_convenio(id_convenio):
-#     # Buscar convenio a editar
-#     query = Convenio.query.get(id_convenio)
-#     personas = {
-#         'coord_ie': (lambda coord_ie: 0 if not coord_ie.id_coord_ie else coord_ie.id_coord_ie)(query),
-#         'sup_ie': (lambda sup_ie: 0 if not sup_ie.id_sup_ie else sup_ie.id_sup_ie)(query),
-#         'responsable_convenio_ie': (
-#             lambda resp_ie: 0 if not resp_ie.id_responsable_convenio_ie else resp_ie.id_responsable_convenio_ie)(query)
-#     }
-#     return jsonify(personas)
+@bitacoras.route('/obtener_info_entrega/<int:id_entrega>')
+@login_required
+@analista_only
+def obtener_info_entrega(id_entrega):
+    entrega_query = EntregaConvenio.query.get(id_entrega)
 
-#
-# @bitacoras.route('/obtener_sds_convenio/<int:id_convenio>')
-# def obtener_sds_convenio(id_convenio):
-#     query = SdInvolucrada.query.filter_by(id_convenio=id_convenio).all()
-#     subdirecciones = [str(subdireccion.id_subdireccion) for subdireccion in query]
-#     return jsonify(subdirecciones)
-#
-# @bitacoras.route('/obtener_convenio_padre/<int:id_convenio>')
-# def obtener_convenio_padre(id_convenio):
-#     id_convenio_padre = (lambda convenio: convenio.id_convenio_padre if id_convenio != 0 else 0)(
-#         Convenio.query.get(id_convenio))
-#
-#     convenio_padre = {'id_convenio_padre': id_convenio_padre}
-#     return jsonify(convenio_padre)
-#
+    entrega = {
+        'id_entrega': id_entrega,
+        'nombre': entrega_query.nombre,
+        'archivo': entrega_query.archivo if entrega_query.archivo else "",
+        'metodo': entrega_query.metodo,
+        'sd_prepara': entrega_query.id_sd_prepara,
+        'sd_envia': entrega_query.id_sd_envia,
+        'requiere_nomina': 'Sí' if entrega_query.id_nomina else 'No'
+    }
 
-# @bitacoras.route('/eliminar_convenio/<int:id_convenio>')
-# def eliminar_convenio(id_convenio):
-#     return f'algun día se podrá eliminar el convenio {id_convenio}'
+    # Periodicida de la entrega
+    if '-' in entrega_query.periodicidad: 
+        entrega['periodo'] = entrega_query.periodicidad.split('-')
+    else:
+        entrega['periodo'] = [entrega_query.periodicidad]
+    
+    # Información de nómina si existe
+    if entrega_query.id_nomina:
+        nomina_query = NominaEntrega.query.get(entrega_query.id_nomina)
+        entrega['id_nomina'] = nomina_query.id
+        entrega['archivo_nomina'] = nomina_query.archivo
+        entrega['metodo_nomina'] = nomina_query.metodo
+
+        if '-' in nomina_query.periodicidad:
+            entrega['periodo_nomina'] = nomina_query.periodicidad.split('-')
+        else:
+            entrega['periodo_nomina'] = [nomina_query.periodicidad]
+
+    return entrega
+
+
+@bitacoras.route('/obtener_info_nomina/<int:id_nomina>')
+@login_required
+@analista_only
+def obtener_info_nomina(id_nomina):
+    nomina_query = NominaEntrega.query.get(id_nomina)
+    nomina = {
+        'id_nomina': nomina_query.id,
+        'archivo_nomina': nomina_query.archivo,
+        'metodo_nomina': nomina_query.metodo
+    }
+
+    if '-' in nomina_query.periodicidad:
+        nomina['periodo_nomina'] = nomina_query.periodicidad.split('-')
+    else:
+         nomina['periodo_nomina'] = [nomina_query.periodicidad]
+
+    return nomina
