@@ -589,7 +589,7 @@ def bitacora_convenio(id_convenio):
         if not periodicidad:
             flash('Debe seleccionar la periodicidad de la recepción.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-        elif any(item in ['En línea', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad) and len(
+        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad) and len(
                 periodicidad) > 1:
             flash('No puede eligir más de una periodicidad.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
@@ -640,7 +640,7 @@ def bitacora_convenio(id_convenio):
         if not periodicidad_entrega:
             flash('Debe seleccionar la periodicidad de la entrega.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-        elif any(item in ['En línea', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_entrega) and len(periodicidad_entrega) > 1:
+        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_entrega) and len(periodicidad_entrega) > 1:
             flash('No puede elegir más de una periodicidad para la entrega..', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio)) 
 
@@ -651,7 +651,7 @@ def bitacora_convenio(id_convenio):
                 if not periodicidad_nomina:
                     flash('Debe seleccionar la periodicidad de la nómina', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-                elif any(item in ['En línea', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
+                elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
                     flash('Np puede elegir más de una periodicidad para la nómina.', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
