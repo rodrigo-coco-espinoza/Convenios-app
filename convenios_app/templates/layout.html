@@ -45,10 +45,10 @@
             {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
               <p class="sidebar-header mb-0 fw-bold fs-6">Formularios</p>
               <a id='bitacoraConvenio' href="{{ url_for('bitacoras.bitacora') }}" class="list-group-item list-group-item-action py-2 ripple" aria-current="true">
-                <i class="fa-solid fa-keyboard fa-fw me-3"></i><span>Bitácora convenio</span>
+                <i class="fa-solid fa-keyboard fa-fw me-3"></i><span>Bitácora</span>
               </a>
               <a id='nuevoConvenio' href="{{ url_for('bitacoras.agregar_convenio') }}" class="list-group-item list-group-item-action py-2 ripple">
-                <i class="fa-solid fa-folder-plus fa-fw me-3"></i><span>Nuevo convenio</span>
+                <i class="fa-solid fa-folder-plus fa-fw me-3"></i><span>Convenio</span>
               </a>
               <a id='instituciones' href="{{ url_for('main.ver_institucion') }}" class="list-group-item list-group-item-action py-2 ripple">
                 <i class="fa-solid fa-landmark fa-fw me-3"></i><span>Instituciones</span>

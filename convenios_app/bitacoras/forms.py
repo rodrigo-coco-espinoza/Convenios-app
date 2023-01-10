@@ -27,7 +27,7 @@ class NuevoConvenioForm(FlaskForm):
     institucion = SelectField('Institución con la que se firma el convenio')
     coord_sii = SelectField('Coordinador SII')
     sup_sii = SelectField('Suplente SII')
-    coord_ie = SelectField('Coordinador institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
+    coord_ie = SelectField('Contraparte institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     sup_ie = SelectField('Suplente institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     responsable_convenio_ie = SelectField('Responsable del convenio IE', choices=[(0, 'Seleccionar')],
                                           validate_choice=False)
@@ -88,7 +88,7 @@ class EditarConvenioForm(FlaskForm):
     institucion = StringField('Institución con la que se firma el convenio')
     coord_sii = SelectField('Coordinador SII')
     sup_sii = SelectField('Suplente SII')
-    coord_ie = SelectField('Coordinador institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
+    coord_ie = SelectField('Contraparte institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     sup_ie = SelectField('Suplente institución externa', choices=[(0, 'Seleccionar')], validate_choice=False)
     responsable_convenio_ie = SelectField('Responsable del convenio IE', choices=[(0, 'Seleccionar')],
                                           validate_choice=False)
@@ -329,7 +329,7 @@ class InfoConvenioForm(FlaskForm):
 class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
-    archivo = StringField('Archivo', render_kw={'placeholder': 'Nombre del archivo a recibir'})
+    archivo = StringField('Archivo/URL', render_kw={'placeholder': 'Nombre del archivo a recibir o URL del servicio'})
     sd_recibe = SelectField('Subdirección que recibe la información')
     #TODO: COMPLETAR MÉTODOS DE TRASPASO
     metodo = SelectField('Método de traspaso', choices=['Seleccione método',
@@ -357,7 +357,7 @@ class EditarRecepcionForm(FlaskForm):
     id_recepcion_editar = HiddenField('ID Recepción')
     nombre_editar = StringField('Nombre', validators=[DataRequired(), Length(min=2)])
     carpeta_editar = StringField('Carpeta')
-    archivo_editar = StringField('Archivo')
+    archivo_editar = StringField('Archivo/URL')
     sd_recibe_editar = SelectField('Subdirección', choices=[(0, '')], validate_choice=False)
     #TODO: COMPLETAR MÉTODOS DE TRASPASO
     metodo_editar = SelectField('Método de traspaso', choices=['SFTP',
