@@ -421,7 +421,7 @@ class AgregarEntregaForm(FlaskForm):
 
 
     def validate_nomina_metodo(self, nomina_metodo):
-        if self.requiere_nomina.data == 'Sí' and nomina_metodo.data == 'Seleccione método':
+        if self.requiere_nomina.data == 'Sí' and int(self.nomina_registrada.data) == 0 and nomina_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
 
 class EditarEntregaForm(FlaskForm):
