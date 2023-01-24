@@ -806,6 +806,7 @@
                 <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_checkbox" value="Diario"></p></div>
                 <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_checkbox" value="Semanal"></P></div>
                 <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_checkbox" value="Mensual"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="periodicidad_checkbox" value="Ocurrencia"></p></div>
               </div>
               <div class="row">
                 <div class='col-lg-2'>
@@ -928,6 +929,7 @@
                 <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_entrega_checkbox" value="Diario"></p></div>
                 <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_entrega_checkbox" value="Semanal"></P></div>
                 <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_entrega_checkbox" value="Mensual"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="periodicidad_entrega_checkbox" value="Ocurrencia"></p></div>
             </div>
             <div class="row">
               <div class='col-lg-2'>
@@ -1021,6 +1023,7 @@
                       <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_nomina_checkbox" value="Diario"></p></div>
                       <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_nomina_checkbox" value="Semanal"></P></div>
                       <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_nomina_checkbox" value="Mensual"></p></div>
+                      <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="periodicidad_nomina_checkbox" value="Ocurrencia"></p></div>
                   </div>
                   <div class="row">
                     <div class='col-lg-2'>
@@ -1127,8 +1130,50 @@
 
       <legend class="mb-2">
         <a class="simple-link" data-bs-toggle="collapse"
+        href="#wsAvaluaciones" aria-expanded="false" aria-controls="wsAvaluaciones">
+        IV. Web Services de Avaluaciones <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="wsAvaluaciones">
+        <!-- Web services -->
+        {% for ws in ws_avaluaciones %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
+            </small>
+        </div>
+        {% endfor %}
+      </div>
+
+      <legend class="mb-2">
+        <a class="simple-link" data-bs-toggle="collapse"
+        href="#wsAccesos" aria-expanded="false" aria-controls="wsAccesos">
+        V. Servicios de acceso <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="wsAccesos">
+        <!-- Web services -->
+        {% for ws in ws_accesos %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
+            </small>
+        </div>
+        {% endfor %}
+      </div>
+
+      <legend class="mb-2">
+        <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionBBRR" aria-expanded="false" aria-controls="informacionBBRR">
-        IV. PISEE <i class="fas fa-angle-down"></i></a></legend>
+        VI. PISEE <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionBBRR">
         <!-- Web services -->
         {% for ws in ws_pisee %}
@@ -1149,7 +1194,7 @@
       <legend class="mb-2">
         <a class="simple-link" data-bs-toggle="collapse"
         href="#pisee" aria-expanded="false" aria-controls="pisee">
-        V. No disponibles <i class="fas fa-angle-down"></i></a></legend>
+        VII. No disponibles <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="pisee">
         <!-- Web services -->
         {% for ws in ws_no_disponibles %}
@@ -1170,7 +1215,7 @@
         <button type=submit name="asignar_ws" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>
       </div>
     </fieldset>
-  </form>
+    </form>
   </div>
 
 </div>
@@ -1297,6 +1342,7 @@
                   <div class="col-lg-2"><p class="mb-0">Día <input  type="checkbox" name="editarPeriodicidad_checkbox" value="Diario"></p></div>
                   <div class="col-lg-2"><P class="mb-0">Sem <input type="checkbox" name="editarPeriodicidad_checkbox" value="Semanal"></P></div>
                   <div class="col-lg-2"><p class="mb-0">Mes <input type="checkbox" name="editarPeriodicidad_checkbox" value="Mensual"></p></div>
+                  <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="editarPeriodicidad_checkbox" value="Ocurrencia"></p></div>
                 </div>
                 <div class="row">
                   <div class='col-lg-2'>
@@ -1463,6 +1509,7 @@
                 <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Diario"></p></div>
                 <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Semanal"></P></div>
                 <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Mensual"></p></div>
+                <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="editar_periodicidad_entrega_checkbox" value="Ocurrencia"></p></div>
             </div>
             <div class="row">
               <div class='col-lg-2'>
@@ -1556,6 +1603,7 @@
                       <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Diario"></p></div>
                       <div class="col-lg-2"><P class="mb-0">Semana <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Semanal"></P></div>
                       <div class="col-lg-2"><p class="mb-0">Mes <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Mensual"></p></div>
+                      <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="editar_periodicidad_nomina_checkbox" value="Ocurrencia"></p></div>
                   </div>
                   <div class="row">
                     <div class='col-lg-2'>
