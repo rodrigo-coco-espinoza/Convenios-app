@@ -505,6 +505,32 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_bbrr_query]
     ws_bbrr.sort(key=lambda dict: dict['nombre_aiet'])
+    ws_avaluaciones_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Avaluaciones',
+                                                        CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_avaluaciones = [
+        {'id_ws': ws.id,
+         'nombre_aiet': ws.nombre_aiet,
+         'nombre_avaluaciones': ws.nombre_sdi,
+         'metodo': ws.metodo,
+         'url': ws.url,
+         'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         'asignado': 'checked' if ws.id in ws_asignados_id else ""
+        }
+        for ws in ws_avaluaciones_query]
+    ws_avaluaciones.sort(key=lambda dict: dict['nombre_aiet'])  
+    ws_accesos_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Accesos',
+                                                        CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_accesos = [
+        {'id_ws': ws.id,
+            'nombre_aiet': ws.nombre_aiet,
+            'nombre_avaluaciones': ws.nombre_sdi,
+            'metodo': ws.metodo,
+            'url': ws.url,
+            'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+            'asignado': 'checked' if ws.id in ws_asignados_id else ""
+        }
+        for ws in ws_accesos_query]
+    ws_accesos.sort(key=lambda dict: dict['nombre_aiet'])
     ws_pisee_query = CatalogoWS.query.filter(and_(CatalogoWS.estado == 1, CatalogoWS.pisee == 1)).all()
     ws_pisee = [
         {'id_ws': ws.id,
@@ -585,11 +611,12 @@ def bitacora_convenio(id_convenio):
 
     if 'agregar_recepcion' in request.form and form_recepcion.validate_on_submit():
         periodicidad = request.form.getlist('periodicidad_checkbox')
+        print(periodicidad)
         # Comprobar que se elegió periodicidad correctamente
         if not periodicidad:
             flash('Debe seleccionar la periodicidad de la recepción.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad) and len(
+        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual', 'Ocurrencia'] for item in periodicidad) and len(
                 periodicidad) > 1:
             flash('No puede eligir más de una periodicidad.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
@@ -640,7 +667,7 @@ def bitacora_convenio(id_convenio):
         if not periodicidad_entrega:
             flash('Debe seleccionar la periodicidad de la entrega.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_entrega) and len(periodicidad_entrega) > 1:
+        elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual', 'Ocurrencia'] for item in periodicidad_entrega) and len(periodicidad_entrega) > 1:
             flash('No puede elegir más de una periodicidad para la entrega..', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio)) 
 
@@ -651,7 +678,7 @@ def bitacora_convenio(id_convenio):
                 if not periodicidad_nomina:
                     flash('Debe seleccionar la periodicidad de la nómina', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
-                elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
+                elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual', 'Ocurrencia'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
                     flash('Np puede elegir más de una periodicidad para la nómina.', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
@@ -838,7 +865,7 @@ def bitacora_convenio(id_convenio):
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
                            form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
-                           ws_bbrr=ws_bbrr, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
+                           ws_bbrr=ws_bbrr, ws_avaluaciones=ws_avaluaciones, ws_accesos=ws_accesos, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
                            form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
                            editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas,
