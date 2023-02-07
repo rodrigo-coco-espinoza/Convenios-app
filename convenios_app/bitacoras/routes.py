@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, CatalogoWS, WSConvenio,
-                                  RecepcionConvenio, Hito, HitosConvenio, EntregaConvenio, NominaEntrega)
+                                  RecepcionConvenio, Hito, HitosConvenio, EntregaConvenio, NominaEntrega, NominaRecepcion)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
                                            RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm,
@@ -479,6 +479,7 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_contribuyentes_query]
     ws_contribuyentes.sort(key=lambda dict: dict['nombre_aiet'])
+
     ws_tributaria_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información tributaria',
                                                        CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
     ws_tributaria = [
@@ -492,6 +493,7 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_tributaria_query]
     ws_tributaria.sort(key=lambda dict: dict['nombre_aiet'])
+
     ws_bbrr_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Información de bienes raíces',
                                                  CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
     ws_bbrr = [
@@ -505,6 +507,7 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_bbrr_query]
     ws_bbrr.sort(key=lambda dict: dict['nombre_aiet'])
+
     ws_avaluaciones_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Avaluaciones',
                                                         CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
     ws_avaluaciones = [
@@ -518,9 +521,10 @@ def bitacora_convenio(id_convenio):
         }
         for ws in ws_avaluaciones_query]
     ws_avaluaciones.sort(key=lambda dict: dict['nombre_aiet'])  
-    ws_accesos_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Accesos',
+
+    ws_autenticacion_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == 'Autenticación',
                                                         CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
-    ws_accesos = [
+    ws_autenticacion = [
         {'id_ws': ws.id,
             'nombre_aiet': ws.nombre_aiet,
             'nombre_avaluaciones': ws.nombre_sdi,
@@ -529,8 +533,20 @@ def bitacora_convenio(id_convenio):
             'observacion': f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
             'asignado': 'checked' if ws.id in ws_asignados_id else ""
         }
-        for ws in ws_accesos_query]
-    ws_accesos.sort(key=lambda dict: dict['nombre_aiet'])
+        for ws in ws_autenticacion_query]
+    ws_autenticacion.sort(key=lambda dict: dict['nombre_aiet'])
+
+    ws_info_publica_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == "Información pública",
+                                                        CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_info_publica = [
+        {"id_ws": ws.id,
+        "nombre_aiet": ws.nombre_aiet,
+        "url": ws.url,
+        "observacion": f'{ws.observacion if ws.observacion else ""}',
+        "asignado": "checked" if ws.id in ws_asignados_id else ""
+        } for ws in ws_info_publica_query]
+    ws_info_publica.sort(key=lambda dict: dict["nombre_aiet"])
+
     ws_pisee_query = CatalogoWS.query.filter(and_(CatalogoWS.estado == 1, CatalogoWS.pisee == 1)).all()
     ws_pisee = [
         {'id_ws': ws.id,
@@ -543,6 +559,7 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_pisee_query]
     ws_pisee.sort(key=lambda dict: dict['nombre_aiet'])
+
     ws_no_disponibles_query = CatalogoWS.query.filter(CatalogoWS.estado == 0).all()
     ws_no_disponibles = [
         {'id_ws': ws.id,
@@ -555,6 +572,19 @@ def bitacora_convenio(id_convenio):
          }
         for ws in ws_no_disponibles_query]
     ws_no_disponibles.sort(key=lambda dict: dict['nombre_aiet'])
+
+    ws_escritorio_empresa_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == "Escritorio Empresa",
+                                                                CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_escritorio_empresa = [
+        {"id_ws": ws.id,
+        "nombre_aiet": ws.nombre_aiet,
+        "nombre_sdi": ws.nombre_sdi,
+        "metodo": ws.metodo,
+        "url": ws.url,
+        "observacion": f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+        "asignado": "checked" if ws.id in ws_asignados_id else ""
+        } for ws in ws_escritorio_empresa_query]
+    ws_escritorio_empresa.sort(key=lambda dict: dict["nombre_aiet"])
 
     if 'asignar_ws' in request.form:
         mensaje = False
@@ -608,10 +638,15 @@ def bitacora_convenio(id_convenio):
     form_recepcion.sd_recibe.choices = [(sd.id_subdireccion, sd.subdireccion.sigla) for sd in sd_asociadas]
     form_recepcion.sd_recibe.choices.sort(key=lambda tup: tup[1])
     form_recepcion.sd_recibe.choices.insert(0, (0, 'Seleccione Subdirección'))
+    # Obtener nóminas registradas en la institución y añadir al select
+    nominas_recepcion_registradas_lista = [(0, "Seleccione nómina existente o deje en blanco para agregar una nueva")]
+    nominas_recepcion_registradas_query = NominaRecepcion.query.filter(NominaRecepcion.id_institucion == convenio.id_institucion).all()
+    for nomina in nominas_recepcion_registradas_query:
+        nominas_recepcion_registradas_lista.append((nomina.id, nomina.archivo))
+    form_recepcion.nomina_recepcion_registrada.choices = nominas_recepcion_registradas_lista
 
     if 'agregar_recepcion' in request.form and form_recepcion.validate_on_submit():
         periodicidad = request.form.getlist('periodicidad_checkbox')
-        print(periodicidad)
         # Comprobar que se elegió periodicidad correctamente
         if not periodicidad:
             flash('Debe seleccionar la periodicidad de la recepción.', 'danger')
@@ -620,6 +655,28 @@ def bitacora_convenio(id_convenio):
                 periodicidad) > 1:
             flash('No puede eligir más de una periodicidad.', 'danger')
             return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
+        
+        # Agregar nómina recepción si corresponde
+        if form_recepcion.recepcion_requiere_nomina.data == "Sí" and int(form_recepcion.nomina_recepcion_registrada.data) == 0:
+            # Comprobar la periodicidad de la nómina
+            periodicidad_nomina_recepcion = request.form.getlist("periodicidad_nomina_recepcion_checkbox")
+            if not periodicidad_nomina_recepcion:
+                flash("Debe seleccionar la periodicidad de la nómina", "danger")
+                return redirect(url_for("bitacoras.bitacora_convenio", id_convenio=id_convenio))
+            elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual', 'Ocurrencia'] for item in periodicidad_nomina_recepcion) and len(periodicidad_nomina_recepcion) > 1:
+                flash("No puede elegir más de una periodicidad para la nómina.", "danger")
+                return redirect(url_for("bitacoras.bitacora_convenio", id_convenio=id_convenio))
+            
+            # Añadir nómina a la BBDD
+            nueva_nomina_recepcion = NominaRecepcion(
+                archivo=form_recepcion.nomina_recepcion_archivo.data,
+                metodo=form_recepcion.nomina_recepcion_metodo.data,
+                periodicidad="-".join(periodicidad_nomina_recepcion),
+                id_institucion=convenio.id_institucion
+            )
+            db.session.add(nueva_nomina_recepcion)
+            db.session.commit()
+        
         # Agregar recepción
         nueva_recepcion = RecepcionConvenio(
             id_convenio=id_convenio,
@@ -630,6 +687,14 @@ def bitacora_convenio(id_convenio):
             metodo=form_recepcion.metodo.data,
             estado=0
         )
+
+        # Vincular nómina con la recepción
+        if form_recepcion.recepcion_requiere_nomina.data == "Sí":
+            if int(form_recepcion.nomina_recepcion_registrada.data) == 0:
+                nueva_recepcion.id_nomina = nueva_nomina_recepcion.id
+            else:
+                nueva_recepcion.id_nomina = form_recepcion.nomina_recepcion_registrada.data
+
         db.session.add(nueva_recepcion)
         db.session.commit()
         flash('Se ha agregado nueva recepción de información.', 'success')
@@ -679,14 +744,14 @@ def bitacora_convenio(id_convenio):
                     flash('Debe seleccionar la periodicidad de la nómina', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
                 elif any(item in ['A pedido', 'Diario', 'Semanal', 'Mensual', 'Ocurrencia'] for item in periodicidad_nomina) and len(periodicidad_nomina) > 1:
-                    flash('Np puede elegir más de una periodicidad para la nómina.', 'danger')
+                    flash('No puede elegir más de una periodicidad para la nómina.', 'danger')
                     return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
                 # Añadir nómina la BBDD
                 nueva_nomina = NominaEntrega(
                    archivo=form_entrega.nomina_archivo.data,
                    metodo=form_entrega.nomina_metodo.data,
-                   periodicidad='-'.join(periodicidad_entrega),
+                   periodicidad='-'.join(periodicidad_nomina),
                    id_institucion=convenio.id_institucion
                 )
                 db.session.add(nueva_nomina)
@@ -793,7 +858,9 @@ def bitacora_convenio(id_convenio):
 
     # Editar recepción de información
     editar_recepcion_form = EditarRecepcionForm()
+    editar_recepcion_form.nomina_recepcion_registrada_editar.choices = nominas_recepcion_registradas_lista
     if 'editar_recepcion' in request.form and editar_recepcion_form.validate_on_submit():
+        # Actualizar tabla de datos de la recepción
         recepcion_a_editar = RecepcionConvenio.query.get(editar_recepcion_form.id_recepcion_editar.data)
         recepcion_a_editar.nombre = editar_recepcion_form.nombre_editar.data
         recepcion_a_editar.archivo = editar_recepcion_form.archivo_editar.data
@@ -802,8 +869,39 @@ def bitacora_convenio(id_convenio):
 
         periodicidad = request.form.getlist('editarPeriodicidad_checkbox')
         recepcion_a_editar.periodicidad = '-'.join(periodicidad)
-        db.session.commit()
 
+        # Actualizar o agregar datos de la nómina
+        if editar_recepcion_form.recepcion_requiere_nomina_editar.data == "Sí":
+            periodicidad_nomina = request.form.getlist("editar_periodicidad_nomina_recepcion_checkbox")
+            # Si se utiliza una nómina registrada
+            if int(editar_recepcion_form.nomina_recepcion_registrada_editar.data) != 0:
+                # Actualizar nómina actual
+                if recepcion_a_editar.id_nomina and int(recepcion_a_editar.id_nomina) == int(editar_recepcion_form.nomina_recepcion_registrada_editar.data):
+                    nomina_a_editar = NominaRecepcion.query.get(editar_recepcion_form.nomina_recepcion_registrada_editar.data)
+                    nomina_a_editar.archivo = editar_recepcion_form.nomina_recepcion_archivo_editar.data
+                    nomina_a_editar.metodo = editar_recepcion_form.nomina_recepcion_metodo_editar.data
+                    nomina_a_editar.periodicidad = "-".join(periodicidad_nomina)
+                else:
+                    # Cambiar de nómina
+                    recepcion_a_editar.id_nomina = editar_recepcion_form.nomina_recepcion_registrada_editar.data
+            # Si se agrega nueva nómina
+            else: 
+                # Añadir nómina a la BBDD
+                nueva_nomina = NominaRecepcion(
+                    archivo=editar_recepcion_form.nomina_recepcion_archivo_editar.data,
+                    metodo=editar_recepcion_form.nomina_recepcion_metodo_editar.data,
+                    periodicidad="-".join(periodicidad_nomina),
+                    id_institucion=convenio.id_institucion
+                )
+                db.session.add(nueva_nomina)
+                db.session.commit()
+                # Asignar nómina a la recepción
+                recepcion_a_editar.id_nomina = nueva_nomina.id
+        else:
+            recepcion_a_editar.id_nomina = None
+
+
+        db.session.commit()
         flash(f'Se ha actualizado la información de {editar_recepcion_form.nombre_editar.data}', 'success')
         return redirect(url_for('bitacoras.bitacora_convenio', id_convenio=id_convenio))
 
@@ -815,15 +913,14 @@ def bitacora_convenio(id_convenio):
     if 'editar_entrega' in request.form and editar_entrega_form.validate_on_submit():
         # Actualizar datos de la entrega
         entrega_a_editar = EntregaConvenio.query.get(editar_entrega_form.id_entrega_editar.data)
-        print(entrega_a_editar)
         entrega_a_editar.nombre = editar_entrega_form.nombre_entrega_editar.data
         entrega_a_editar.archivo = editar_entrega_form.archivo_entrega_editar.data
         entrega_a_editar.id_sd_prepara = int(editar_entrega_form.sd_prepara_editar.data)
         entrega_a_editar.id_sd_envia = int(editar_entrega_form.sd_envia_editar.data)
         entrega_a_editar.metodo = editar_entrega_form.metodo_entrega_editar.data
 
-        periodicida_entrega = request.form.getlist('editar_periodicidad_entrega_checkbox')
-        entrega_a_editar.periodicidad = '-'.join(periodicida_entrega)
+        periodicidad_entrega = request.form.getlist('editar_periodicidad_entrega_checkbox')
+        entrega_a_editar.periodicidad = '-'.join(periodicidad_entrega)
 
         # Actualizar o agregar datos de nómina
         if editar_entrega_form.requiere_nomina_editar.data == 'Sí':
@@ -865,7 +962,8 @@ def bitacora_convenio(id_convenio):
                            form_nuevo=form_nuevo, bitacora_analista=bitacora_analista, form_tarea=form_tarea,
                            tareas_pendientes=tareas_pendientes, hoy=date.today(), info_convenio=info_convenio,
                            form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
-                           ws_bbrr=ws_bbrr, ws_avaluaciones=ws_avaluaciones, ws_accesos=ws_accesos, ws_pisee=ws_pisee, ws_no_disponibles=ws_no_disponibles,
+                           ws_bbrr=ws_bbrr, ws_avaluaciones=ws_avaluaciones, ws_autenticacion=ws_autenticacion, ws_pisee=ws_pisee, 
+                           ws_no_disponibles=ws_no_disponibles, ws_escritorio_empresa=ws_escritorio_empresa, ws_info_publica=ws_info_publica,
                            form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
                            editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas,
@@ -1173,13 +1271,27 @@ def obtener_info_recepcion(id_recepcion):
         'archivo': recepcion_query.archivo if recepcion_query.archivo else "",
         'metodo': recepcion_query.metodo,
         'sd': recepcion_query.id_sd,
-        'choices_sd': choices_sd
+        'choices_sd': choices_sd,
+        "requiere_nomina": "Sí" if recepcion_query.id_nomina else "No"
     }
     # Periodicidad de la recepción
     if '-' in recepcion_query.periodicidad:
         recepcion['periodo'] = recepcion_query.periodicidad.split('-')
     else:
         recepcion['periodo'] = [recepcion_query.periodicidad]
+
+
+    # Información de nómina si existe
+    if recepcion_query.id_nomina:
+        nomina_query = NominaRecepcion.query.get(recepcion_query.id_nomina)
+        recepcion["id_nomina"] = nomina_query.id
+        recepcion["archivo_nomina"] = nomina_query.archivo
+        recepcion["metodo_nomina"] = nomina_query.metodo
+
+        if "-" in recepcion_query.periodicidad:
+            recepcion["periodo_nomina"] = nomina_query.periodicidad.split("-")
+        else:
+            recepcion["periodo_nomina"] = [nomina_query.periodicidad]
 
     return recepcion
 
@@ -1237,4 +1349,22 @@ def obtener_info_nomina(id_nomina):
     else:
          nomina['periodo_nomina'] = [nomina_query.periodicidad]
 
+    return nomina
+
+@bitacoras.route("/obtener_info_nomina_recepcion/<int:id_nomina>")
+@login_required
+@analista_only
+def obtener_info_nomina_recepcion(id_nomina):
+    nomina_query = NominaRecepcion.query.get(id_nomina)
+    nomina = {
+        "id_nomina": nomina_query.id,
+        "archivo_nomina": nomina_query.archivo,
+        "metodo_nomina": nomina_query.metodo
+    }
+
+    if "-" in nomina_query.periodicidad:
+        nomina['periodo_nomina'] = nomina_query.periodicidad.split('-')
+    else:
+         nomina['periodo_nomina'] = [nomina_query.periodicidad]
+        
     return nomina

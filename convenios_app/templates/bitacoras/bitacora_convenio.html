@@ -782,7 +782,7 @@
                 </div>
               </div>
               <!-- Método -->
-              <div class="row form-group">
+              <div class="row form-group mb-3">
                 <div class="col">
                   {{ form_recepcion.metodo.label(class='form-control-label mb-1') }}
                   {% if form_recepcion.metodo.errors %}
@@ -799,7 +799,7 @@
               </div>     
             </div>
             <!-- Periodicidad -->
-            <div class="col-lg-8 form-group">
+            <div class="col-lg-8 form-group mb-3">
               <p class="form-control-label mb-1">Periodicidad de la recepción</p>
               <div class="row mb-0">
                 <div class="col-lg-2"><p class="mb-0">A pedido <input type="checkbox" name="periodicidad_checkbox" value="A pedido"></p></div>
@@ -829,6 +829,104 @@
                   <p class="my-0">Nov <input type="checkbox" name="periodicidad_checkbox" value="11"></p>
                   <p class="my-0">Dic <input type="checkbox" name="periodicidad_checkbox" value="12"></p>
                 </div>
+              </div>
+            </div>
+            
+            <div class="form-group row mb-3">
+              <!-- Requiere nómina-->
+              <div class="col-lg-3">
+                {{ form_recepcion.recepcion_requiere_nomina.label(class="formn-control-label mb-1") }}
+                {% if form_recepcion.recepcion_requiere_nomina.errors %}
+                  {{ form_recepcion.recepcion_requiere_nomina(class="form-control form-control-lg form-select is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form_recepcion.recepcion_requiere_nomina.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_recepcion.recepcion_requiere_nomina(class="form-control form-control-lg form-select") }}
+                {% endif %} 
+              </div>
+              <!-- Escoger nómina anterior -->
+              <div class="col-lg-9 display-none" id="nominas_recepcion_registradas">
+                {{ form_recepcion.nomina_recepcion_registrada.label(class="form-control-label mb-1") }}
+                {% if form_recepcion.nomina_recepcion_registrada.errors %}
+                  {{ form_recepcion.nomina_recepcion_registrada(class="form-control form-control-lg form-select is-invalid") }}
+                  <div class="invalid-feedback">
+                  {% for error in form_recepcion.nomina_recepcion_registrada.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form_recepcion.nomina_recepcion_registrada(class="form-control form-control-lg form-select") }}
+                {% endif %}
+              </div>
+              <!-- Ocultar datos de nómina recepción -->
+              <div class="display-none mt-3" id="datos_nomina_recepcion">
+                <!-- Archivo nómina recepción -->
+                <div class="form-group mb-3">
+                  {{ form_recepcion.nomina_recepcion_archivo.label(class="form-control-label mb-1") }}
+                  {% if form_recepcion.nomina_recepcion_archivo.errors %}
+                    {{ form_recepcion.nomina_recepcion_archivo(class='form-control form-control-lg is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in form_recepcion.nomina_recepcion_archivo.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form_recepcion.nomina_recepcion_archivo(class='form-control form-control-lg') }}
+                  {% endif %}
+                </div>
+                <!-- Método y periodicidad -->
+                <div class="row form-group mb-3">
+                  <!-- Método de traspaso de nómina recepción -->
+                  <div class="col-lg-3">
+                    {{ form_recepcion.nomina_recepcion_metodo.label(class='form-control-label mb-1') }}
+                    {% if form_recepcion.nomina_recepcion_metodo.errors %}
+                      {{ form_recepcion.nomina_recepcion_metodo(class='form-control form-control-lg form-select is-invalid') }}
+                      <div class="invalid-feedback">
+                        {% for error in form_recepcion.nomina_recepcion_metodo.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>                
+                    {% else %}
+                      {{ form_recepcion.nomina_recepcion_metodo(class='form-control form-control-lg form-select') }}
+                    {% endif %}
+                  </div>
+                  <!-- Periodicidad de traspaso nómina recepción -->
+                  <div class="col-lg-9">
+                    <p class="form-control-label mb-1">Periodicidad de la entrega</p>
+                    <div class="row mb-0">
+                      <div class="col-lg-2"><p class="mb-0">A pedido <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="A pedido"></p></div>
+                        <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="Diario"></p></div>
+                        <div class="col-lg-2"><P class="mb-0">Semanal <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="Semanal"></P></div>
+                        <div class="col-lg-2"><p class="mb-0">Mensual <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="Mensual"></p></div>
+                        <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="Ocurrencia"></p></div>
+                    </div>
+                    <div class="row">
+                      <div class='col-lg-2'>
+                        <p class="my-0">Ene <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="1"></p>
+                        <p class="my-0">Feb <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="2"></p>
+                        <p class="my-0">Mar <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="3"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Abr <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="4"></p>
+                        <p class="my-0">May <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="5"></p>
+                        <p class="my-0">Jun <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="6"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Jul <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="7"></p>
+                        <p class="my-0">Ago <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="8"></p>
+                        <p class="my-0">Sep <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="9"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Oct <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="10"></p>
+                        <p class="my-0">Nov <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="11"></p>
+                        <p class="my-0">Dic <input type="checkbox" name="periodicidad_nomina_recepcion_checkbox" value="12"></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>               
               </div>
             </div>
           </div>
@@ -1152,10 +1250,10 @@
       <legend class="mb-2">
         <a class="simple-link" data-bs-toggle="collapse"
         href="#wsAccesos" aria-expanded="false" aria-controls="wsAccesos">
-        V. Servicios de acceso <i class="fas fa-angle-down"></i></a></legend>
+        V. Servicios de autenticación <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="wsAccesos">
         <!-- Web services -->
-        {% for ws in ws_accesos %}
+        {% for ws in ws_autenticacion %}
         <div class="row ps-3 mb-2">
             <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
             <small>
@@ -1169,11 +1267,30 @@
         </div>
         {% endfor %}
       </div>
+      
+      <legend class="mb-2">
+        <a class="simple-link" data-bs-toggle="collapse"
+        href="#informacionPublica" aria-expanded="false" aria-controls="informacionPublica">
+        VI. Información Pública <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="informacionPublica">
+        <!-- Web services -->
+        {% for ws in ws_info_publica %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              URL: {{ ws.url }}<br>
+              {% if ws.observacion != "" %}
+                {{ ws.observacion }}
+              {% endif %}              
+            </small>
+        </div>
+        {% endfor %}
+      </div>
 
       <legend class="mb-2">
         <a class="simple-link" data-bs-toggle="collapse"
         href="#informacionBBRR" aria-expanded="false" aria-controls="informacionBBRR">
-        VI. PISEE <i class="fas fa-angle-down"></i></a></legend>
+        VII. PISEE <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="informacionBBRR">
         <!-- Web services -->
         {% for ws in ws_pisee %}
@@ -1194,7 +1311,7 @@
       <legend class="mb-2">
         <a class="simple-link" data-bs-toggle="collapse"
         href="#pisee" aria-expanded="false" aria-controls="pisee">
-        VII. No disponibles <i class="fas fa-angle-down"></i></a></legend>
+        VIII. No disponibles <i class="fas fa-angle-down"></i></a></legend>
       <div class="content-section collapse" id="pisee">
         <!-- Web services -->
         {% for ws in ws_no_disponibles %}
@@ -1211,6 +1328,30 @@
         </div>
         {% endfor %}
       </div>
+
+      <legend class="mb-2">
+        <a class="simple-link" data-bs-toggle="collapse"
+        href="#escritorioEmpresa" aria-expanded="false" aria-controls="escritorioEmpresa">
+        IX. Escritorio Empresa <i class="fas fa-angle-down"></i></a></legend>
+      <div class="content-section collapse" id="escritorioEmpresa">
+        <!-- Web services -->
+        {% for ws in ws_escritorio_empresa %}
+        <div class="row ps-3 mb-2">
+            <h5 class="mb-0">{{ ws.nombre_aiet }} <input type="checkbox" name="ws_checkbox" value='{{ ws.id_ws }}' {{ ws.asignado }}></h5>
+            <small>
+              {% if ws.observacion != "" %}
+                <span class="text-danger">{{ ws.observacion }}</span><br>
+              {% endif %}
+              Nombre SDI: {{ws.nombre_sdi}} <br>
+              Método: {{ ws.metodo }}<br>
+              URL: {{ ws.url }}
+            </small>
+        </div>
+        {% endfor %}
+      </div>
+
+
+
       <div class="px-1" align='right'>
         <button type=submit name="asignar_ws" class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-sync-alt"></i></button>
       </div>
@@ -1242,13 +1383,14 @@
 
 
 <!-- Modal editar recepcion-->
-<div class="modal" id="editarRecepcionModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+<div class="modal" id="editarRecepcionModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <form method="POST" novalidate>
         <fieldset>
           {{ editar_recepcion_form.hidden_tag() }}
           {{ editar_recepcion_form.id_recepcion_editar }}
+          {{ editar_recepcion_form.id_nomina_recepcion_editar }}
           <div class="modal-header">
             ¿Desea editar esta recepción?
           </div>
@@ -1300,42 +1442,39 @@
             </div>
             <!-- SD que recibe y Periodicidad -->
             <div class="row form-group mb-3">
-              <div class="col-lg-4">
+              <div class="col-lg-3">
                 <!-- Subdirección -->
-              <div class="row form-group">
-                <div class="col mb-3">
-                  {{ editar_recepcion_form.sd_recibe_editar.label(class='form-control-label mb-1') }}
-                  {% if editar_recepcion_form.sd_recibe_editar.errors %}
-                    {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-lg form-select is-invalid') }}
-                    <div class="invalid-feedback">
-                      {% for error in editar_recepcion_form.sd_recibe_editar.errors %}
-                        <span>{{ error }}</span>
-                      {% endfor %}
-                    </div>
-                  {% else %}
-                    {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-lg form-select')}}
-                  {% endif %}
+                <div class="row form-group">
+                    {{ editar_recepcion_form.sd_recibe_editar.label(class='form-control-label mb-1') }}
+                    {% if editar_recepcion_form.sd_recibe_editar.errors %}
+                      {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select is-invalid') }}
+                      <div class="invalid-feedback">
+                        {% for error in editar_recepcion_form.sd_recibe_editar.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ editar_recepcion_form.sd_recibe_editar(class='form-control form-control-sm form-select')}}
+                    {% endif %}
                 </div>
-              </div>
-              <!-- Método -->
-              <div class="row form-group">
-                <div class="col">
+                <!-- Método -->
+                <div class="row form-group">
                   {{ editar_recepcion_form.metodo_editar.label(class='form-control-label mb-1') }}
                   {% if editar_recepcion_form.metodo_editar.errors %}
-                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-lg form-select is-invalid') }}
+                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-sm form-select is-invalid') }}
                     <div class="invalid-feedback">
                       {% for error in editar_recepcion_form.metodo_editar.errors %}
                         <span>{{ error }}</span>
                       {% endfor %}
                     </div>
                   {% else %}
-                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-lg form-select')}}
+                    {{ editar_recepcion_form.metodo_editar(class='form-control form-control-sm form-select')}}
                   {% endif %}
                 </div>
               </div>
-              </div>
+
               <!-- Periodicidad -->
-              <div class="col-lg-8 form-group">
+              <div class="col-lg-9 form-group">
                 <p class="form-control-label mb-1">Periodicidad de la recepción</p>
                 <div class="row mb-0">
                   <div class="col-lg-2"><p class="mb-0">Pedido <input type="checkbox" name="editarPeriodicidad_checkbox" value="A pedido"></p></div>
@@ -1368,7 +1507,103 @@
                 </div>
               </div>
             </div>
-
+            <!-- Requiere nómina? -->
+            <div class="form-group row mb-3">
+              <div class="col-lg-3">
+              {{ editar_recepcion_form.recepcion_requiere_nomina_editar.label(class='form-control-label mb-1') }}
+                {% if editar_recepcion_form.recepcion_requiere_nomina_editar.errors %}
+                  {{ editar_recepcion_form.recepcion_requiere_nomina_editar(class='form-control form-control-sm form-select is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in editar_recepcion_form.recepcion_requiere_nomina_editar.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ editar_recepcion_form.recepcion_requiere_nomina_editar(class='form-control form-control-sm form-select') }}
+                {% endif %}
+              </div>
+              <!-- Escoger nómina anterior -->
+              <div id="nominas_recepcion_registradas_editar" class="col-lg-9 display-none">
+                {{ editar_recepcion_form.nomina_recepcion_registrada_editar.label(class='form-control-label mb-1') }}
+                {% if editar_recepcion_form.nomina_recepcion_registrada_editar.errors %}
+                  {{ editar_recepcion_form.nomina_recepcion_registrada_editar(class='form-control form-control-sm form-select is-invalid') }}
+                  <div class="invalid-feedback">
+                    {% for error in editar_recepcion_form.nomina_recepcion_registrada_editar.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ editar_recepcion_form.nomina_recepcion_registrada_editar(class='form-control form-control-sm form-select') }}
+                {% endif %}
+              </div>
+              <!-- Ocultar datos de nómina -->
+              <div id='datos_nomina_recepcion_editar' class="display-none">
+                <!-- Archivo nómina -->
+                <div class="form-group mb-3">
+                  {{ editar_recepcion_form.nomina_recepcion_archivo_editar.label(class='form-control-label mb-1')}}
+                  {% if editar_recepcion_form.nomina_recepcion_archivo_editar.errors %}
+                    {{ editar_recepcion_form.nomina_recepcion_archivo_editar(class='form-control form-control-sm is-invalid') }}
+                    <div class="invalid-feedback">
+                      {% for error in editar_recepcion_form.nomina_recepcion_archivo_editar.errors %}
+                        <span>{{ error }}</span>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ editar_recepcion_form.nomina_recepcion_archivo_editar(class='form-control form-control-sm') }}
+                  {% endif %}
+                </div>
+                <!-- Metódo y periodicidad -->
+                <div class="row form-group mb-3">
+                  <!-- Método de traspaso de nómina-->
+                  <div class="col-lg-3">
+                    {{ editar_recepcion_form.nomina_recepcion_metodo_editar.label(class='form-control-label mb-1') }}
+                    {% if editar_recepcion_form.nomina_recepcion_metodo_editar.errors %}
+                      {{ editar_recepcion_form.nomina_recepcion_metodo_editar(class='form-control form-control-sm form-select is-invalid') }}
+                      <div class="invalid-feedback">
+                        {% for error in editar_recepcion_form.nomina_recepcion_metodo_editar.errors %}
+                          <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ editar_recepcion_form.nomina_recepcion_metodo_editar(class='form-control form-control-sm form-select') }}
+                    {% endif %}
+                  </div>
+                  <!-- Periodicidad de traspaso de nómina -->
+                  <div class="col-lg-9">
+                    <p class="form-control-label mb-1">Periodicidad de la entrega</p>
+                    <div class="row mb-0">
+                      <div class="col-lg-2"><p class="mb-0">Pedido <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="A pedido"></p></div>
+                        <div class="col-lg-2"><p class="mb-0">Diario <input  type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="Diario"></p></div>
+                        <div class="col-lg-2"><P class="mb-0">Semana <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="Semanal"></P></div>
+                        <div class="col-lg-2"><p class="mb-0">Mes <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="Mensual"></p></div>
+                        <div class="col-lg-2"><p class="mb-0">Ocurr. <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="Ocurrencia"></p></div>
+                    </div>
+                    <div class="row">
+                      <div class='col-lg-2'>
+                        <p class="my-0">Ene <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="1"></p>
+                        <p class="my-0">Feb <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="2"></p>
+                        <p class="my-0">Mar <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="3"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Abr <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="4"></p>
+                        <p class="my-0">May <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="5"></p>
+                        <p class="my-0">Jun <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="6"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Jul <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="7"></p>
+                        <p class="my-0">Ago <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="8"></p>
+                        <p class="my-0">Sep <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="9"></p>
+                      </div>
+                      <div class='col-lg-2'>
+                        <p class="my-0">Oct <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="10"></p>
+                        <p class="my-0">Nov <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="11"></p>
+                        <p class="my-0">Dic <input type="checkbox" name="editar_periodicidad_nomina_recepcion_checkbox" value="12"></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Volver</button>
@@ -1410,6 +1645,38 @@
         }
       });
 
+      // Nómina
+      $("#recepcion_requiere_nomina_editar").val(data.requiere_nomina);
+      if ( data.requiere_nomina == "Sí" ){
+        $("#nominas_recepcion_registradas_editar").removeClass("display-none");
+        $("#datos_nomina_recepcion_editar").removeClass("display-none");
+        $("#id_nomina_recepcion_editar").val( data.id_nomina );
+        $("#nomina_recepcion_registrada_editar").val(data.id_nomina);
+        $("#nomina_recepcion_archivo_editar").val(data.archivo_nomina);
+        $("#nomina_recepcion_metodo_editar").val(data.metodo_nomina);
+
+        // Periodicidad de la nómina
+        var nomina_recepcion_checkboxes_editar = $("input[name='editar_periodicidad_nomina_recepcion_checkbox']");
+        nomina_recepcion_checkboxes_editar.each( function(){
+          if ( jQuery.inArray( $( this ).val(), data.periodo_nomina) > -1 ){
+            $( this ).prop( 'checked', true );
+          } else {
+            $( this ).prop( "checked", false );
+          }
+        });
+      } else { // Borrar datos de la nómina y ocultar
+        $("#nominas_recepcion_registradas_editar").addClass("display-none");
+        $("#datos_nomina_recepcion_editar").addClass("display-none");
+        $("#nomina_recepcion_registrada_editar").val(0);
+        $("#nomina_recepcion_archivo_editar").val("");
+        $("#nomina_recepcion_metodo_editar").val("Seleccione método");
+        // Desmarcar checkboxes
+        var nomina_recepcion_checkboxes_editar = $("input[name=['editar_periodicidad_nomina_recepcion_checkbox']");
+        nomina_recepcion_checkboxes_editar.each( function(){
+          $(this).prop("checked", false);
+        });
+
+      }
     });
 });
 </script>
@@ -1789,7 +2056,30 @@
     }
   });
 
-  // Ocultar mostrar campos de nómina
+  // Ocultar mostrar campos de nómina 
+  // Recepción
+  $("#recepcion_requiere_nomina").change(function() {
+    if ( $("#recepcion_requiere_nomina").val() == "Sí" ) {
+      // Mostrar campos
+      $("#nominas_recepcion_registradas").removeClass("display-none");
+      $("#datos_nomina_recepcion").removeClass("display-none");
+    } else if ( $("#recepcion_requiere_nomina").val() == "No" || $("#recepcion_requiere_nomina").val() == "Escoja una") {
+      // Esconder campos
+      $("#nominas_recepcion_registradas").addClass("display-none");
+      $("#datos_nomina_recepcion").addClass("display-none");
+      // Borrar campos
+      $("#nomina_recepcion_archivo").val("");
+      $("#nomina_recepcion_metodo").val("Seleccione método");
+      $("#nomina_recepcion_registrada").val(0);
+      // Desmarcar checkboxes
+      var nomina_checkboxes_recepcion = $("input[name='periodicidad_nomina_recepcion_checkbox'");
+      nomina_checkboxes_recepcion.each(function(){
+        $(this).prop("checked", false);
+      });
+    }
+    
+  });
+  // Entrega
   $('#requiere_nomina').change(function() {
     if ($('#requiere_nomina').val() == 'Sí'){
       // Mostrar campos
@@ -1813,6 +2103,25 @@
   });
 
   // Ocultar datos de nómina si se escoge una existente
+  // Recepción
+  $("#nominas_recepcion_registradas").change(function(){
+    if( $("#nominas_recepcion_registradas option:selected").val() == '0'){
+      // Mostrar campos
+      $("#datos_nomina_recepcion").removeClass("display-none");
+    } else {
+      // Esconder campos
+      $("#datos_nomina_recepcion").addClass("display-none");
+      // Borrar campos
+      $("#nomina_recepcion_archivo").val("");
+      $("#nomina_recepcion_metodo").val("Seleccione método");
+      // Desmarcar checkboxes
+      var nomina_recepcion_checkboxes = $("input[name='periodicidad_nomina_recepcion_checkbox']");
+      nomina_recepcion_checkboxes.each(function(){
+        $(this).prop("checked", false);
+      });
+    }  
+  });
+  // Entregas
   $('#nominas_registradas').change(function(){
     if ($('#nominas_registradas option:selected').val() == '0'){
       // Mostrar campos
@@ -1833,6 +2142,29 @@
   });
 
   // Ocultar mostrar campos de editar nómina
+  // Recepción
+  $("#recepcion_requiere_nomina_editar").change( function(){
+    if ( $("#recepcion_requiere_nomina_editar").val() == "Sí" ){
+      // Mostrar campos
+      $("#nominas_recepcion_registradas_editar").removeClass("display-none");
+      $("#datos_nomina_recepcion_editar").removeClass("display-none");
+    }
+    else if ( $("#recepcion_requiere_nomina_editar").val() == "No" || $("#recepcion_requiere_nomina_editar").val() == "Escoja una" ){
+      // Esconder campos
+      $("#nominas_recepcion_registradas_editar").addClass("display-none");
+      $("#datos_nomina_recepcion_editar").addClass("display-none");
+      // Borrar campos
+      $("#nomina_recepcion_archivo_editar").val("");
+      $("#nomina_recepcion_metodo_editar").val("Seleccione método");
+      $("#nomina_recepcion_registrada_editar").val(0);
+      // Desmarar checkboxes
+      var nomina_recepcion_checkboxes_editar = $("input[name='editar_periodicidad_nomina_recepcion_checkbox']")
+      nomina_recepcion_checkboxes_editar.each( function(){
+        $(this).prop("checked", false);
+      });
+    }
+  });
+  // Entrega
   $('#requiere_nomina_editar').change(function() {
     if ($('#requiere_nomina_editar').val() == 'Sí'){
       // Mostrar campos
@@ -1855,7 +2187,47 @@
     }
   });
 
-  // Ocultar campos de editar nómina si se escoge una existente
+  // Mostrar datos de la nómina a editar si se escoge una existente
+  // Recepción
+  $("#nominas_recepcion_registradas_editar").change( function(){
+    if ($("#nominas_recepcion_registradas_editar option:selected").val() == "0"){
+      // Mostrar campos en blanco
+      $("#datos_nomina_recepcion_editar").removeClass("display-none");
+      $("#nomina_recepcion_archivo_editar").val("");
+      $("#nomina_recepcion_metodo_editar").val("Seleccione método");
+      // Desmarcar checkboxes editar
+      var nomina_checkboxes_editar = $('input[name="editar_periodicidad_nomina_checkbox"]');
+      nomina_checkboxes_editar.each(function(){
+        $(this).prop('checked', false);
+      }); 
+    } 
+    else {
+      $("#datos_nomina_recepcion_editar").removeClass("display-none");
+      // Obtener datos de la nómina y completar
+      var id_nomina = $("#nominas_recepcion_registradas_editar option:selected").val();
+      fetch(Flask.url_for("bitacoras.obtener_info_nomina_recepcion", {"id_nomina": id_nomina}))
+      .then(response => response.json())
+      .then(data => {
+        $("#nominas_recepcion_registradas_editar").removeClass("display-none");
+        $("#datos_nomina_recepcion_editar").removeClass("display-none");
+        $("#id_nomina_recepcion_editar").val(data.id_nomina);
+        $("#nomina_recepcion_registrada_editar").val(data.id_nomina);
+        $("#nomina_recepcion_archivo_editar").val(data.archivo_nomina);
+        $("#nomina_recepcion_metodo_editar").val(data.metodo_nomina);
+
+        var nomina_recepcion_checkboxes_editar = $("input[name='editar_periodicidad_nomina_recepcion_checkbox']");
+        nomina_recepcion_checkboxes_editar.each(function(){
+          if (jQuery.inArray($(this).val(), data.periodo_nomina) > -1 ){
+            $(this).prop("checked", true);
+          }
+          else {
+            $(this).prop("checked", false);
+          }
+        });
+      });
+    }
+  });
+  // Entrega
   $('#nominas_registradas_editar').change(function(){
     if ($('#nominas_registradas_editar option:selected').val() == '0'){
       // Mostrar campos en blanco
