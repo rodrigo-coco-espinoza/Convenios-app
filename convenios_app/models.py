@@ -119,9 +119,25 @@ class RecepcionConvenio(db.Model):
     id_convenio = db.Column(db.Integer, db.ForeignKey('convenio.id'), nullable=False)
     convenio = db.relationship('Convenio', foreign_keys=[id_convenio])
     id_sd = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+    id_nomina = db.Column(db.Integer, db.ForeignKey("nomina_recepcion.id"), nullable=True)
+    nomina = db.relationship("NominaRecepcion", foreign_keys=[id_nomina])
 
     def __repr__(self):
         return f'<{self.nombre}: {self.convenio.institucion.sigla}>'
+
+
+class NominaRecepcion(db.Model):
+    """
+    Representa las nóminas que debe enviar el SII para solicitar información
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    archivo = db.Column(db.String(), nullable=False)
+    metodo = db.Column(db.String(), nullable=False)
+    periodicidad = db.Column(db.String(), nullable=False)
+
+    # LLaves foráneas
+    id_institucion = db.Column(db.Integer, db.ForeignKey("institucion.id"), nullable=False)
+    institucion = db.relationship("Institucion", foreign_keys=[id_institucion] )
 
 
 class EntregaConvenio(db.Model):
