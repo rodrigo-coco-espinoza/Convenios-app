@@ -130,3 +130,4 @@ dmypy.json
 
 # Base de datos y archivos de la App
 convenios_app/convenios.db
+.idea
