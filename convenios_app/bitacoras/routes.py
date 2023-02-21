@@ -586,6 +586,18 @@ def bitacora_convenio(id_convenio):
         } for ws in ws_escritorio_empresa_query]
     ws_escritorio_empresa.sort(key=lambda dict: dict["nombre_aiet"])
 
+    ws_scti_query = CatalogoWS.query.filter(and_(CatalogoWS.categoria == "SCTI", CatalogoWS.estado == 1, CatalogoWS.pisee == 0)).all()
+    ws_scti = [
+        {"id_ws": ws.id,
+         "nombre_aiet": ws.nombre_aiet,
+         "nombre_sdi": ws.nombre_sdi,
+         "metodo": ws.metodo,
+         "url": ws.url,
+         "observacion": f'{"WS reservado. " if ws.reservado else ""}{ws.observacion if ws.observacion else ""}',
+         "asignado": "checked" if ws.id in ws_asignados_id else ""
+         } for ws in ws_scti_query]
+    ws_scti.sort(key=lambda dict: dict["nombre_aiet"])
+
     if 'asignar_ws' in request.form:
         mensaje = False
         ws_seleccionados = request.form.getlist('ws_checkbox')
@@ -964,7 +976,7 @@ def bitacora_convenio(id_convenio):
                            form_info=form_info, ws_contribuyentes=ws_contribuyentes, ws_tributaria=ws_tributaria,
                            ws_bbrr=ws_bbrr, ws_avaluaciones=ws_avaluaciones, ws_autenticacion=ws_autenticacion, ws_pisee=ws_pisee, 
                            ws_no_disponibles=ws_no_disponibles, ws_escritorio_empresa=ws_escritorio_empresa, ws_info_publica=ws_info_publica,
-                           form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
+                           ws_scti=ws_scti, form_recepcion=form_recepcion, form_hitos=form_hitos, hitos_registrados=hitos_registrados,
                            recepciones=recepciones_registradas, ws_asignados=ws_asignados,
                            editar_recepcion_form=editar_recepcion_form, form_entrega=form_entrega, entregas=entregas_registradas,
                            editar_entrega_form=editar_entrega_form)
@@ -1350,6 +1362,7 @@ def obtener_info_nomina(id_nomina):
          nomina['periodo_nomina'] = [nomina_query.periodicidad]
 
     return nomina
+
 
 @bitacoras.route("/obtener_info_nomina_recepcion/<int:id_nomina>")
 @login_required
