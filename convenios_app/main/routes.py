@@ -280,7 +280,7 @@ def obtener_institucion(id):
     return jsonify(institucion)
 
 
-@main.route('/obtener_convnios_todos')
+@main.route('/obtener_convenios_todos')
 @login_required
 @analista_only
 def obtener_convenios_todos():
@@ -316,7 +316,7 @@ def correos_ie():
         mail.To = 'convenios@sii.cl'
         mail.HTMLBody = f"""
         Estimados, <br><br>
-        Junton con saludar, envío este correo para recordarles los archivos comprometidos por Convenio de Intercambio de Información entre ambas
+        Junto con saludar, envío este correo para recordarles los archivos comprometidos por Convenio de Intercambio de Información entre ambas
         instituciones. Los archivos que deben enviar son: <br><br>
         <ul>
         """
@@ -329,7 +329,7 @@ def correos_ie():
             mensaje_aiet += f"<li>{recepcion.archivo} ({recepcion.metodo} / {recepcion.sd.sigla})</li>"
 
         mail.HTMLBody += '''</ul><br>Por favor, enviar correo a convenios@sii.cl notificando la entrega de archivos. Si la entrega de información es por SFTP, se solicita seguir las siguientes indicaciones:
-        <ul><li>Copiar a sftp_sii@sii.cl en el correo de notificación</li><li>No incluir espacios, tildes u otros carácteres especiales en los nombres de los archivos</li><li>Especificar la ruta completa de los archivos dentro del SFTP para facilita la extracción</li></ul><br>Dudas a convenios@sii.cl.<br><br>Saludos.'''
+        <ul><li>Copiar a sftp_sii@sii.cl en el correo de notificación</li><li>No incluir espacios, tildes u otros caracteres especiales en los nombres de los archivos</li><li>Especificar la ruta completa de los archivos dentro del SFTP para facilita la extracción</li></ul><br>Dudas a convenios@sii.cl.<br><br>Saludos.'''
         mail.Send()
 
         mensaje_aiet += """</ul><br>"""

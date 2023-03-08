@@ -179,6 +179,7 @@ class NominaEntrega(db.Model):
     id_institucion = db.Column(db.Integer, db.ForeignKey('institucion.id'), nullable=False)
     institucion = db.relationship('Institucion', foreign_keys=[id_institucion])
 
+
 class HitosConvenio(db.Model):
     """
     Registra los del proceso convenio
@@ -446,3 +447,27 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f'<{self.persona.nombre} - {self.username} - {self.permisos}>'
+
+
+class RecepcionesSFTP(db.Model):
+    """
+    Contiene las recepciones mensuales que llegan por SFTP
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    id_recepcion = db.Column(db.Integer, db.ForeignKey('recepcion_convenio.id'), nullable=False)
+    recepcion = db.relationship('RecepcionConvenio', foreign_keys=[id_recepcion])
+
+    ano = db.Column(db.Integer, nullable=False)
+    mes = db.Column(db.Integer, nullable=False)
+
+    recibido = db.Column(db.Boolean, nullable=False)
+    id_autor_recibido = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    autor_recibido = db.relationship("User", foreign_keys=[id_autor_recibido])
+    timestamp_recibido = db.Column(db.DateTime, nullable=True)
+
+    validado = db.Column(db.Boolean, nullable=True)
+    observacion = db.Column(db.String, nullable=True)
+    id_autor_validado = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    autor_validado = db.relationship("User", foreign_keys=[id_autor_validado])
+    timestamp_validado = db.Column(db.DateTime, nullable=True)
