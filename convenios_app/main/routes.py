@@ -2,6 +2,10 @@ import json
 from datetime import datetime, date
 import time
 from pprint import pprint
+from itertools import groupby
+import win32com.client as win32
+import locale
+import pythoncom
 
 from flask import render_template, Blueprint, url_for, redirect, flash, jsonify
 from flask_login import current_user, login_required
@@ -11,7 +15,7 @@ from sqlalchemy import and_, or_, distinct, func
 from convenios_app import db
 from convenios_app.main.forms import InstitucionForm, PersonaForm, EditarPersonaForm
 from convenios_app.main.utils import generar_nombre_institucion, formato_nombre, generar_nombre_convenio
-from convenios_app.models import Ministerio, Institucion, Equipo, Persona, Convenio, TrayectoriaEtapa
+from convenios_app.models import Ministerio, Institucion, Equipo, Persona, Convenio, TrayectoriaEtapa, RecepcionConvenio
 from convenios_app.bitacoras.forms import ETAPAS
 
 main = Blueprint('main', __name__)
@@ -186,13 +190,13 @@ def editar_persona(id_persona):
         'id_institucion': persona_seleccionada.id_institucion,
         'id_equipo': persona_seleccionada.id_equipo
     }
-    
+
     if form_editar_persona.validate_on_submit():
         persona_seleccionada.actualizar_persona(form=form_editar_persona)
         flash(f'Se ha editado {persona_seleccionada.nombre} correctamente.', 'success')
         return redirect(url_for('main.editar_persona', id_persona=id_persona))
 
-    return render_template('main/editar_persona.html', form_editar_persona=form_editar_persona, 
+    return render_template('main/editar_persona.html', form_editar_persona=form_editar_persona,
                             personas=personas, info_persona=info_persona)
 
 
@@ -285,3 +289,57 @@ def obtener_convenios_todos():
     convenios = {generar_nombre_convenio(convenio): convenio.id  for convenio in convenios_query}
 
     return jsonify(convenios)
+
+
+
+@main.route("/correos_ie")
+@login_required
+@admin_only
+def correos_ie():
+
+    locale.setlocale(locale.LC_TIME, "es_CL")
+
+    mes_actual = datetime.now().month
+    # Obtener todas las recepciones del mes (no se consideran las semanales o diarias)
+    recepciones_query = db.session.query(RecepcionConvenio).join(RecepcionConvenio.convenio).filter(and_(RecepcionConvenio.estado == True,or_(RecepcionConvenio.periodicidad == mes_actual, RecepcionConvenio.periodicidad == 'Mensual'))).order_by(Convenio.id_institucion).all()
+
+    # Enviar correo a cada institución con las recepciones del mes
+    mensaje_aiet = f"""
+        Estimados,<br><br>
+        Junto con saludar, les envío las recepciones de este mes.<br><br>
+        """
+
+    outlook = win32.Dispatch('outlook.application', pythoncom.CoInitialize())
+    for institucion, recepciones in groupby(recepciones_query, lambda x: x.convenio.institucion):
+        mail = outlook.CreateItem(0)
+        mail.Subject = f'{institucion.sigla} archivos comprometidos {datetime.now().strftime("%B %Y")}'
+        mail.To = 'convenios@sii.cl'
+        mail.HTMLBody = f"""
+        Estimados, <br><br>
+        Junton con saludar, envío este correo para recordarles los archivos comprometidos por Convenio de Intercambio de Información entre ambas
+        instituciones. Los archivos que deben enviar son: <br><br>
+        <ul>
+        """
+
+        mensaje_aiet += f"<b>{institucion.sigla}</b>"
+
+        for recepcion in recepciones:
+            mail.HTMLBody += f'<li>{recepcion.archivo} ({recepcion.metodo})</li>'
+
+            mensaje_aiet += f"<li>{recepcion.archivo} ({recepcion.metodo} / {recepcion.sd.sigla})</li>"
+
+        mail.HTMLBody += '''</ul><br>Por favor, enviar correo a convenios@sii.cl notificando la entrega de archivos. Si la entrega de información es por SFTP, se solicita seguir las siguientes indicaciones:
+        <ul><li>Copiar a sftp_sii@sii.cl en el correo de notificación</li><li>No incluir espacios, tildes u otros carácteres especiales en los nombres de los archivos</li><li>Especificar la ruta completa de los archivos dentro del SFTP para facilita la extracción</li></ul><br>Dudas a convenios@sii.cl.<br><br>Saludos.'''
+        mail.Send()
+
+        mensaje_aiet += """</ul><br>"""
+
+    mensaje_aiet += "<br>Saludos."
+    # Enviar correo a AIET con todas las recepciones del mes
+    mail_aiet =outlook.CreateItem(0)
+    mail_aiet.Subject = f"Recepciones {datetime.now().strftime('%B %Y')}"
+    mail_aiet.To = "convenios@sii.cl"
+    mail_aiet.HTMLBody = mensaje_aiet
+    mail_aiet.Send()
+
+    return "Correos enviados correctamente."
