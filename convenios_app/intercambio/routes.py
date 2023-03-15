@@ -19,11 +19,22 @@ import win32com.client as win32
 import pythoncom
 
 from pprint import pprint
-from math import ceil, floor
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.combining import OrTrigger
-from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.triggers.cron import CronTrigger
+
+MESES = {
+    "1": "enero",
+    "2": "febrero",
+    "3": "marzo",
+    "4": "abril",
+    "5": "mayo",
+    "6": "junio",
+    "7": "julio",
+    "8": "agosto",
+    "9": "septiembre",
+    "10": "octubre",
+    "11": "noviembre",
+    "12": "diciembre"
+}
+
 
 locale.setlocale(locale.LC_TIME, "es_CL")
 
@@ -104,7 +115,8 @@ def generar_recepciones_sftp_mes():
             recepciones_query = RecepcionConvenio.query.filter(and_(RecepcionConvenio.metodo == "SFTP",
                                                                     RecepcionConvenio.estado == 1,
                                                                     or_(RecepcionConvenio.periodicidad == mes,
-                                                                        RecepcionConvenio.periodicidad == "Mensual"))).all()
+                                                                        RecepcionConvenio.periodicidad == "Mensual",
+                                                                        RecepcionConvenio.periodicidad.like(f"%{mes}%")))).all()
 
             # Agregar a la base de datos
             for recepcion in recepciones_query:
@@ -133,29 +145,24 @@ def enviar_correos_ie():
     locale.setlocale(locale.LC_TIME, "es_CL")
 
     mes_actual = datetime.now().month
+
+    recepciones = {}
     # Obtener todas las recepciones pendientes del mes (no se consideran las semanales o diarias)
-    recepciones_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.mes == mes_actual,
+    mes_actual_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.mes == mes_actual,
                                                           or_(RecepcionesSFTP.recibido == 0, and_(
                                                               RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == 0
                                                           )))).all()
+    for recepcion in mes_actual_query:
+        try:
+            recepciones[recepcion.recepcion.convenio.institucion.sigla]["mes_actual_sftp"].append(recepcion)
+        except KeyError:
+            recepciones[recepcion.recepcion.convenio.institucion.sigla] = {"mes_actual_sftp": [recepcion]}
+
     # Obtener todas las recepciones atrasadas de meses anteriores
     atrasadas_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.mes != mes_actual,
                                                     or_(RecepcionesSFTP.recibido == 0, and_(
                                                         RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == 0
                                                     )))).all()
-
-    # Obtener otras recepciones que no son por SFTP
-    otras_query = RecepcionConvenio.query.filter(and_(RecepcionConvenio.estado == 1, or_(
-        RecepcionConvenio.periodicidad == mes_actual, RecepcionConvenio.periodicidad == "Mensual"
-    ))).all()
-
-    # Agrupar todas las recepciones en una variable
-    recepciones = {}
-    for recepcion in recepciones_query:
-        try:
-            recepciones[recepcion.recepcion.convenio.institucion.sigla]["recepciones_sftp"].append(recepcion)
-        except KeyError:
-            recepciones[recepcion.recepcion.convenio.institucion.sigla] = {"recepciones_sftp": [recepcion]}
     for recepcion in atrasadas_query:
         try:
             recepciones[recepcion.recepcion.convenio.institucion.sigla]["atrasadas_sftp"].append(recepcion)
@@ -164,70 +171,115 @@ def enviar_correos_ie():
                 recepciones[recepcion.recepcion.convenio.institucion.sigla]["atrasadas_sftp"] = [recepcion]
             except KeyError:
                 recepciones[recepcion.recepcion.convenio.institucion.sigla] = {"atrasadas_sftp": [recepcion]}
-    pprint(recepciones)
-    #     "IPS": {
-    #         "recepciones_sftp": [1,2,3],
-    #         "atrasadas_sftp": [1,2,3],
-    #         "otras": [1,2,3]
-    #     }
-    # }
 
-    if not recepciones_query and not atrasadas_query and not otras_query:
+    # Obtener otras recepciones que no son por SFTP
+    otras_query = RecepcionConvenio.query.filter(and_(RecepcionConvenio.estado == 1,
+                                                      RecepcionConvenio.metodo != "SFTP",
+                                                      or_(RecepcionConvenio.periodicidad == mes_actual,
+                                                          RecepcionConvenio.periodicidad == "Mensual",
+                                                          RecepcionConvenio.periodicidad.like(f"%{mes_actual}%")))).all()
+    for recepcion in otras_query:
+        try:
+            recepciones[recepcion.convenio.institucion.sigla]["otras"].append(recepcion)
+        except KeyError:
+            try:
+                recepciones[recepcion.convenio.institucion.sigla]["otras"] = [recepcion]
+            except KeyError:
+                recepciones[recepcion.convenio.institucion.sigla] = {"otras": [recepcion]}
+
+    if not recepciones:
         flash("No hay recepciones pendientes", "warning")
         return redirect(url_for("intercambio.recepcion_sftp"))
     else:
-        # Enviar correo por cada institución con las recepciones del mes y atrasadas
-        mensaje_aiet = f"""
-Estimados, <br><br>Junto con saludar, les envío las recepciones de este mes y las atrasadas.<br><br>"""
         outlook = win32.Dispatch("outlook.application", pythoncom.CoInitialize())
+        # Enviar correo por cada institución con las recepciones del mes y atrasadas
+        saludo_AIET = \
+            f"""Estimados,<br><br>
+            Les envío la lista completa de archivos pendientes y observados.<br><br>"""
+        despedida_AIET = "Saludos."
+        mes_actual_TODAS = \
+            f"""<u>Envíos pendientes de {datetime.now().strftime('%B %Y')}</u><ul>"""
+        HAY_mes_actual = False
+        atrasadas_TODAS = \
+            f"""<u>Envíos pendientes de meses anteriores</u><br><ul>"""
+        HAY_atrasadas = False
 
-        for recepcion in recepciones_query:
-            pass
-            # if recepcion.validado == 0:
-            #     print("Observado", recepcion.recepcion.nombre)
-            # else:
-            #     print("pendiente", recepcion.recepcion.nombre)
+        saludo_IE = \
+            f"""Estimado/a,<br><br> Junto con saludar, envío este correo para recordarles las entregas de archivos 
+            comprotemidas por Convenio de Intercambio de Información entre ambas instituciones.<br><br>"""
+        despedida_IE = "Por favor, enviar correo a convenios@sii.cl notificando la entrada de archivos. Si la entrega " \
+                       "de información es por <b>SFTP</b>, se solicita seguir las siguientes indicaciones:" \
+                        "<ul><li>Copiar a sftp_sii@sii.cl en el correo de notificación.</li>" \
+                        "<li><b>No incluir espacios, tildes u otros carácteres especiales en los nombres de los archivos.</b></li>" \
+                        "<li><b>Especificar la ruta completa de los archivos dentro del SFTP para facilitar la extracción.</b></li></ul>" \
+                        "Responder este correo en caso de dudas y/o consultas,<br>Saludos."
 
-    #     # Enviar correo a cada institución con las recepciones del mes
-    #     mensaje_aiet = f"""
-    #         Estimados,<br><br>
-    #         Junto con saludar, les envío las recepciones de este mes.<br><br>
-    #         """
-    #
-    #     outlook = win32.Dispatch('outlook.application', pythoncom.CoInitialize())
-    #     for institucion, recepciones in groupby(recepciones_query, lambda x: x.convenio.institucion):
-    #         mail = outlook.CreateItem(0)
-    #         mail.Subject = f'{institucion.sigla} archivos comprometidos {datetime.now().strftime("%B %Y")}'
-    #         mail.To = 'convenios@sii.cl'
-    #         mail.HTMLBody = f"""
-    #         Estimados, <br><br>
-    #         Junto con saludar, envío este correo para recordarles los archivos comprometidos por Convenio de Intercambio de Información entre ambas
-    #         instituciones. Los archivos que deben enviar son: <br><br>
-    #         <ul>
-    #         """
-    #
-    #         mensaje_aiet += f"<b>{institucion.sigla}</b>"
-    #
-    #         for recepcion in recepciones:
-    #             mail.HTMLBody += f'<li>{recepcion.archivo} ({recepcion.metodo})</li>'
-    #
-    #             mensaje_aiet += f"<li>{recepcion.archivo} ({recepcion.metodo} / {recepcion.sd.sigla})</li>"
-    #
-    #         mail.HTMLBody += '''</ul><br>Por favor, enviar correo a convenios@sii.cl notificando la entrega de archivos. Si la entrega de información es por SFTP, se solicita seguir las siguientes indicaciones:
-    #         <ul><li>Copiar a sftp_sii@sii.cl en el correo de notificación</li><li>No incluir espacios, tildes u otros caracteres especiales en los nombres de los archivos</li><li>Especificar la ruta completa de los archivos dentro del SFTP para facilita la extracción</li></ul><br>Dudas a convenios@sii.cl.<br><br>Saludos.'''
-    #         mail.Send()
-    #
-    #         mensaje_aiet += """</ul><br>"""
-    #
-    #     mensaje_aiet += "<br>Saludos."
-    #     # Enviar correo a AIET con todas las recepciones del mes
-    #     mail_aiet = outlook.CreateItem(0)
-    #     mail_aiet.Subject = f"Recepciones {datetime.now().strftime('%B %Y')}"
-    #     mail_aiet.To = "convenios@sii.cl"
-    #     mail_aiet.HTMLBody = mensaje_aiet
-    #     mail_aiet.Send()
-    #
-    #     return "Correos enviados correctamente."
-    #
-    # flash("Correos enviados exitosamente", "success")
+        for institucion, datos in recepciones.items():
+            mes_actual_IE = \
+            f"""<u>Envíos pendientes de {datetime.now().strftime('%B %Y')}</u><ul>"""
+            atrasadas_IE = \
+            f"""<u>Envíos pendientes de meses anteriores</u><br><ul>"""
+            for tipo_recepcion, archivos in datos.items():
+                if tipo_recepcion == "mes_actual_sftp":
+                    HAY_mes_actual = True
+                    for archivo in archivos:
+                        item = f"<li>{ archivo.recepcion.archivo } ({ archivo.recepcion.metodo }"
+                        if archivo.validado == 0:
+                            item += f", <span style='color: red;'>observado:</span> { archivo.observacion })</li>"
+                        else:
+                            item += ")</li>"
+                        mes_actual_TODAS += item[:4] + f'<b>{institucion}</b> ' + item[4:]
+                        mes_actual_IE += item
+                elif tipo_recepcion == "otras":
+                    HAY_mes_actual = True
+                    for archivo in archivos:
+                        item = f"<li>{ archivo.archivo } ({ archivo.metodo })</li>"
+                        mes_actual_TODAS += item[:4] + f'<b>{institucion}</b> ' + item[4:]
+                        mes_actual_IE += item
+                else:
+                    HAY_atrasadas = True
+                    for archivo in archivos:
+                        item = f"<li>{ archivo.recepcion.archivo } ({ archivo.recepcion.metodo}, { MESES[str(archivo.mes)] }"
+                        if archivo.validado == 0:
+                            item += f", <span style='color: red;'>observado:</span> { archivo.observacion })</li>"
+                        else:
+                            item += ")</li>"
+                        atrasadas_TODAS += item[:4] + f'<b>{institucion}</b> ' + item[4:]
+                        atrasadas_IE += item
+            # Cerrar listas
+            mes_actual_IE += "</ul><br>"
+            atrasadas_IE += "</ul><br>"
+            # Generar mensaje IE
+            mensaje_IE = saludo_IE
+            if "mes_actual_sftp" in datos or "otras" in datos:
+                mensaje_IE += mes_actual_IE
+            if "atrasadas_sftp" in datos:
+                mensaje_IE += atrasadas_IE
+            mensaje_IE += despedida_IE
+            # Enviar correo recepciones IE
+            mail_IE = outlook.CreateItem(0)
+            mail_IE.Subject = f'{institucion} archivos comprometidos {datetime.now().strftime("%B %Y")}'
+            mail_IE.To = 'convenios@sii.cl'
+            mail_IE.HTMLBody = mensaje_IE
+            mail_IE.Send()
+
+        # Cerrar listas
+        mes_actual_TODAS += "</ul><br>"
+        atrasadas_TODAS += "</ul><br>"
+
+        # Generar mensaje para AIET
+        mensaje_AIET = saludo_AIET
+        if HAY_mes_actual:
+            mensaje_AIET += mes_actual_TODAS
+        if HAY_atrasadas:
+            mensaje_AIET += atrasadas_TODAS
+        mensaje_AIET += despedida_AIET
+        # Enviar correo a AIET
+        mail_AIET = outlook.CreateItem(0)
+        mail_AIET.Subject = f"Recepciones {datetime.now().strftime('%B %Y')}"
+        mail_AIET.To = "convenios@sii.cl"
+        mail_AIET.HTMLBody = mensaje_AIET
+        mail_AIET.Send()
+
+    flash("Correos enviados exitosamente", "success")
     return redirect(url_for("intercambio.recepcion_sftp"))
