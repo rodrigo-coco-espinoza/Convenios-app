@@ -8,12 +8,60 @@ from sqlalchemy import and_, or_
 import pandas as pd
 import holidays
 from numpy import busday_count
+import os
+from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.user_credential import UserCredential
+from office365.sharepoint.files.file import File
 from pprint import pprint
+from tkinter import Tk
+from tkinter.filedialog import askdirectory
 
 FERIADOS = [pd.to_datetime(date[0], format='%Y-%m-%d').date() for
-           date in holidays.CL(years=[year for year in range(2015, 2026, 1)]).items()]
-MESES = {'1':'Ene', '2':'Feb', '3':'Mar', '4':'Abr', '5':'May', '6':'Jun', '7':'Jul', '8':'Ago', '9':'Sep', '10':'Oct',
-         '11':'Nov', '12':'Dic'}
+            date in holidays.CL(years=[year for year in range(2015, 2026, 1)]).items()]
+MESES = {'1': 'Ene', '2': 'Feb', '3': 'Mar', '4': 'Abr', '5': 'May', '6': 'Jun', '7': 'Jul', '8': 'Ago', '9': 'Sep',
+         '10': 'Oct',
+         '11': 'Nov', '12': 'Dic'}
+SHAREPOINT_USERNAME = os.getenv("sharepoint_email")
+SHAREPOINT_PASSWORD = os.getenv("sharepoint_password")
+SHAREPOINT_SITE = os.getenv("sharepoint_url_site")
+SHAREPOINT_SITE_NAME = os.getenv("sharepoint_site_name")
+SHAREPOINT_DOC = os.getenv("sharepoint_doc_library")
+FOLDER_PATH = os.getcwd() + r"\temp"
+
+class Shareponint:
+    def _auth(self):
+        conn = ClientContext(SHAREPOINT_SITE).with_credentials(
+            UserCredential(
+                SHAREPOINT_USERNAME,
+                SHAREPOINT_PASSWORD
+            )
+        )
+        return conn
+
+    def _get_files_list(self, folder_name):
+        conn = self._auth()
+        target_folder_url = f"{SHAREPOINT_DOC}/{folder_name}"
+        root_folder = conn.web.get_folder_by_server_relative_url(target_folder_url)
+        root_folder.expand(["Files", "Folders"]).get().execute_query()
+        return root_folder.files
+
+    def download_file(self, file_name, folder_name):
+        conn = self._auth()
+        file_url = f"/teams/{SHAREPOINT_SITE_NAME}/{SHAREPOINT_DOC}/{folder_name}/{file_name}"
+        file = File.open_binary(conn, file_url)
+        print (file_url)
+        return file.content
+
+
+def save_file(file_n, file_obj):
+    file_dir_path = os.path.join(FOLDER_PATH, file_n)
+    with open(file_dir_path, "wb") as f:
+        f.write(file_obj)
+
+
+def get_file(file_n, folder):
+    file_obj = Shareponint().download_file(file_n, folder)
+    #save_file(file_n, file_obj)
 
 
 def formato_periodicidad(str_meses):
@@ -142,10 +190,11 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
     if convenio.id_responsable_convenio_ie is not None and form.responsable_convenio_ie.data == '0':
         convenio.id_responsable_convenio_ie = None
         campos_actualizados.append('Responsable de convenio IE')
-    elif convenio.id_responsable_convenio_ie != int(form.responsable_convenio_ie.data) and form.responsable_convenio_ie.data != '0':
+    elif convenio.id_responsable_convenio_ie != int(
+            form.responsable_convenio_ie.data) and form.responsable_convenio_ie.data != '0':
         convenio.id_responsable_convenio_ie = form.responsable_convenio_ie.data
         campos_actualizados.append('Responsable de convenio  IE')
-    
+
     # Subdirecciones involucradas
     # Agregar nuevas subdirecciones
     if sd_actuales != sd_seleccionadas:
@@ -174,7 +223,8 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
         if convenio.estado == 'En proceso':
             # Asignar etapa última etapa en la que estaba
             ultima_etapa = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == convenio.id,
-                                                              TrayectoriaEtapa.id_etapa != 5)).order_by(TrayectoriaEtapa.ingreso.desc()).first()
+                                                              TrayectoriaEtapa.id_etapa != 5)).order_by(
+                TrayectoriaEtapa.ingreso.desc()).first()
             nueva_etapa = TrayectoriaEtapa(
                 ingreso=date.today(),
                 timestamp_ingreso=datetime.today(),
@@ -183,7 +233,8 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
             )
             db.session.add(nueva_etapa)
             # Asignar equipo último equipo en el que estaba
-            ultimo_equipo = TrayectoriaEquipo.query.filter(TrayectoriaEquipo.id_convenio == convenio.id).order_by(TrayectoriaEquipo.ingreso.desc()).first()
+            ultimo_equipo = TrayectoriaEquipo.query.filter(TrayectoriaEquipo.id_convenio == convenio.id).order_by(
+                TrayectoriaEquipo.ingreso.desc()).first()
             primer_equipo = TrayectoriaEquipo(
                 id_convenio=convenio.id,
                 id_equipo=ultimo_equipo.id_equipo,
@@ -193,8 +244,10 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
             db.session.add(primer_equipo)
             # Observación reapertura
             primera_observacion = BitacoraAnalista(
-                observacion=(lambda tipo: f'Convenio vuelve a estar en proceso y se asigna a {ultimo_equipo.equipo.sigla} en {ultima_etapa.etapa.etapa}.'
-                if tipo == 'Convenio' else f'Adendum vuelve a estar en proceso y se asigna a {ultimo_equipo.equipo.sigla} en {ultima_etapa.etapa.etapa}.')(convenio.tipo),
+                observacion=(lambda
+                                 tipo: f'Convenio vuelve a estar en proceso y se asigna a {ultimo_equipo.equipo.sigla} en {ultima_etapa.etapa.etapa}.'
+                if tipo == 'Convenio' else f'Adendum vuelve a estar en proceso y se asigna a {ultimo_equipo.equipo.sigla} en {ultima_etapa.etapa.etapa}.')(
+                    convenio.tipo),
                 fecha=date.today(),
                 timestamp=datetime.today(),
                 id_convenio=convenio.id,
@@ -211,13 +264,13 @@ def actualizar_convenio(convenio, form, sd_actuales, query_sd, sd_seleccionadas)
         # Alertar si el convenio tiene adendum
         adendum_query = Convenio.query.filter_by(id_convenio_padre=convenio.id).first()
         if adendum_query and convenio.estado in ['Pausado', 'Reemplazado', 'Cancelado']:
-           adendum = True
+            adendum = True
 
     # Agregar observación a la bitácora del analista
     if campos_actualizados:
         if 'Estado' in campos_actualizados:
-           # Agregar el estado actualizado
-           campos_actualizados[campos_actualizados.index('Estado')] = f'Estado: {convenio.estado}'
+            # Agregar el estado actualizado
+            campos_actualizados[campos_actualizados.index('Estado')] = f'Estado: {convenio.estado}'
         nueva_observacion = BitacoraAnalista(
             observacion=f'Se ha modificado la información de {", ".join(campos_actualizados)} ',
             fecha=date.today(),

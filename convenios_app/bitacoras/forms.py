@@ -135,6 +135,7 @@ class EditarConvenioForm(FlaskForm):
         if estado.data == 'Reemplazado' and int(self.convenio_reemplazo.data) == 0:
             raise ValidationError('Debe seleccionar el convenio por el cual sera reemplazado. Vuelva a seleccionar el convenio para editar.')
 
+
 class NuevaBitacoraAnalistaForm(FlaskForm):
     observacion = StringField('Observación', render_kw={'placeholder': 'Observación'}, widget=TextArea(),
                               validators=[DataRequired()])
@@ -326,6 +327,7 @@ class InfoConvenioForm(FlaskForm):
             except:
                 raise ValidationError('Debe ingresar solo números.')
 
+
 class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     nombre = StringField('Nombre', render_kw={"placeholder": "Nombre de la recepción según convenio"}, validators=[DataRequired(), Length(min=2)])
@@ -379,6 +381,7 @@ class AgregarRecepcionForm(FlaskForm):
     def validate_nomina_recepcion_metodo(self, nomina_recepcion_metodo):
         if self.recepcion_requiere_nomina.data == 'Sí' and int(self.nomina_recepcion_registrada.data) == 0 and nomina_recepcion_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
+
 
 class EditarRecepcionForm(FlaskForm):
     id_recepcion_editar = HiddenField('ID Recepción')
@@ -465,6 +468,7 @@ class AgregarEntregaForm(FlaskForm):
         if self.requiere_nomina.data == 'Sí' and int(self.nomina_registrada.data) == 0 and nomina_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
 
+
 class EditarEntregaForm(FlaskForm):
     id_entrega_editar = HiddenField('ID Entrega')
     id_nomina_editar = HiddenField('ID Nómina')
@@ -487,6 +491,7 @@ class EditarEntregaForm(FlaskForm):
                                                                                                     'En línea',
                                                                                                     'Correo electrónico',
                                                                                                     'Otro'])
+
 
 class RegistrarHitoForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')

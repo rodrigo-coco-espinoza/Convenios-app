@@ -1,4 +1,4 @@
-from flask import render_template, request, Blueprint, url_for, redirect, flash, abort, jsonify
+from flask import render_template, request, make_response, send_file, Blueprint, url_for, redirect, flash, abort, jsonify
 from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
@@ -11,9 +11,10 @@ from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
-                                           dias_habiles, formato_periodicidad)
+                                           dias_habiles, formato_periodicidad, get_file, FOLDER_PATH)
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from datetime import datetime, date
+
 
 bitacoras = Blueprint('bitacoras', __name__)
 
@@ -1381,3 +1382,13 @@ def obtener_info_nomina_recepcion(id_nomina):
          nomina['periodo_nomina'] = [nomina_query.periodicidad]
         
     return nomina
+
+
+@bitacoras.route("/bitacora_mapas")
+@login_required
+@analista_only
+def bitacora_mapas():
+
+    get_file("me_encontraste.docx", "MAPAS")
+    #return send_file(f"{FOLDER_PATH}\me_encontraste.docx")
+    return redirect("https://chilesii.sharepoint.com/teams/RepositorioConvenios/Documentos compartidos/Repositorio Información/MAPAS/me_encontraste.docx?web=1")

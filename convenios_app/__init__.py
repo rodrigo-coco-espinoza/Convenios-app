@@ -44,4 +44,7 @@ def create_app(config_class=Config):
     app.register_blueprint(intercambio)
     #app.register_blueprint(errors)
 
+    global app_path
+    app_path = app.root_path
+
     return app
