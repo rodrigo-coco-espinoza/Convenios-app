@@ -6,7 +6,7 @@ from tkinter import Tk
 
 
 app = create_app()
-#db.create_all(app=create_app())
+db.create_all(app=create_app())
 
 load_dotenv()
 

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
+from wtforms import StringField, SelectField, FileField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
 from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio, EntregaConvenio, NominaEntrega, NominaRecepcion
@@ -95,7 +95,7 @@ class EditarConvenioForm(FlaskForm):
     submit = SubmitField('Editar')
 
 
-    
+
     def validate_nombre(self, nombre):
         """
         Valida que no exista otro convenio con el mismo nombre con la institución
@@ -168,7 +168,7 @@ class InfoConvenioForm(FlaskForm):
     fecha_firma_documento = DateField('Fecha firma documento', widget=DateInput(), validators=(validators.Optional(),))
     fecha_firma_resolucion = DateField('Fecha resolución', widget=DateInput(), validators=(validators.Optional(),))
     nro_resolucion = IntegerField('N° de resolución', validators=(validators.Optional(),), render_kw={"placeholder": 'N° de resolución'})
-    proyecto = StringField('N° de proyecto') 
+    proyecto = StringField('N° de proyecto')
     gabinete_electronico = StringField('N° de GE')
     link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link de la resolución'})
     link_project = StringField('Link project', render_kw={'placeholder': 'Ingrese link del Project'})
@@ -232,7 +232,7 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
-        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0': 
+        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0':
             if self.fecha_equipo_2.data is None:
                 raise ValidationError('Debe seleccionar una fecha.')
             if self.fecha_equipo_2.data > date.today():
@@ -305,7 +305,7 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if self.fecha_equipo_4.data > date.today():
                 raise ValidationError('No puede seleccionar una fecha en el futuro.')
-    
+
     def validate_proyecto(self, proyecto):
         if len(str(proyecto.data)) > 0:
             try:
@@ -504,4 +504,15 @@ class RegistrarHitoForm(FlaskForm):
         if int(hito.data) == 0:
             raise ValidationError('Debe selecciona hito para registrar.')
 
+
+class RegistrarMapasForm(FlaskForm):
+    institucion = SelectField("Seleccione institución")
+    fecha_oficio = DateField("Fecha oficio", default=date.today, widget=DateInput(), validators=[DataRequired()])
+    nro_oficio = StringField("Nro. oficio")
+    archivo_oficio = FileField("Archvio (solo PDF)") #, [validators.regexp(u'^.*\.(pdf|PDF)$')])
+
+    def validate_archivo_oficio(self, archivo_oficio):
+        extension = archivo_oficio.data.filename.split(".")[-1]
+        if extension != "pdf" or extension != "PDF":
+            raise ValidationError("Solo se admiten archivos PDF.")
 

@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Nuevo convenio SII-Mapas</h5>
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {{ form_mapas.hidden_tag() }}
+        <div class="row form-group px-2 mb-2">
+            {% if form_mapas.institucion.errors %}
+                {{ form_mapas.institucion(class="form-control form-control-sm form-select is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form_mapas.institucion.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form_mapas.institucion(class="form-control form-control-sm form-select") }}
+            {% endif %}
+        </div>
+        <div class="row form-group">
+            <div class="col-lg-3">
+                {{ form_mapas.fecha_oficio.label(class="form-cotrol-label mb-1") }}
+                {% if form_mapas.fecha_oficio.errors %}
+                    {{ form_mapas.fecha_oficio(class="form-control datepicker form-control-sm is-invalid mb-1") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.fecha_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.fecha_oficio(class="form-control datepicker form-control-sm mb-1") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-2">
+                {{ form_mapas.nro_oficio.label(class="form-control-label mb-1") }}
+                {% if form_mapas.nro_oficio.errors %}
+                    {{ form_mapas.nro_oficio(class="form-control form-control-sm is-invalid mb-1") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.nro_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.nro_oficio(class="form-control form-control-sm mb-1") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                {{ form_mapas.archivo_oficio.label(class="form-control-label mb-1") }}
+                {% if form_mapas.archivo_oficio.errors %}
+                    {{ form_mapas.archivo_oficio(class="form-control form-control-sm is-invalid mb-1", type="file") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.archivo_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.archivo_oficio(class="form-control form-control-sm mb-1", type="file") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-1 pt-4">
+                <button type=submit name='registrar_mapas' class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
+            </div>
+
+
+
+
+        </div>
+
+    </form>
+  </div>
+</div>
+
+
+
+
+
+{% endblock content %}

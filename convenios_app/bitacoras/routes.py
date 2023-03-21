@@ -3,18 +3,18 @@ from flask_login import current_user, login_required
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app.models import (Institucion, Equipo, Persona, Convenio, SdInvolucrada, BitacoraAnalista,
                                   BitacoraTarea, TrayectoriaEtapa, TrayectoriaEquipo, CatalogoWS, WSConvenio,
-                                  RecepcionConvenio, Hito, HitosConvenio, EntregaConvenio, NominaEntrega, NominaRecepcion)
+                                  RecepcionConvenio, Hito, HitosConvenio, Mapas, EntregaConvenio, NominaEntrega, NominaRecepcion)
 from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm, NuevaBitacoraAnalistaForm,
                                            NuevaTareaForm, InfoConvenioForm, ETAPAS, AgregarRecepcionForm,
                                            RegistrarHitoForm, EditarRecepcionForm, AgregarEntregaForm,
-                                           EditarEntregaForm)
+                                           EditarEntregaForm, RegistrarMapasForm)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
                                            dias_habiles, formato_periodicidad, get_file, FOLDER_PATH)
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from datetime import datetime, date
-
+import os
 
 bitacoras = Blueprint('bitacoras', __name__)
 
@@ -1384,11 +1384,33 @@ def obtener_info_nomina_recepcion(id_nomina):
     return nomina
 
 
-@bitacoras.route("/bitacora_mapas")
+@bitacoras.route("/bitacora_mapas", methods=["GET", "POST"])
 @login_required
 @analista_only
 def bitacora_mapas():
+    # Obtener solo las municipalidades sin convenios mapas
+    instituciones_con_mapas = [mapas.id_institucion for mapas in  Mapas.query.all()]
+    instituciones_sin_mapas = Institucion.query.filter(and_(Institucion.id.not_in(instituciones_con_mapas),
+                                                            Institucion.tipo == "Municipalidad",
+                                                            Institucion.id != 39)).all()
+    mapas_form = RegistrarMapasForm()
+    mapas_form.institucion.choices = [(institucion.id, institucion.nombre) for institucion in instituciones_sin_mapas]
+    mapas_form.institucion.choices.sort(key=lambda tup: tup[1])
+    mapas_form.institucion.choices.insert(0, (0, "Seleccione institución"))
 
-    get_file("me_encontraste.docx", "MAPAS")
+    if mapas_form.validate_on_submit():
+        archivo_oficio = request.files[mapas_form.archivo_oficio.name].read()
+        pathos = os.getcwd() + r"\temp"
+        with open(os.path.join(pathos, mapas_form.archivo_oficio.data.filename), "wb") as file:
+            file.write(archivo_oficio)
+    else:
+        print(mapas_form.errors)
+        #return redirect(
+         #   "ms-word:https://chilesii.sharepoint.com/teams/RepositorioConvenios/Documentos compartidos/Repositorio Información/MAPAS/me_encontraste.docx")
+
+    return render_template("bitacoras/mapas.html", form_mapas=mapas_form)
+
+
+    # get_file("me_encontraste.docx", "MAPAS")
     #return send_file(f"{FOLDER_PATH}\me_encontraste.docx")
-    return redirect("https://chilesii.sharepoint.com/teams/RepositorioConvenios/Documentos compartidos/Repositorio Información/MAPAS/me_encontraste.docx?web=1")
+    #

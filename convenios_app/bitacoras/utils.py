@@ -28,6 +28,7 @@ SHAREPOINT_SITE_NAME = os.getenv("sharepoint_site_name")
 SHAREPOINT_DOC = os.getenv("sharepoint_doc_library")
 FOLDER_PATH = os.getcwd() + r"\temp"
 
+
 class Shareponint:
     def _auth(self):
         conn = ClientContext(SHAREPOINT_SITE).with_credentials(

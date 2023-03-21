@@ -471,3 +471,20 @@ class RecepcionesSFTP(db.Model):
     id_autor_validado = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     autor_validado = db.relationship("User", foreign_keys=[id_autor_validado])
     timestamp_validado = db.Column(db.DateTime, nullable=True)
+
+
+class Mapas(db.Model):
+    """
+    Contiene las instituciones con acceso a Mapas
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    id_institucion = db.Column(db.Integer, db.ForeignKey("institucion.id"), nullable=False)
+    institucion = db.relationship("Institucion", foreign_keys=[id_institucion])
+    timestamp_creacion = db.Column(db.DateTime, nullable=False)
+    fecha_oficio = db.Column(db.Date, nullable=False)
+    nro_oficio = db.Column(db.String, nullable=False)
+    archivo_oficio = db.Column(db.String, nullable=True)
+    nro_ge = db.Column(db.String, nullable=True)
+    fecha_ge = db.Column(db.Date, nullable=True)
+    link_resolucion = db.Column(db.String, nullable=True)
+    fecha_resolucion = db.Column(db.Date, nullable=True)
