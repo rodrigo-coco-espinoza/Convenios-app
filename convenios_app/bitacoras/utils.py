@@ -53,6 +53,12 @@ class Shareponint:
         print (file_url)
         return file.content
 
+    def upload_file(self, file_name, folder_name, content):
+        conn = self._auth()
+        target_folder_url = f"/teams/{SHAREPOINT_SITE_NAME}/{SHAREPOINT_DOC}/{folder_name}"
+        target_folder = conn.web.get_folder_by_server_relative_url(target_folder_url)
+        response = target_folder.upload_file(file_name, content).execute_query()
+        return response
 
 def save_file(file_n, file_obj):
     file_dir_path = os.path.join(FOLDER_PATH, file_n)

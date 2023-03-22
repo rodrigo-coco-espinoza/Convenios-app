@@ -11,11 +11,12 @@ from convenios_app.bitacoras.forms import (NuevoConvenioForm, EditarConvenioForm
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import (actualizar_trayectoria_equipo, actualizar_convenio, obtener_iniciales,
-                                           dias_habiles, formato_periodicidad, get_file, FOLDER_PATH)
+                                           dias_habiles, formato_periodicidad, Shareponint, get_file, FOLDER_PATH)
 from convenios_app.main.utils import generar_nombre_institucion, generar_nombre_convenio, formato_nombre
 from datetime import datetime, date
+from mailmerge import MailMerge
 import os
-
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 bitacoras = Blueprint('bitacoras', __name__)
 
 # TODO: actualizar ID en tabla final
@@ -1388,24 +1389,57 @@ def obtener_info_nomina_recepcion(id_nomina):
 @login_required
 @analista_only
 def bitacora_mapas():
-    # Obtener solo las municipalidades sin convenios mapas
+    # Obtener solo las municipalidades con y sin convenios mapas
     instituciones_con_mapas = [mapas.id_institucion for mapas in  Mapas.query.all()]
     instituciones_sin_mapas = Institucion.query.filter(and_(Institucion.id.not_in(instituciones_con_mapas),
                                                             Institucion.tipo == "Municipalidad",
                                                             Institucion.id != 39)).all()
+    # Formulario nuevo convenio mapas
     mapas_form = RegistrarMapasForm()
     mapas_form.institucion.choices = [(institucion.id, institucion.nombre) for institucion in instituciones_sin_mapas]
     mapas_form.institucion.choices.sort(key=lambda tup: tup[1])
     mapas_form.institucion.choices.insert(0, (0, "Seleccione institución"))
 
     if mapas_form.validate_on_submit():
+        # Institución con la que se firmará el convenio
+        institucion = Institucion.query.get(mapas_form.institucion.data)
+        # Leer el archivo PDF seleccionado y subirlo a Sharepoint
         archivo_oficio = request.files[mapas_form.archivo_oficio.name].read()
-        pathos = os.getcwd() + r"\temp"
-        with open(os.path.join(pathos, mapas_form.archivo_oficio.data.filename), "wb") as file:
-            file.write(archivo_oficio)
-    else:
-        print(mapas_form.errors)
-        #return redirect(
+        Shareponint().upload_file(f"{institucion.sigla}_Oficio.pdf", "MAPAS", archivo_oficio)
+        # Crear y subir borrador de la resolución
+        template_path = os.getcwd() + r"\convenios_app\static\sii_mapas_tipo.docx"
+        borrador_resolucion = MailMerge(template_path)
+        borrador_resolucion.merge(
+            nombre_municipalidad=institucion.nombre,
+            nombre_municipalidad_2=institucion.nombre,
+            nro_oficio=str(mapas_form.nro_oficio.data),
+            fecha_oficio=mapas_form.fecha_oficio.data.strftime("%d de %B del %Y"),
+            nombre_municipalidad_3=institucion.nombre
+        )
+        temp_path = os.getcwd() + r"\temp\temp_file.docx"  #temp_dir.name + r"\temp_file.docx"
+        borrador_resolucion.write(temp_path)
+        with open(temp_path, "rb") as temp_file:
+            Shareponint().upload_file(f"{institucion.sigla}_Resolucion_Borrador.docx", "MAPAS", temp_file)
+        os.remove(temp_path)
+        # Añadir a la base de datos
+        nuevo_registro = Mapas(
+            id_institucion=mapas_form.institucion.data,
+            timestamp_creacion=datetime.today(),
+            id_user=current_user.id,
+            fecha_oficio=mapas_form.fecha_oficio.data,
+            nro_oficio=mapas_form.nro_oficio.data
+        )
+        db.session.add(nuevo_registro)
+        db.session.commit()
+
+        flash(f"Se ha registrado nuevo convenio con {institucion.sigla} exitosamente.", "success")
+        return redirect(url_for("bitacoras.bitacora_mapas"))
+
+
+        # pathos = os.getcwd() + r"\temp"
+        # with open(os.path.join(pathos, mapas_form.archivo_oficio.data.filename), "wb") as file:
+        #     file.write(archivo_oficio)
+
          #   "ms-word:https://chilesii.sharepoint.com/teams/RepositorioConvenios/Documentos compartidos/Repositorio Información/MAPAS/me_encontraste.docx")
 
     return render_template("bitacoras/mapas.html", form_mapas=mapas_form)

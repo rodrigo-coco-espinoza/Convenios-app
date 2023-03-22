@@ -508,11 +508,17 @@ class RegistrarHitoForm(FlaskForm):
 class RegistrarMapasForm(FlaskForm):
     institucion = SelectField("Seleccione institución")
     fecha_oficio = DateField("Fecha oficio", default=date.today, widget=DateInput(), validators=[DataRequired()])
-    nro_oficio = StringField("Nro. oficio")
-    archivo_oficio = FileField("Archvio (solo PDF)") #, [validators.regexp(u'^.*\.(pdf|PDF)$')])
+    nro_oficio = StringField("Nro. oficio", validators=[DataRequired()])
+    archivo_oficio = FileField("Archvio (solo PDF)")
+
+    def validate_institucion(self, institucion):
+        if int(institucion.data) == 0:
+            raise ValidationError("Debe seleccionar una institución.")
 
     def validate_archivo_oficio(self, archivo_oficio):
         extension = archivo_oficio.data.filename.split(".")[-1]
-        if extension != "pdf" or extension != "PDF":
+        if extension.lower() != "pdf":
             raise ValidationError("Solo se admiten archivos PDF.")
+
+
 
