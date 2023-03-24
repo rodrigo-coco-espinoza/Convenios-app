@@ -486,6 +486,7 @@ class Mapas(db.Model):
     fecha_oficio = db.Column(db.Date, nullable=False)
     nro_oficio = db.Column(db.String, nullable=False)
     nro_ge = db.Column(db.String, nullable=True)
-    fecha_ge = db.Column(db.Date, nullable=True)
+    #fecha_ge = db.Column(db.Date, nullable=True)
     link_resolucion = db.Column(db.String, nullable=True)
     fecha_resolucion = db.Column(db.Date, nullable=True)
+    nro_resolucion = db.Column(db.String, nullable=True)

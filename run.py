@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import os
 from tkinter import Tk
 
-
 app = create_app()
 db.create_all(app=create_app())
 

@@ -2,7 +2,8 @@
 {% block content %}
 {{ JSGlue.include() }}
 
-<div class="card">
+<!-- Formulario nuevo registro -->
+<div class="card mb-5 shadow">
   <div class="card-body">
     <h5 class="card-title">Nuevo convenio SII-Mapas</h5>
     <form method="POST" enctype="multipart/form-data" novalidate>
@@ -62,17 +63,102 @@
             <div class="col-lg-1 pt-4">
                 <button type=submit name='registrar_mapas' class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
             </div>
-
-
-
-
         </div>
-
     </form>
   </div>
 </div>
 
-
+<!-- Tablas de registros -->
+<nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-proceso-tab" data-bs-toggle="tab" data-bs-target="#navProceso" type="button"
+                role="tab" aria-controls="nav-proceso" aria-selected="true">En proceso
+        </button>
+        <button class="nav-link" id="nav-publicados-tab" data-bs-toggle="tab" data-bs-target="#navPublicados" type="button"
+                role="tab" aria-controls="nav-publicados" aria-selected="false">Publicados
+        </button>
+    </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+    <!-- Tabla mapas en proceso -->
+    <div class="tab-pane fade show active" id="navProceso" role="tabpanel" aria-labelledby="nav-proceso-tab" tabindex="0">
+        <div class="">
+            <table class="table table-hover" style="margin-left: 2px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Institución</th>
+                        <th scope="col">Oficio</th>
+                        <th scope="col">Nro. GE</th>
+                        <th scope="col">Fecha Res.</th>
+                        <th scope="col">Nro. Res.</th>
+                        <th scope="col">Link Res.</th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="" method="post">
+                        {% for proceso in datos_proceso %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ proceso.sigla_institucion }}</td>
+                                <td><a target="_blank" class="simple-link" href="{{ proceso.oficio_link }}">{{ proceso.oficio_texto }}</a></td>
+                                <td>
+                                    {% if proceso.nro_ge %}
+                                        {{ proceso.nro_ge }}
+                                    {% else %}
+                                        <input name="nroGE_{{ proceso.id }}" type="text" class="form-control form-control-sm" placeholder="Ingrese solo dígitos">
+                                    {% endif %}
+                                </td>
+                                <td><input name="fecha_oficio_{{ proceso.id }}" type="date" class="form-control datepicker form-control-sm"></td>
+                                <td><input name="nro_res_{{ proceso.id }}" type="text" class="form-control form-control-sm" placeholder="Ingrese solo dígitos"></td>
+                                <td><input name="link_res_{{ proceso.id }}" type="text" class="form-control form-control-sm"placeholder="Ingrese URL"></td>
+                                <td>
+                                    {% if proceso.pdf_resolucion %}
+                                    <a target="_blank" href="{{ proceso.pdf_resolucion }}" class="simple-link">PDF</a>
+                                    {% endif %}
+                                    <a class="simple-link" href="{{ proceso.borrador_res }}">Borrador</a>
+                                </td>
+                                <td>
+                                    <button name="actualizarProceso" value="{{ proceso.id }}" type="submit" class="btn btn-sm btn-outline-success"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                        {% endfor %}
+                    </form>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="navPublicados" role="tabpanel" aria-labelledby="nav-publicados-tab" tabindex="0">
+        <div class="">
+            <table class="table table-hover" style="margin-left: 2px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Institución</th>
+                        <th scope="col">Oficio</th>
+                        <th scope="col">Nro. GE</th>
+                        <th scope="col">Resolución</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for publicado in datos_publicados %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ publicado.sigla_institucion }}</td>
+                        <td><a target="_blank" href="{{ publicado.oficio_link }}" class="simple-link">{{ publicado.oficio_texto }}</a></td>
+                        <td>{{ publicado.nro_ge }}</td>
+                        <td><a target="_blank" href="{{ publicado.resolucion_link }}" class="simple-link">{{ publicado.resolucion_texto }}</a></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 
 

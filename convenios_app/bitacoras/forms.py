@@ -507,9 +507,9 @@ class RegistrarHitoForm(FlaskForm):
 
 class RegistrarMapasForm(FlaskForm):
     institucion = SelectField("Seleccione institución")
-    fecha_oficio = DateField("Fecha oficio", default=date.today, widget=DateInput(), validators=[DataRequired()])
-    nro_oficio = StringField("Nro. oficio", validators=[DataRequired()])
-    archivo_oficio = FileField("Archvio (solo PDF)")
+    fecha_oficio = DateField("Fecha oficio", widget=DateInput(), validators=[DataRequired(message="Ingrese fecha del oficio.")])
+    nro_oficio = StringField("Nro. oficio", validators=[DataRequired(message="Ingrese número del oficio")])
+    archivo_oficio = FileField("Archivo (solo PDF)")
 
     def validate_institucion(self, institucion):
         if int(institucion.data) == 0:

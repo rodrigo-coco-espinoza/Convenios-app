@@ -50,7 +50,6 @@ class Shareponint:
         conn = self._auth()
         file_url = f"/teams/{SHAREPOINT_SITE_NAME}/{SHAREPOINT_DOC}/{folder_name}/{file_name}"
         file = File.open_binary(conn, file_url)
-        print (file_url)
         return file.content
 
     def upload_file(self, file_name, folder_name, content):
@@ -60,6 +59,7 @@ class Shareponint:
         response = target_folder.upload_file(file_name, content).execute_query()
         return response
 
+
 def save_file(file_n, file_obj):
     file_dir_path = os.path.join(FOLDER_PATH, file_n)
     with open(file_dir_path, "wb") as f:
@@ -68,7 +68,7 @@ def save_file(file_n, file_obj):
 
 def get_file(file_n, folder):
     file_obj = Shareponint().download_file(file_n, folder)
-    #save_file(file_n, file_obj)
+    save_file(file_n, file_obj)
 
 
 def formato_periodicidad(str_meses):
