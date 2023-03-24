@@ -1,6 +1,10 @@
 {% extends 'layout.html' %}
 {% block content %}
 {{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#bitacoraMapas')
+</script>
 
 <!-- Formulario nuevo registro -->
 <div class="card mb-5 shadow">
@@ -115,14 +119,16 @@
                                 <td><input name="nro_res_{{ proceso.id }}" type="text" class="form-control form-control-sm" placeholder="Ingrese solo dígitos"></td>
                                 <td><input name="link_res_{{ proceso.id }}" type="text" class="form-control form-control-sm"placeholder="Ingrese URL"></td>
                                 <td>
-                                    {% if proceso.pdf_resolucion %}
-                                    <a target="_blank" href="{{ proceso.pdf_resolucion }}" class="simple-link">PDF</a>
-                                    {% endif %}
                                     <a class="simple-link" href="{{ proceso.borrador_res }}">Borrador</a>
                                 </td>
                                 <td>
                                     <button name="actualizarProceso" value="{{ proceso.id }}" type="submit" class="btn btn-sm btn-outline-success"><i class="fa-solid fa-pen"></i></button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td>
+                                    <button type="button" class="btn btn-sm btn-outline-danger">
+                                        <a href="{{ url_for('bitacoras.eliminar_registro_mapas', id_mapas=proceso.id) }}" style="color: inherit;">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </button>
+                                </td>
                             </tr>
                         {% endfor %}
                     </form>
@@ -151,7 +157,13 @@
                         <td><a target="_blank" href="{{ publicado.oficio_link }}" class="simple-link">{{ publicado.oficio_texto }}</a></td>
                         <td>{{ publicado.nro_ge }}</td>
                         <td><a target="_blank" href="{{ publicado.resolucion_link }}" class="simple-link">{{ publicado.resolucion_texto }}</a></td>
-                        <td></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <a href="{{ url_for('bitacoras.eliminar_registro_mapas', id_mapas=publicado.id) }}" style="color: inherit;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -1424,6 +1424,7 @@ def bitacora_mapas():
         # Resoluciones publicadas
         if institucion.link_resolucion:
             datos_publicados.append({
+                "id": institucion.id,
                 "sigla_institucion": institucion.institucion.sigla,
                 "oficio_link": f"{SHAREPOINT_SITE}/{SHAREPOINT_DOC}/MAPAS/{institucion.institucion.sigla}_Oficio.pdf",
                 "oficio_texto": f"N°{institucion.nro_oficio} del {institucion.fecha_oficio.strftime('%d-%m-%Y')}",
@@ -1519,16 +1520,16 @@ def bitacora_mapas():
                 with open(borrador_temp_path, "rb") as temp_file:
                     Shareponint().upload_file(f"{proceso_query.institucion.sigla}_Resolución_Borrador.docx", "MAPAS", temp_file)
                 # Generar resolución en PDF
-                pdf_temp_path = os.getcwd() + r"\temp\temp_file.pdf"
-                word = comtypes.client.CreateObject("Word.Application", pythoncom.CoInitialize())
-                doc = word.Documents.Open(borrador_temp_path)
-                doc.SaveAs(pdf_temp_path, FileFormat=17)
-                doc.Close()
-                word.Quit()
-                with open(pdf_temp_path, "rb") as pdf_temp_file:
-                    Shareponint().upload_file(f"{proceso_query.institucion.sigla}_Resolución.pdf", "MAPAS", pdf_temp_file)
+                # pdf_temp_path = os.getcwd() + r"\temp\temp_file.pdf"
+                # word = comtypes.client.CreateObject("Word.Application", pythoncom.CoInitialize())
+                # doc = word.Documents.Open(borrador_temp_path)
+                # doc.SaveAs(pdf_temp_path, FileFormat=17)
+                # doc.Close()
+                # word.Quit()
+                # with open(pdf_temp_path, "rb") as pdf_temp_file:
+                #     Shareponint().upload_file(f"{proceso_query.institucion.sigla}_Resolución.pdf", "MAPAS", pdf_temp_file)
                 os.remove(borrador_temp_path)
-                os.remove(pdf_temp_path)
+                #os.remove(pdf_temp_path)
                 flash("Número de GE regisgtrado. Ya está disponible la versión final de la resolución.", "success")
 
             else:
@@ -1562,9 +1563,23 @@ def bitacora_mapas():
             proceso_query.link_resolucion = link_resolucion
             db.session.commit()
             flash(f"Se ha actualizado el convenio con {proceso_query.institucion.nombre}", "success")
-            return redirect(url_for("bitacoras.bitacoras_mapas"))
+            return redirect(url_for("bitacoras.bitacora_mapas"))
     return render_template("bitacoras/mapas.html", form_mapas=mapas_form, datos_proceso=datos_proceso, datos_publicados=datos_publicados)
+
+
 
     # get_file("me_encontraste.docx", "MAPAS")
     # return send_file(f"{FOLDER_PATH}\me_encontraste.docx")
     #
+
+
+@bitacoras.route("/eliminar_registro_mapas/<int:id_mapas>")
+@login_required
+@analista_only
+def eliminar_registro_mapas(id_mapas):
+    mapas_query = Mapas.query.get(id_mapas)
+    institucion = mapas_query.institucion.nombre
+    db.session.delete(mapas_query)
+    db.session.commit()
+    flash(f"Se ha eliminado el registro de {institucion}.", "info")
+    return redirect(url_for("bitacoras.bitacora_mapas"))
