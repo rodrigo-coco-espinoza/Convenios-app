@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
+from wtforms import StringField, SelectField, FileField, SubmitField, HiddenField, IntegerField, SelectMultipleField, validators
 from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, ValidationError, Email
 from convenios_app.models import Institucion, Convenio, TrayectoriaEtapa, TrayectoriaEquipo, RecepcionConvenio, EntregaConvenio, NominaEntrega, NominaRecepcion
@@ -95,7 +95,7 @@ class EditarConvenioForm(FlaskForm):
     submit = SubmitField('Editar')
 
 
-    
+
     def validate_nombre(self, nombre):
         """
         Valida que no exista otro convenio con el mismo nombre con la institución
@@ -135,6 +135,7 @@ class EditarConvenioForm(FlaskForm):
         if estado.data == 'Reemplazado' and int(self.convenio_reemplazo.data) == 0:
             raise ValidationError('Debe seleccionar el convenio por el cual sera reemplazado. Vuelva a seleccionar el convenio para editar.')
 
+
 class NuevaBitacoraAnalistaForm(FlaskForm):
     observacion = StringField('Observación', render_kw={'placeholder': 'Observación'}, widget=TextArea(),
                               validators=[DataRequired()])
@@ -167,7 +168,7 @@ class InfoConvenioForm(FlaskForm):
     fecha_firma_documento = DateField('Fecha firma documento', widget=DateInput(), validators=(validators.Optional(),))
     fecha_firma_resolucion = DateField('Fecha resolución', widget=DateInput(), validators=(validators.Optional(),))
     nro_resolucion = IntegerField('N° de resolución', validators=(validators.Optional(),), render_kw={"placeholder": 'N° de resolución'})
-    proyecto = StringField('N° de proyecto') 
+    proyecto = StringField('N° de proyecto')
     gabinete_electronico = StringField('N° de GE')
     link_resolucion = StringField('Link resolución', render_kw={'placeholder': 'Ingrese link de la resolución'})
     link_project = StringField('Link project', render_kw={'placeholder': 'Ingrese link del Project'})
@@ -231,7 +232,7 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('No puede seleccionar una fecha en el futuro.')
 
         # Si se asigna nuevo equipo verificar que se haya ingresado fecha
-        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0': 
+        if self.id_trayectoria_2.data == '0' and equipo_2.data != '0':
             if self.fecha_equipo_2.data is None:
                 raise ValidationError('Debe seleccionar una fecha.')
             if self.fecha_equipo_2.data > date.today():
@@ -304,7 +305,7 @@ class InfoConvenioForm(FlaskForm):
                 raise ValidationError('Debe seleccionar una fecha.')
             if self.fecha_equipo_4.data > date.today():
                 raise ValidationError('No puede seleccionar una fecha en el futuro.')
-    
+
     def validate_proyecto(self, proyecto):
         if len(str(proyecto.data)) > 0:
             try:
@@ -325,6 +326,7 @@ class InfoConvenioForm(FlaskForm):
                 int(gabinete_electronico.data)
             except:
                 raise ValidationError('Debe ingresar solo números.')
+
 
 class AgregarRecepcionForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
@@ -379,6 +381,7 @@ class AgregarRecepcionForm(FlaskForm):
     def validate_nomina_recepcion_metodo(self, nomina_recepcion_metodo):
         if self.recepcion_requiere_nomina.data == 'Sí' and int(self.nomina_recepcion_registrada.data) == 0 and nomina_recepcion_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
+
 
 class EditarRecepcionForm(FlaskForm):
     id_recepcion_editar = HiddenField('ID Recepción')
@@ -465,6 +468,7 @@ class AgregarEntregaForm(FlaskForm):
         if self.requiere_nomina.data == 'Sí' and int(self.nomina_registrada.data) == 0 and nomina_metodo.data == 'Seleccione método':
             raise ValidationError('Debe seleccionar método de traspaso de la nómina.')
 
+
 class EditarEntregaForm(FlaskForm):
     id_entrega_editar = HiddenField('ID Entrega')
     id_nomina_editar = HiddenField('ID Nómina')
@@ -488,6 +492,7 @@ class EditarEntregaForm(FlaskForm):
                                                                                                     'Correo electrónico',
                                                                                                     'Otro'])
 
+
 class RegistrarHitoForm(FlaskForm):
     id_convenio = HiddenField('ID Convenio')
     hito = SelectField('Seleccione hito')
@@ -498,5 +503,22 @@ class RegistrarHitoForm(FlaskForm):
     def validate_hito(self, hito):
         if int(hito.data) == 0:
             raise ValidationError('Debe selecciona hito para registrar.')
+
+
+class RegistrarMapasForm(FlaskForm):
+    institucion = SelectField("Seleccione institución")
+    fecha_oficio = DateField("Fecha oficio", widget=DateInput(), validators=[DataRequired(message="Ingrese fecha del oficio.")])
+    nro_oficio = StringField("Nro. oficio", validators=[DataRequired(message="Ingrese número del oficio")])
+    archivo_oficio = FileField("Archivo (solo PDF)")
+
+    def validate_institucion(self, institucion):
+        if int(institucion.data) == 0:
+            raise ValidationError("Debe seleccionar una institución.")
+
+    def validate_archivo_oficio(self, archivo_oficio):
+        extension = archivo_oficio.data.filename.split(".")[-1]
+        if extension.lower() != "pdf":
+            raise ValidationError("Solo se admiten archivos PDF.")
+
 
 

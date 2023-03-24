@@ -1,0 +1,177 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#bitacoraMapas')
+</script>
+
+<!-- Formulario nuevo registro -->
+<div class="card mb-5 shadow">
+  <div class="card-body">
+    <h5 class="card-title">Nuevo convenio SII-Mapas</h5>
+    <form method="POST" enctype="multipart/form-data" novalidate>
+        {{ form_mapas.hidden_tag() }}
+        <div class="row form-group px-2 mb-2">
+            {% if form_mapas.institucion.errors %}
+                {{ form_mapas.institucion(class="form-control form-control-sm form-select is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form_mapas.institucion.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form_mapas.institucion(class="form-control form-control-sm form-select") }}
+            {% endif %}
+        </div>
+        <div class="row form-group">
+            <div class="col-lg-3">
+                {{ form_mapas.fecha_oficio.label(class="form-cotrol-label mb-1") }}
+                {% if form_mapas.fecha_oficio.errors %}
+                    {{ form_mapas.fecha_oficio(class="form-control datepicker form-control-sm is-invalid mb-1") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.fecha_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.fecha_oficio(class="form-control datepicker form-control-sm mb-1") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-2">
+                {{ form_mapas.nro_oficio.label(class="form-control-label mb-1") }}
+                {% if form_mapas.nro_oficio.errors %}
+                    {{ form_mapas.nro_oficio(class="form-control form-control-sm is-invalid mb-1") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.nro_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.nro_oficio(class="form-control form-control-sm mb-1") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                {{ form_mapas.archivo_oficio.label(class="form-control-label mb-1") }}
+                {% if form_mapas.archivo_oficio.errors %}
+                    {{ form_mapas.archivo_oficio(class="form-control form-control-sm is-invalid mb-1", type="file") }}
+                    <div class="invalid-feedback">
+                        {% for error in form_mapas.archivo_oficio.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_mapas.archivo_oficio(class="form-control form-control-sm mb-1", type="file") }}
+                {% endif %}
+            </div>
+            <div class="col-lg-1 pt-4">
+                <button type=submit name='registrar_mapas' class="btn btn-outline-success btn-sm float-end mb-2"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+    </form>
+  </div>
+</div>
+
+<!-- Tablas de registros -->
+<nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-proceso-tab" data-bs-toggle="tab" data-bs-target="#navProceso" type="button"
+                role="tab" aria-controls="nav-proceso" aria-selected="true">En proceso
+        </button>
+        <button class="nav-link" id="nav-publicados-tab" data-bs-toggle="tab" data-bs-target="#navPublicados" type="button"
+                role="tab" aria-controls="nav-publicados" aria-selected="false">Publicados
+        </button>
+    </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+    <!-- Tabla mapas en proceso -->
+    <div class="tab-pane fade show active" id="navProceso" role="tabpanel" aria-labelledby="nav-proceso-tab" tabindex="0">
+        <div class="">
+            <table class="table table-hover" style="margin-left: 2px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Institución</th>
+                        <th scope="col">Oficio</th>
+                        <th scope="col">Nro. GE</th>
+                        <th scope="col">Fecha Res.</th>
+                        <th scope="col">Nro. Res.</th>
+                        <th scope="col">Link Res.</th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="" method="post">
+                        {% for proceso in datos_proceso %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ proceso.sigla_institucion }}</td>
+                                <td><a target="_blank" class="simple-link" href="{{ proceso.oficio_link }}">{{ proceso.oficio_texto }}</a></td>
+                                <td>
+                                    {% if proceso.nro_ge %}
+                                        {{ proceso.nro_ge }}
+                                    {% else %}
+                                        <input name="nroGE_{{ proceso.id }}" type="text" class="form-control form-control-sm" placeholder="Ingrese solo dígitos">
+                                    {% endif %}
+                                </td>
+                                <td><input name="fecha_oficio_{{ proceso.id }}" type="date" class="form-control datepicker form-control-sm"></td>
+                                <td><input name="nro_res_{{ proceso.id }}" type="text" class="form-control form-control-sm" placeholder="Ingrese solo dígitos"></td>
+                                <td><input name="link_res_{{ proceso.id }}" type="text" class="form-control form-control-sm"placeholder="Ingrese URL"></td>
+                                <td>
+                                    <a class="simple-link" href="{{ proceso.borrador_res }}">Borrador</a>
+                                </td>
+                                <td>
+                                    <button name="actualizarProceso" value="{{ proceso.id }}" type="submit" class="btn btn-sm btn-outline-success"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger">
+                                        <a href="{{ url_for('bitacoras.eliminar_registro_mapas', id_mapas=proceso.id) }}" style="color: inherit;">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </form>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="navPublicados" role="tabpanel" aria-labelledby="nav-publicados-tab" tabindex="0">
+        <div class="">
+            <table class="table table-hover" style="margin-left: 2px;">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Institución</th>
+                        <th scope="col">Oficio</th>
+                        <th scope="col">Nro. GE</th>
+                        <th scope="col">Resolución</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for publicado in datos_publicados %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ publicado.sigla_institucion }}</td>
+                        <td><a target="_blank" href="{{ publicado.oficio_link }}" class="simple-link">{{ publicado.oficio_texto }}</a></td>
+                        <td>{{ publicado.nro_ge }}</td>
+                        <td><a target="_blank" href="{{ publicado.resolucion_link }}" class="simple-link">{{ publicado.resolucion_texto }}</a></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <a href="{{ url_for('bitacoras.eliminar_registro_mapas', id_mapas=publicado.id) }}" style="color: inherit;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock content %}

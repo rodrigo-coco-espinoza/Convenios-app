@@ -53,8 +53,11 @@
               <a id='instituciones' href="{{ url_for('main.ver_institucion') }}" class="list-group-item list-group-item-action py-2 ripple">
                 <i class="fa-solid fa-landmark fa-fw me-3"></i><span>Instituciones</span>
               </a>
-              <a id='personas' href="{{ url_for('main.ver_persona') }}" class="list-group-item list-group-item-action py-2 ripple mb-4">
+              <a id='personas' href="{{ url_for('main.ver_persona') }}" class="list-group-item list-group-item-action py-2 ripple">
                 <i class="fas fa-user fa-fw me-3"></i><span>Personas</span>
+              </a>
+              <a id='bitacoraMapas' href="{{ url_for('bitacoras.bitacora_mapas') }}" class="list-group-item list-group-item-action py-2 ripple mb-4">
+                <i class="fa-solid fa-map fa-fw me-3"></i><span>Mapas</span>
               </a>
             {% endif %}
           {% endif %}
@@ -81,7 +84,7 @@
 
           <!-- Documentos -->
           <p class="sidebar-header mb-0 fw-bold">Documentos</p>
-          <a id='procesoConvenio' href="{{ url_for('documentos.proceso_de_convenio') }}" class="list-group-item list-group-item-action py-2 ripple" aria-current="true">
+          <a id='procesoConvenio' href="{{ url_for('documentos.proceso_de_convenio') }}" class="list-group-item list-group-item-action py-2 ripple mb-4" aria-current="true">
             <i class="fa-solid fa-file-invoice fa-fw me-3"></i><span>Proceso de C.</span>
           </a>
           <!--
@@ -89,6 +92,15 @@
             <i class="fa-solid fa-file-lines fa-fw me-3"></i><span>Catálogo de WS</span>
           </a>
           -->
+          <!-- Intercambio de información-->
+          {% if current_user.is_authenticated %}
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <p class="sidebar-header mb-0 fw-bold fs-6">Intercambio información</p>
+              <a id='recepcionSFTP' href="{{ url_for('intercambio.recepcion_sftp') }}" class="list-group-item list-group-item-action py-2 ripple">
+                <i class="fas fa-arrow-right-arrow-left fa-fw me-3"></i><span>Recepción SFTP</span>
+              </a>
+            {% endif %}
+          {% endif %}
 
         </div>
       </div>
