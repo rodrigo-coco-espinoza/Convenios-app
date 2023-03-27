@@ -1459,7 +1459,7 @@ def bitacora_mapas():
         archivo_oficio = request.files[mapas_form.archivo_oficio.name].read()
         Shareponint().upload_file(f"{institucion.sigla}_Oficio.pdf", "MAPAS", archivo_oficio)
         # Crear y subir borrador de la resolución
-        template_path = os.getcwd() + r"\convenios_app\static\sii_mapas_tipo.docx"
+        template_path = r"C:\Convenios_App\convenios_app\static\sii_mapas_tipo.docx"
         borrador_resolucion = MailMerge(template_path)
         borrador_resolucion.merge(
             nombre_municipalidad=institucion.nombre,
@@ -1468,7 +1468,7 @@ def bitacora_mapas():
             fecha_oficio=mapas_form.fecha_oficio.data.strftime("%d de %B del %Y"),
             nombre_municipalidad_3=institucion.nombre
         )
-        temp_path = os.getcwd() + r"\temp\temp_file.docx"
+        temp_path = r"C:\Convenios_App\temp\temp_file.docx"
         borrador_resolucion.write(temp_path)
         with open(temp_path, "rb") as temp_file:
             Shareponint().upload_file(f"{institucion.sigla}_Resolución_Borrador.docx", "MAPAS", temp_file)
@@ -1505,7 +1505,7 @@ def bitacora_mapas():
                 db.session.commit()
                 # Actualizar resolución (se crea un nuevo archivo)
                 # Crear nuevo borrador
-                template_path = os.getcwd() + r"\convenios_app\static\sii_mapas_tipo.docx"
+                template_path = r"C:\Convenios_App\convenios_app\static\sii_mapas_tipo.docx"
                 borrador_resolucion = MailMerge(template_path)
                 borrador_resolucion.merge(
                     nombre_municipalidad=proceso_query.institucion.nombre,
