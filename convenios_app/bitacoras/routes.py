@@ -1515,7 +1515,7 @@ def bitacora_mapas():
                     nombre_municipalidad_3=proceso_query.institucion.nombre,
                     nroGE=nro_GE
                 )
-                borrador_temp_path = os.getcwd() + r"\temp\temp_file.docx"
+                borrador_temp_path = r"C:\Convenios_App\temp\temp_file.docx"
                 borrador_resolucion.write(borrador_temp_path)
                 with open(borrador_temp_path, "rb") as temp_file:
                     Shareponint().upload_file(f"{proceso_query.institucion.sigla}_Resolución_Borrador.docx", "MAPAS", temp_file)
