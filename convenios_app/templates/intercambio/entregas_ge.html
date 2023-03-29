@@ -1,0 +1,259 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+<script src='{{ url_for("static", filename="script.js") }}'></script>
+<script type="text/javascript">
+  changeActive('#entregasGE')
+</script>
+
+
+<div class="container">
+    <h3 class=" text-center text-uppercase mt-0 mb-4">
+      Calendario de entregas por Gabinete Electrónico <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_entregas_ge') }}"><i class="fa-solid fa-file-excel"></i></a>
+    </h3>
+    <div class="timeline timeline-left mx-lg-10">
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#enero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="enero">Enero</a></div>
+        <div class="container mt-3 collapse" id="enero">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.enero %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}" class="">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#febrero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="febrero">Febrero</a></div>
+        <div class="container mt-3 collapse" id="febrero">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.febrero %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#marzo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="marzo">Marzo</a></div>
+        <div class="container mt-3 collapse" id="marzo">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.marzo %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#abril" data-bs-toggle="collapse" aria-expanded="false" aria-controls="abril">Abril</a></div>
+        <div class="container mt-3 collapse" id="abril">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.abril %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#mayo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="mayo">Mayo</a></div>
+        <div class="container mt-3 collapse" id="mayo">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.mayo %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#junio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="junio">Junio</a></div>
+        <div class="container mt-3 collapse" id="junio">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.junio %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#julio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="julio">Julio</a></div>
+        <div class="container mt-3 collapse" id="julio">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.julio %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#agosto" data-bs-toggle="collapse" aria-expanded="false" aria-controls="agosto">Agosto</a></div>
+        <div class="container mt-3 collapse" id="agosto">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.agosto %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#septiembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="septiembre">Septiembre</a></div>
+        <div class="container mt-3 collapse" id="septiembre">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.septiembre %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#octubre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="octubre">Octubre</a></div>
+        <div class="container mt-3 collapse" id="octubre">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.octubre %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#noviembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="noviembre">Noviembre</a></div>
+        <div class="container mt-3 collapse" id="noviembre">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.noviembre %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="timeline-breaker"><a class="simple-link" href="#diciembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="diciembre">Diciembre</a></div>
+        <div class="container mt-3 collapse" id="diciembre">
+          <table class="table">
+            <tbody>
+              {% for entrega in entregas_ge.diciembre %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ entrega.institucion }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
+                  <td>{{ entrega.entrega }}</td>
+                  <td>{{ entrega.archivo }}</td>
+                  <td>{{ entrega.nomina }}</td>
+                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+{% endblock content %}

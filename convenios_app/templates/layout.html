@@ -39,7 +39,7 @@
     <!-- Sidebar -->
     <nav id="sidebarMenu" class="collapse d-lg-block sidebar bg-white">
       <div class="position-sticky">
-        <div class="list-group list-group-flush mx-3 mt-4">
+        <div class="list-group list-group-flush mx-3 mt-1">
           <!-- Formularios mostrar solo si el usuario es analista o admin-->
           {% if current_user.is_authenticated %}
             {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -93,9 +93,13 @@
           </a>
           -->
           <!-- Intercambio de información-->
+
+          <p class="sidebar-header mb-0 fw-bold fs-6">Intercambio información</p>
+          <a id='entregasGE' href="{{ url_for('intercambio.entregas_ge') }}" class="list-group-item list-group-item-action py-2 ripple">
+            <i class="fas fa-arrow-right-arrow-left fa-fw me-3"></i><span>Entregas GE</span>
+          </a>
           {% if current_user.is_authenticated %}
             {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
-              <p class="sidebar-header mb-0 fw-bold fs-6">Intercambio información</p>
               <a id='recepcionSFTP' href="{{ url_for('intercambio.recepcion_sftp') }}" class="list-group-item list-group-item-action py-2 ripple">
                 <i class="fas fa-arrow-right-arrow-left fa-fw me-3"></i><span>Recepción SFTP</span>
               </a>

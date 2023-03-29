@@ -1,24 +1,39 @@
 from flask import Blueprint, send_file, make_response
 from numpy import dtype
-from convenios_app.models import (BitacoraAnalista, BitacoraTarea, Convenio, TrayectoriaEquipo, TrayectoriaEtapa, RecepcionConvenio, WSConvenio,
-                                SdInvolucrada, Equipo)
+from convenios_app.models import (BitacoraAnalista, BitacoraTarea, Convenio, TrayectoriaEquipo, TrayectoriaEtapa,
+                                  RecepcionConvenio, WSConvenio,
+                                  SdInvolucrada, Equipo, EntregaConvenio)
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.bitacoras.utils import dias_habiles, obtener_iniciales
 from convenios_app.informes.utils import obtener_etapa_actual_dias
-from convenios_app.descargas.utils import (contar_adendum, contar_convenios, contar_otros,contar_por_firmar)
+from convenios_app.main.utils import generar_nombre_convenio
+from convenios_app.descargas.utils import (contar_adendum, contar_convenios, contar_otros, contar_por_firmar)
 from datetime import datetime, date
 import pandas as pd
 from io import BytesIO
 
+MESES_LARGO = {'1': 'Enero',
+               '2': 'Febrero',
+               '3': 'Marzo',
+               '4': 'Abril',
+               '5': 'Mayo',
+               '6': 'Junio',
+               '7': 'Julio',
+               '8': 'Agosto',
+               '9': 'Septiembre',
+               '10': 'Octubre',
+               '11': 'Noviembre',
+               '12': 'Diciembre'}
 
 descargas = Blueprint('descargas', __name__)
+
 
 @descargas.route('/descargar_informes_proceso')
 def descargar_informes_proceso():
     # Obtener convenios en proceso
     convenios_query = Convenio.query.filter(Convenio.estado == 'En proceso').all()
-    
+
     # Crear data frame con la tabla a descargar
     convenios_df = pd.DataFrame({
         'Institución': pd.Series(dtype='str'),
@@ -35,28 +50,29 @@ def descargar_informes_proceso():
         'Área 4': pd.Series(dtype='str'),
         'Días A4': pd.Series(dtype='int')
     })
-    
+
     # Recorrer convenios en proceso
     for convenio in convenios_query:
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo)
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo)
         }
 
         # Obtener días en proceso
         dias_en_proceso = 0
         for etapa in TrayectoriaEtapa.query.filter(TrayectoriaEtapa.id_convenio == convenio.id).order_by(
-            TrayectoriaEtapa.ingreso.asc()).all():
+                TrayectoriaEtapa.ingreso.asc()).all():
             salida_etapa = (lambda salida: salida if salida != None else date.today())(etapa.salida)
             dias_en_proceso += dias_habiles(etapa.ingreso, salida_etapa)
         fila['Días en proceso'] = dias_en_proceso
 
         # Obtener etapa actual
         etapa_query = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == convenio.id,
-                                                        TrayectoriaEtapa.salida == None)).first()
+                                                         TrayectoriaEtapa.salida == None)).first()
         fila['Etapa actual'] = etapa_query.etapa.etapa
-        fila['Días en etapa'] = dias_habiles(etapa_query.ingreso, date.today())                                             
+        fila['Días en etapa'] = dias_habiles(etapa_query.ingreso, date.today())
 
         # Obtener áreas
         equipos_query = TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == convenio.id,
@@ -85,7 +101,7 @@ def descargar_informes_proceso():
             fila['Días A3'] = dias_habiles(equipos_query[2].ingreso, date.today())
             fila['Área 4'] = equipos_query[3].equipo.sigla
             fila['Días A4'] = dias_habiles(equipos_query[3].ingreso, date.today())
- 
+
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
     # Convertir números a int
@@ -106,22 +122,22 @@ def descargar_informes_proceso():
     worksheet.write(0, 0, texto, bold)
     # Formato de tabla
     worksheet.add_table(f'A3:N{len(convenios_df.index) + 3}', {'style': 'Table Style Medium 1',
-                                    'autofilter': False,
-                                    'columns': [{'header': '#'},
-                                                {'header': 'Institución'},
-                                                {'header': 'Convenio'},
-                                                {'header': 'Días en proceso'},
-                                                {'header': 'Etapa actual'},
-                                                {'header': 'Días en etapa'},
-                                                {'header': 'Área 1'},
-                                                {'header': 'Días A1'},
-                                                {'header': 'Área 2'},
-                                                {'header': 'Días A2'},
-                                                {'header': 'Área 3'},
-                                                {'header': 'Días A3'},
-                                                {'header': 'Área 4'},
-                                                {'header': 'Días A4'}
-                                                ]})
+                                                               'autofilter': False,
+                                                               'columns': [{'header': '#'},
+                                                                           {'header': 'Institución'},
+                                                                           {'header': 'Convenio'},
+                                                                           {'header': 'Días en proceso'},
+                                                                           {'header': 'Etapa actual'},
+                                                                           {'header': 'Días en etapa'},
+                                                                           {'header': 'Área 1'},
+                                                                           {'header': 'Días A1'},
+                                                                           {'header': 'Área 2'},
+                                                                           {'header': 'Días A2'},
+                                                                           {'header': 'Área 3'},
+                                                                           {'header': 'Días A3'},
+                                                                           {'header': 'Área 4'},
+                                                                           {'header': 'Días A4'}
+                                                                           ]})
 
     # Guardar
     writer.save()
@@ -131,6 +147,7 @@ def descargar_informes_proceso():
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descagar_informes_produccion')
 def descargar_informes_produccion():
@@ -151,14 +168,15 @@ def descargar_informes_produccion():
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Fecha firma': convenio.fecha_documento,
             'Nro Resolución': convenio.nro_resolucion,
             'Fecha Resolución': convenio.fecha_resolucion
         }
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
-    
+
     # Ordenar tabla
     convenios_df.sort_values(by='Institución', ignore_index=True, inplace=True)
     # Índice desde 1
@@ -166,7 +184,8 @@ def descargar_informes_produccion():
     # Convertir a Excel
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios en producción', startrow=2, index=False)
+    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios en producción', startrow=2,
+                                        index=False)
     # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Convenios en producción']
@@ -176,14 +195,14 @@ def descargar_informes_produccion():
     # Formato de tabla
     worksheet.add_table(f'A3:F{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Fecha firma'},
-                                    {'header': 'Nro Resolución'},
-                                    {'header': 'Fecha Resolución'}
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Fecha firma'},
+                                     {'header': 'Nro Resolución'},
+                                     {'header': 'Fecha Resolución'}
+                                     ]})
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
@@ -192,10 +211,93 @@ def descargar_informes_produccion():
 
     return response
 
+
+@descargas.route("/descargar_entregas_ge")
+def descargar_entregas_ge():
+    # Obtener entregas por GE
+    entregas_query = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1,
+                                                       EntregaConvenio.metodo == "Gabiente Electrónico",
+                                                       EntregaConvenio.periodicidad != "Ocurrencia",
+                                                       EntregaConvenio.periodicidad != "A pedido")).all()
+
+    # Crear data frame con la tabla a descargar
+    entregas_df = pd.DataFrame({
+        'Institución': pd.Series(dtype='str'),
+        'Convenio': pd.Series(dtype='str'),
+        "Mes envío": pd.Series(dtype='str'),
+        'Nombre entrega': pd.Series(dtype='str'),
+        'Nombre archivo': pd.Series(dtype='str'),
+        'Requiere nómina': pd.Series(dtype='str'),
+        "Mes nro": pd.Series(dtype="int")
+    })
+
+    # Recorrer convenios en producción
+    for entrega in entregas_query:
+        # Crear diccionario con fila a insertar
+        fila = {
+            'Institución': entrega.convenio.institucion.sigla,
+            'Convenio': generar_nombre_convenio(entrega.convenio),
+            'Nombre entrega': entrega.nombre,
+            'Nombre archivo': entrega.archivo,
+            "Requiere nómina": "Sí" if entrega.id_nomina else "No"
+        }
+        # Mes de envío
+        periodicidad = entrega.periodicidad.split("-")
+        if "Mensual" in periodicidad:
+            # Agregar una fila por cada mes
+            for nro, mes in MESES_LARGO.items():
+                fila["Mes envío"] = mes
+                fila["Mes nro"] = int(nro)
+                entregas_df = pd.concat([entregas_df, pd.DataFrame([fila])], ignore_index=True)
+        else:
+            for mes in periodicidad:
+                fila["Mes envío"] = MESES_LARGO[mes]
+                fila["Mes nro"] = int(mes)
+                entregas_df = pd.concat([entregas_df, pd.DataFrame([fila])], ignore_index=True)
+
+    # Ordenar tabla
+    entregas_df.sort_values(by=["Mes nro", "Institución"], ignore_index=True, inplace=True)
+    entregas_df.drop("Mes nro", axis=1, inplace=True)
+
+    # Índice desde 1
+    entregas_df.index += 1
+    # Convertir a Excel
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    entregas_df.reset_index().to_excel(excel_writer=writer, sheet_name='Entregas GE', startrow=2,
+                                        index=False)
+    # Escribir texto en la primera fila
+    workbook = writer.book
+    worksheet = writer.sheets['Entregas GE']
+    texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
+    bold = workbook.add_format({'bold': True})
+    worksheet.write(0, 0, texto, bold)
+    # Formato de tabla
+    worksheet.add_table(f'A3:G{len(entregas_df.index) + 3}',
+                        {'style': 'Table Style Medium 1',
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Mes envío'},
+                                     {'header': 'Nombre entrega'},
+                                     {'header': 'Nombre archivo'},
+                                     {'header': 'Requiere nómina'}
+                                     ]})
+    # Guardar
+    writer.save()
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = f"attachment; filename=entregas_GE_{date.today()}.xlsx"
+    response.headers["Content-type"] = "application/x-xls"
+
+    return response
+
+
 @descargas.route('/descargar_informes_otros')
 def descargar_informes_otros():
     # Obtener otros convenios
-    convenios_query = Convenio.query.filter(and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
+    convenios_query = Convenio.query.filter(
+        and_(Convenio.estado != 'En proceso', Convenio.estado != 'En producción')).all()
     # Crear data frame con la tabla a descargar
     convenios_df = pd.DataFrame({
         'Institución': pd.Series(dtype='str'),
@@ -207,12 +309,13 @@ def descargar_informes_otros():
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Estado': convenio.estado
         }
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
-    
+
     # Ordenar tabla
     convenios_df.sort_values(by='Institución', ignore_index=True, inplace=True)
     # Índice desde 1
@@ -221,7 +324,7 @@ def descargar_informes_otros():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Otros convenios', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Otros convenios']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -230,12 +333,12 @@ def descargar_informes_otros():
     # Formato de tabla
     worksheet.add_table(f'A3:D{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Estado'}
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Estado'}
+                                     ]})
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
@@ -244,12 +347,13 @@ def descargar_informes_otros():
 
     return response
 
+
 @descargas.route('/descargar_informes_institucion')
 def descargar_informes_institucion():
     # Obtener convenios
     convenios_query = Convenio.query.all()
     # Calcular información de cada institución
-    instituciones= {}
+    instituciones = {}
     for convenio in convenios_query:
         # Convenios en producción o en proceso
         if convenio.estado == 'En producción' or convenio.estado == 'En proceso':
@@ -258,7 +362,7 @@ def descargar_informes_institucion():
                 try:
                     instituciones[convenio.institucion.sigla][convenio.tipo] += 1
                 except KeyError:
-                    try: 
+                    try:
                         instituciones[convenio.institucion.sigla][convenio.tipo] = 1
                     except:
                         instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
@@ -272,20 +376,21 @@ def descargar_informes_institucion():
                         instituciones[convenio.institucion.sigla]["por_firmar"] = 1
                     except KeyError:
                         instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
-                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1                     
-        # Otros convenios
+                        instituciones[convenio.institucion.sigla]["por_firmar"] = 1
+                        # Otros convenios
         else:
             try:
                 instituciones[convenio.institucion.sigla]['otros'] += 1
             except KeyError:
-                try: 
+                try:
                     instituciones[convenio.institucion.sigla]['otros'] = 1
                 except KeyError:
                     instituciones[convenio.institucion.sigla] = {'id_institucion': convenio.id_institucion}
                     instituciones[convenio.institucion.sigla]['otros'] = 1
-    
+
         # Agregar recepciones
-        recepciones = RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_convenio == convenio.id, RecepcionConvenio.estado == 1)).count()
+        recepciones = RecepcionConvenio.query.filter(
+            and_(RecepcionConvenio.id_convenio == convenio.id, RecepcionConvenio.estado == 1)).count()
         try:
             instituciones[convenio.institucion.sigla]['recepciones'] += recepciones
         except KeyError:
@@ -328,7 +433,6 @@ def descargar_informes_institucion():
                                                     'Recepciones',
                                                     'WebServices'])
 
-
     # Ordenar tabla
     instituciones_df.sort_values(by='Institución', ignore_index=True, inplace=True)
     # Índice desde 1
@@ -336,8 +440,9 @@ def descargar_informes_institucion():
     # Convertir a Excel
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    instituciones_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios por institución', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    instituciones_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios por institución', startrow=2,
+                                            index=False)
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Convenios por institución']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -346,17 +451,17 @@ def descargar_informes_institucion():
     # Formato de tabla
     worksheet.add_table(f'A3:I{len(instituciones_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Sigla'},
-                                    {'header': 'Convenios'},
-                                    {'header': 'Addendum'},
-                                    {'header': 'Por firmar'},
-                                    {'header': 'Otros'},
-                                    {'header': 'Recepciones'},
-                                    {'header': 'WebServices'},
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Sigla'},
+                                     {'header': 'Convenios'},
+                                     {'header': 'Addendum'},
+                                     {'header': 'Por firmar'},
+                                     {'header': 'Otros'},
+                                     {'header': 'Recepciones'},
+                                     {'header': 'WebServices'},
+                                     ]})
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
@@ -364,6 +469,7 @@ def descargar_informes_institucion():
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descargar_bitacora_proceso')
 def descargar_bitacora_proceso():
@@ -378,32 +484,33 @@ def descargar_bitacora_proceso():
         'Próxima tarea': pd.Series(dtype='str'),
         'Plazo': pd.Series(dtype='datetime64[ns]'),
         'Coord': pd.Series(dtype='str'),
-         'Sup': pd.Series(dtype='str')
-         })
+        'Sup': pd.Series(dtype='str')
+    })
     # Recorrer convenios en proceso
     for convenio in convenios_query:
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Coord': obtener_iniciales(convenio.coord_sii.nombre),
             'Sup': obtener_iniciales(convenio.sup_sii.nombre)
         }
         # Obtener última observación
         observacion_query = BitacoraAnalista.query.filter(and_(BitacoraAnalista.id_convenio == convenio.id,
-                                                                BitacoraAnalista.estado != 'Eliminado')).order_by(
-                                                                    BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
+                                                               BitacoraAnalista.estado != 'Eliminado')).order_by(
+            BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
         fila['Última observación'] = observacion_query.observacion
-        fila['Fecha observación'] = observacion_query.fecha                                                                
+        fila['Fecha observación'] = observacion_query.fecha
         # Obtener próxima tarea
         tarea_query = BitacoraTarea.query.filter(
             and_(BitacoraTarea.id_convenio == convenio.id, BitacoraTarea.estado == 'Pendiente')).order_by(
-                BitacoraTarea.plazo.asc(), BitacoraTarea.timestamp.asc()).first()
+            BitacoraTarea.plazo.asc(), BitacoraTarea.timestamp.asc()).first()
         fila['Próxima tarea'] = tarea_query.tarea if tarea_query != None else None
-        fila['Plazo'] = tarea_query.plazo if  tarea_query != None else None
+        fila['Plazo'] = tarea_query.plazo if tarea_query != None else None
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
-    
+
     # Ordenar tabla
     convenios_df.sort_values(by='Institución', ignore_index=True, inplace=True)
     # Índice desde 1
@@ -412,7 +519,7 @@ def descargar_bitacora_proceso():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios en proceso', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Convenios en proceso']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -421,17 +528,17 @@ def descargar_bitacora_proceso():
     # Formato de tabla
     worksheet.add_table(f'A3:I{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Última observación'},
-                                    {'header': 'Fecha observación'},
-                                    {'header': 'Próxima tarea'},
-                                    {'header': 'Plazo'},
-                                    {'header': 'Coord'},
-                                    {'header': 'Sup'},
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Última observación'},
+                                     {'header': 'Fecha observación'},
+                                     {'header': 'Próxima tarea'},
+                                     {'header': 'Plazo'},
+                                     {'header': 'Coord'},
+                                     {'header': 'Sup'},
+                                     ]})
 
     # Guardar
     writer.save()
@@ -440,6 +547,7 @@ def descargar_bitacora_proceso():
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descargar_bitacora_produccion')
 def descargar_bitacora_produccion():
@@ -457,7 +565,8 @@ def descargar_bitacora_produccion():
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Coord': obtener_iniciales(convenio.coord_sii.nombre),
             'Sup': obtener_iniciales(convenio.sup_sii.nombre) if convenio.sup_sii else None
         }
@@ -471,8 +580,9 @@ def descargar_bitacora_produccion():
     # Convertir a Excel
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios en producción', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios en producción', startrow=2,
+                                        index=False)
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Convenios en producción']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -481,20 +591,22 @@ def descargar_bitacora_produccion():
     # Formato de tabla
     worksheet.add_table(f'A3:E{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Coord'},
-                                    {'header': 'Sup'}
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Coord'},
+                                     {'header': 'Sup'}
+                                     ]})
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = f"attachment; filename=bitacora_convenios_en_produccion_{date.today()}.xlsx"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename=bitacora_convenios_en_produccion_{date.today()}.xlsx"
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descargar_bitacora_otros')
 def descargar_bitacora_otros():
@@ -514,7 +626,8 @@ def descargar_bitacora_otros():
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Estado': convenio.estado,
             'Coord': obtener_iniciales(convenio.coord_sii.nombre),
             'Sup': obtener_iniciales(convenio.sup_sii.nombre) if convenio.sup_sii else None
@@ -530,7 +643,7 @@ def descargar_bitacora_otros():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Otros convenios', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Otros convenios']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -539,14 +652,14 @@ def descargar_bitacora_otros():
     # Formato de tabla
     worksheet.add_table(f'A3:F{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Estado'},
-                                    {'header': 'Coord'},
-                                    {'header': 'Sup'}
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Estado'},
+                                     {'header': 'Coord'},
+                                     {'header': 'Sup'}
+                                     ]})
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
@@ -555,13 +668,14 @@ def descargar_bitacora_otros():
 
     return response
 
+
 @descargas.route('/descargar_sd_actual/<int:equipo>')
 def descargar_sd_actual(equipo):
     # Obtener equipo
     equipo_query = Equipo.query.get(equipo)
     # Obtener convenios del equipo para generar datos
     lista_convenios_asociados = [convenio.id_convenio for convenio in
-        SdInvolucrada.query.filter(SdInvolucrada.id_subdireccion == equipo).all()]
+                                 SdInvolucrada.query.filter(SdInvolucrada.id_subdireccion == equipo).all()]
     convenios_query = Convenio.query.filter(Convenio.id.in_(lista_convenios_asociados)).all()
     # Crear data frame con la tabla a descargar
     convenios_df = pd.DataFrame({
@@ -572,23 +686,24 @@ def descargar_sd_actual(equipo):
         'Fecha observación': pd.Series(dtype='datetime64[ns]'),
         'Coord': pd.Series(dtype='str'),
         'Sup': pd.Series(dtype='str')
-         })
+    })
     # Recorrer convenios en proceso
     for convenio in convenios_query:
         # Crear diccionario con fila a insertar
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
             'Estado': convenio.estado,
             'Coord': obtener_iniciales(convenio.coord_sii.nombre),
             'Sup': obtener_iniciales(convenio.sup_sii.nombre) if convenio.sup_sii else None
         }
         # Obtener última observación
         observacion_query = BitacoraAnalista.query.filter(and_(BitacoraAnalista.id_convenio == convenio.id,
-                                                                BitacoraAnalista.estado != 'Eliminado')).order_by(
-                                                                    BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
+                                                               BitacoraAnalista.estado != 'Eliminado')).order_by(
+            BitacoraAnalista.fecha.desc(), BitacoraAnalista.timestamp.desc()).first()
         fila['Última observación'] = observacion_query.observacion
-        fila['Fecha observación'] = observacion_query.fecha                                                                
+        fila['Fecha observación'] = observacion_query.fecha
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
 
@@ -599,8 +714,9 @@ def descargar_sd_actual(equipo):
     # Convertir a Excel
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Estado actual convenios', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Estado actual convenios', startrow=2,
+                                        index=False)
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Estado actual convenios']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -609,24 +725,26 @@ def descargar_sd_actual(equipo):
     # Formato de tabla
     worksheet.add_table(f'A3:H{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Estado'},
-                                    {'header': 'Última observación'},
-                                    {'header': 'Fecha observación'},
-                                    {'header': 'Coord'},
-                                    {'header': 'Sup'},
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Estado'},
+                                     {'header': 'Última observación'},
+                                     {'header': 'Fecha observación'},
+                                     {'header': 'Coord'},
+                                     {'header': 'Sup'},
+                                     ]})
 
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = f"attachment; filename=estado_actual_convenios_{equipo_query.sigla}_{date.today()}.xlsx"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename=estado_actual_convenios_{equipo_query.sigla}_{date.today()}.xlsx"
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descargar_sd_asignados/<int:equipo>')
 def descargar_sd_asignados(equipo):
@@ -634,8 +752,8 @@ def descargar_sd_asignados(equipo):
     equipo_query = Equipo.query.get(equipo)
     # Obtener convenios asignados a la SD
     lista_convenios_asignados = [trayecto.id_convenio for trayecto in
-        TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_equipo == equipo,
-                                            TrayectoriaEquipo.salida == None)).all()]
+                                 TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_equipo == equipo,
+                                                                     TrayectoriaEquipo.salida == None)).all()]
     convenios_query = Convenio.query.filter(Convenio.id.in_(lista_convenios_asignados))
     # Crear data frame con la tabla a descargar
     convenios_df = pd.DataFrame({
@@ -644,24 +762,27 @@ def descargar_sd_asignados(equipo):
         'Días en área': pd.Series(dtype='int'),
         'Etapa actual': pd.Series(dtype='str'),
         'Días en etapa': pd.Series(dtype='int')
-         })
+    })
     # Recorrer convenios en proceso
     for convenio in convenios_query:
         # Crear diccionario con fila a insertar
         etapa_actual = TrayectoriaEtapa.query.filter(and_(TrayectoriaEtapa.id_convenio == convenio.id,
-                                               TrayectoriaEtapa.salida == None)).first()
+                                                          TrayectoriaEtapa.salida == None)).first()
         fila = {
             'Institución': convenio.institucion.sigla,
-            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(convenio.tipo),
-            'Días en área': dias_habiles(TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == convenio.id,
-                                                  TrayectoriaEquipo.salida == None, TrayectoriaEquipo.id_equipo == equipo)).first().ingreso,
-                                   date.today()),
+            'Convenio': (lambda tipo: convenio.nombre if tipo == 'Convenio' else f'(Ad) {convenio.nombre}')(
+                convenio.tipo),
+            'Días en área': dias_habiles(
+                TrayectoriaEquipo.query.filter(and_(TrayectoriaEquipo.id_convenio == convenio.id,
+                                                    TrayectoriaEquipo.salida == None,
+                                                    TrayectoriaEquipo.id_equipo == equipo)).first().ingreso,
+                date.today()),
             'Etapa actual': etapa_actual.etapa.etapa,
             'Días en etapa': dias_habiles(etapa_actual.ingreso, date.today())
-        }                                                             
+        }
         # Agregar fila
         convenios_df = pd.concat([convenios_df, pd.DataFrame([fila])], ignore_index=True)
-    
+
     # Ordenar tabla
     convenios_df.sort_values(by='Institución', ignore_index=True, inplace=True)
     # Índice desde 1
@@ -670,7 +791,7 @@ def descargar_sd_asignados(equipo):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     convenios_df.reset_index().to_excel(excel_writer=writer, sheet_name='Convenios asignados', startrow=2, index=False)
-    #Escribir texto en la primera fila
+    # Escribir texto en la primera fila
     workbook = writer.book
     worksheet = writer.sheets['Convenios asignados']
     texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
@@ -679,30 +800,35 @@ def descargar_sd_asignados(equipo):
     # Formato de tabla
     worksheet.add_table(f'A3:F{len(convenios_df.index) + 3}',
                         {'style': 'Table Style Medium 1',
-                        'autofilter': False,
-                        'columns': [{'header': '#'},
-                                    {'header': 'Institución'},
-                                    {'header': 'Convenio'},
-                                    {'header': 'Días en área'},
-                                    {'header': 'Etapa actual'},
-                                    {'header': 'Días en etapa'}
-                                    ]})
+                         'autofilter': False,
+                         'columns': [{'header': '#'},
+                                     {'header': 'Institución'},
+                                     {'header': 'Convenio'},
+                                     {'header': 'Días en área'},
+                                     {'header': 'Etapa actual'},
+                                     {'header': 'Días en etapa'}
+                                     ]})
 
     # Guardar
     writer.save()
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = f"attachment; filename=convenios_asignados_{equipo_query.sigla}_{date.today()}.xlsx"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename=convenios_asignados_{equipo_query.sigla}_{date.today()}.xlsx"
     response.headers["Content-type"] = "application/x-xls"
 
     return response
+
 
 @descargas.route('/descargar_sd_recepcion/<int:equipo>')
 def descargar_sd_recepcion(equipo):
     # Obtene equipo
     equipo_query = Equipo.query.get(equipo)
     # Obtener recepción de información de la SD
-    recepciones_query = RecepcionConvenio.query.filter(and_(RecepcionConvenio.id_sd == equipo, RecepcionConvenio.estado == True)).all()
-    recepciones = {key: [] for key in ['En línea', 'Diario', 'Semanal', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']}
+    recepciones_query = RecepcionConvenio.query.filter(
+        and_(RecepcionConvenio.id_sd == equipo, RecepcionConvenio.estado == True)).all()
+    recepciones = {key: [] for key in
+                   ['En línea', 'Diario', 'Semanal', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
+                    'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']}
     for recepcion in recepciones_query:
         # Verificar si la recepción es en múltiples meses
         periodicidad = recepcion.periodicidad.split('-') if '-' in recepcion.periodicidad else [recepcion.periodicidad]
@@ -728,7 +854,7 @@ def descargar_sd_recepcion(equipo):
                 'archivo': recepcion.archivo,
                 'metodo': recepcion.metodo
             })
-        if  any(item in ["Mensual", "1"] for item in periodicidad):
+        if any(item in ["Mensual", "1"] for item in periodicidad):
             recepciones['Enero'].append({
                 'institucion': recepcion.convenio.institucion.sigla,
                 'nombre': recepcion.nombre,
@@ -821,11 +947,11 @@ def descargar_sd_recepcion(equipo):
         if datos:
             # Crear dataframe
             recepciones_periodo_df = pd.DataFrame({
-                                        'Institución': pd.Series(dtype='str'),
-                                        'Nombre entrega': pd.Series(dtype='str'),
-                                        'Nombre archivo': pd.Series(dtype='str'),
-                                        'Método': pd.Series(dtype='str')
-                                        })
+                'Institución': pd.Series(dtype='str'),
+                'Nombre entrega': pd.Series(dtype='str'),
+                'Nombre archivo': pd.Series(dtype='str'),
+                'Método': pd.Series(dtype='str')
+            })
             # Recorrer periodo y agregar al df
             for recepcion in datos:
                 fila = {'Institución': recepcion['institucion'],
@@ -834,15 +960,16 @@ def descargar_sd_recepcion(equipo):
                         'Método': recepcion['metodo']
                         }
                 # Agregar fila
-                recepciones_periodo_df = pd.concat([recepciones_periodo_df, pd.DataFrame([fila])], ignore_index=True)          
-            
-            # Ordenar tabla
+                recepciones_periodo_df = pd.concat([recepciones_periodo_df, pd.DataFrame([fila])], ignore_index=True)
+
+                # Ordenar tabla
             recepciones_periodo_df.sort_values(by='Institución', ignore_index=True, inplace=True)
             # Índice desde 1
             recepciones_periodo_df.index += 1
             # Crear hoja con las recepciones del periodo
-            recepciones_periodo_df.reset_index().to_excel(excel_writer=writer, sheet_name=f'{periodo}', startrow=2, index=False)
-            #Escribir texto en la primera fila
+            recepciones_periodo_df.reset_index().to_excel(excel_writer=writer, sheet_name=f'{periodo}', startrow=2,
+                                                          index=False)
+            # Escribir texto en la primera fila
             worksheet = writer.sheets[f'{periodo}']
             texto = f'Nota: Información extraída del Sistema de Convenios el {datetime.today().strftime("%d-%m-%Y a las %H:%M")} - Área de Información Estadística y Tributaria, SDGEET.'
             bold = workbook.add_format({'bold': True})
@@ -850,18 +977,19 @@ def descargar_sd_recepcion(equipo):
             # Formato de tabla
             worksheet.add_table(f'A3:E{len(recepciones_periodo_df.index) + 3}',
                                 {'style': 'Table Style Medium 1',
-                                'autofilter': False,
-                                'columns': [{'header': '#'},
-                                            {'header': 'Institución'},
-                                            {'header': 'Nombre entrega'},
-                                            {'header': 'Nombre archivo'},
-                                            {'header': 'Método'}
-                                            ]})  
+                                 'autofilter': False,
+                                 'columns': [{'header': '#'},
+                                             {'header': 'Institución'},
+                                             {'header': 'Nombre entrega'},
+                                             {'header': 'Nombre archivo'},
+                                             {'header': 'Método'}
+                                             ]})
 
-    # Guardar
+            # Guardar
     writer.save()
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = f"attachment; filename=recepciones_{equipo_query.sigla}_{date.today()}.xlsx"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename=recepciones_{equipo_query.sigla}_{date.today()}.xlsx"
     response.headers["Content-type"] = "application/x-xls"
 
-    return response                    
+    return response
