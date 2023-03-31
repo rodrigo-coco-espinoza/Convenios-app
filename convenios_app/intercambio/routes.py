@@ -7,6 +7,8 @@ from convenios_app.models import (Convenio, Institucion, SdInvolucrada, Bitacora
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app import db
 from sqlalchemy import and_, or_
+from convenios_app.intercambio.forms import ValidadorForm
+from convenios_app.intercambio.utils import Archivo
 from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum, \
@@ -136,6 +138,7 @@ def generar_recepciones_sftp_mes():
 
     elif "enviarCorreos" in request.form:
         return redirect(url_for("intercambio.enviar_correos_ie"))
+
 
 @intercambio.route('/enviar_correos_ie')
 @login_required
@@ -440,3 +443,23 @@ def entregas_ge():
     entregas_ge["noviembre"].sort(key=lambda dict: dict["institucion"])
     entregas_ge["diciembre"].sort(key=lambda dict: dict["institucion"])
     return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_ge)
+
+
+@intercambio.route("/validador", methods=["GET", "POST"])
+def validador():
+
+    validador_form = ValidadorForm()
+
+    if validador_form.validate_on_submit():
+        nombre_archivo = validador_form.archivo.data.filename
+        archivo_subido = request.files[validador_form.archivo.name]
+        archivo = Archivo(nombre_archivo, archivo_subido, validador_form.separador.data)
+        validacion_data = {
+                "nombreArchivo": nombre_archivo,
+                "rutPorTramos": archivo.rut_por_tramos(),
+                "validacionArchivo": archivo.validacion_archivo(),
+        }
+        print(validacion_data)
+        return render_template("intercambio/validador_resultados.html", validacion_data=validacion_data)
+
+    return render_template("intercambio/validador.html", validador_form=validador_form)
