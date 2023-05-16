@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+
+<form enctype="multipart/form-data" method="post" novalidate>
+    {{ validador_form.hidden_tag() }}
+    {{ validador_form.separador(class="form-control") }}
+    {{ validador_form.archivo(class="form-control", type="file") }}
+    {{ validador_form.submit(class="btn btn-outline-success") }}
+
+</form>
+
+{% endblock content %}

@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block content %}
+{{ JSGlue.include() }}
+
+Resultados para archivo: {{ validacion_data.nombreArchivo }}
+<br>
+<h4>Rut por tramos</h4>
+<table class="table mb-3">
+    <thead class="table-dark">
+        <tr>
+          <th scope="col"></th>
+          <th scope="col">Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tramo in validacion_data.rutPorTramos %}
+            <tr>
+                <td>{{ tramo[0] }}</td>
+                <td>{{ tramo[1] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4>Validación del archivo</h4>
+<table class="table mb-3 mx-auto">
+    <thead class="table-dark">
+        <tr>
+          <th scope="col"></th>
+          <th scope="col">Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for campo, valor in validacion_data.validacionArchivo.items() %}
+            <tr>
+                <td>{{ campo }}</td>
+                <td>{{ valor }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

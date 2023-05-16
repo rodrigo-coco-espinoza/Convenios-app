@@ -6,130 +6,197 @@
   changeActive('#recepcionSFTP')
 </script>
 
-<form action="{{ url_for('intercambio.generar_recepciones_sftp_mes') }}" method="POST" class="mb-5">
-    <div class="form-group">
-        <p>Seleccione mes para generar las recepciones por SFTP del año en curso.</p>
-        <div class="row">
-            <div class="col-lg-4">
-                <select class="form-select" name="mesSelect" id="">
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
-                </select>
+<!-- Formulario para generar recepciones -->
+{% if current_user.is_authenticated %}
+{% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+<div class="card mb-5 shadow">
+    <div class="card-body">
+        <form action="{{ url_for('intercambio.generar_recepciones_sftp_mes') }}" method="POST" class="mb-5">
+            <div class="form-group">
+                <p>Seleccione mes para generar las recepciones por SFTP del año en curso.</p>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <select class="form-select" name="mesSelect">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 px-0">
+                        <button type="submit" class="btn btn-primary ms-0" name="generarRecepciones">Generar</button>
+                        <button class="btn btn-primary" name="enviarCorreos"><i class="fa-regular fa-envelope"></i></button>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-4 px-0">
-                <button type="submit" class="btn btn-primary ms-0" name="generarRecepciones">Generar</button>
-                <button class="btn btn-primary" name="enviarCorreos"><i class="fa-regular fa-envelope"></i></button>
-            </div>
+        </form>
 
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Tabs con tablas de recepciones -->
+<nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-pendientes-tab" data-bs-toggle="tab" data-bs-target="#navPendientes" type="button"
+                role="tab" aria-controls="nav-pendientes" aria-selected="true">Pendientes
+        </button>
+        <button class="nav-link" id="nav-validacion-tab" data-bs-toggle="tab" data-bs-target="#navValidacion" type="button"
+                role="tab" aria-controls="nav-validacion" aria-selected="false">Por validar
+        </button>
+        <button class="nav-link" id="nav-observados-tab" data-bs-toggle="tab" data-bs-target="#navObservados" type="button"
+                role="tab" aria-controls="nav-observados" aria-selected="false">Observados
+        </button>
+    </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+    <!-- Tabla archivos pendientes -->
+    <div class="tab-pane fade show active" id="navPendientes" role="tabpanel" aria-labelledby="nav-pendientes-tab" tabindex="0">
+        <div class="">
+            <p class="mb-3">Archivos pendientes de recepción por SFTP.</p>
+            <div>
+                <table class="table" id="recepcionesPendientes">
+                    <thead class="table-dark">
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Institución</th>
+                          <th scope="col">Título</th>
+                          <th scope="col">Archivo</th>
+                          <th scope="col">Fecha</th>
+                          <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <form action="{{ url_for('intercambio.recepcion_sftp') }}" method="POST">
+                        {% for recepcion in recepciones_data %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ recepcion.institucion }}</td>
+                                <td>{{ recepcion.titulo }}</td>
+                                <td>{{ recepcion.archivo }}</td>
+                                <td>{{ recepcion.fecha }}</td>
+                                {% if current_user.is_authenticated %}
+                                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                        <td><input type="checkbox" name="recibido_checkbox" value="{{ recepcion.recepcion_id }}"></td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mb-4">
+                <button name="pendientes" type=submit class="btn btn-outline-success btn-sm">Enviar archivos a validación</button>
+            </div>
+            </form>
         </div>
     </div>
-</form>
-
-<div class="container">
-    <legend class="border-bottom mb-3">Archivos pendientes de recepción por SFTP</legend>
-    <div style="overflow: auto; max-height: 500px">
-    <table class="table" id="recepcionesPendientes">
-        <thead class="table-dark">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Institución</th>
-              <th scope="col">Título</th>
-              <th scope="col">Archivo</th>
-              <th scope="col">Fecha</th>
-              <th scope="col"></th>
-            </tr>
-        </thead>
-        <tbody>
-    <form action="{{ url_for('intercambio.recepcion_sftp') }}", method="POST">
-            {% for recepcion in recepciones_data %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ recepcion.institucion }}</td>
-                    <td>{{ recepcion.titulo }}</td>
-                    <td>{{ recepcion.archivo }}</td>
-                    <td>{{ recepcion.fecha }}</td>
-                    <td><input type="checkbox" name="recibido_checkbox" value="{{ recepcion.recepcion_id }}"></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="tab-pane fade" id="navValidacion" role="tabpanel" aria-labelledby="nav-validacion-tab" tabindex="0">
+        <div class="">
+            <p class="mb-3">Información pendiente de validación.</p>
+            <div style="overflow: auto; max-height: 500px">
+                <table class="table" id="">
+                <thead class="table-dark">
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Institución</th>
+                      <th scope="col">Título</th>
+                      <th scope="col">Archivo</th>
+                      <th class="text-center" scope="col">Fecha</th>
+                      <th class="text-center" scope="col">Revisa</th>
+                      {% if current_user.is_authenticated %}
+                        <th class="text-center" scope="col">Aprueba</th>
+                        <th class="text-center" scope="col">Observa</th>
+                     {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="{{ url_for('intercambio.recepcion_sftp') }}" method="POST">
+                    {% for archivo in informacion_por_validar %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ archivo.institucion }}</td>
+                            <td>{{ archivo.titulo }}</td>
+                            <td>{{ archivo.archivo }}</td>
+                            <td class="text-center">{{ archivo.fecha }}</td>
+                            <td class="text-center">{{ archivo.revisa }}</td>
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.permisos == 'Admin' or current_user.persona.equipo.sigla == archivo.revisa %}
+                                    <td class="text-center"><input type="checkbox" name="aprobado_checkbox" value="{{ archivo.id }}"></td>          
+                                    <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.observar_archivo', id_archivo=archivo.id)}}"><i class="fa-solid fa-triangle-exclamation"></i></a></td>
+                                {% else %}
+                                    <td></td>
+                                    <td></td>
+                                {% endif %}
+                            {% endif %}
+                                
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <div class="text-center mb-4">
+                <button name="aprobar" type=submit class="btn btn-outline-success btn-sm">Aprobar archivos</button>
+            </div>
+        </form>
         </div>
-    <div class="text-center mb-4">
-    <button type=submit class="btn btn-outline-success btn-sm">Enviar archivos a validación</button>
     </div>
-    </form>
+    <div class="tab-pane fade" id="navObservados" role="tabpanel" aria-labelledby="nav-observados-tab" tabindex="0">
+        <div>
+            <p class="mb-3">Archivos observados.</p>
+            <div style="overflow: auto; max-height: 500px">
+                <table class="table">
+                    <thead class="table-dark">
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Institución</th>
+                          <th scope="col">Título</th>
+                          <th scope="col">Archivo</th>
+                          <th  class="text-center" scope="col">Fecha</th>
+                          <th scope="col">Observación</th>
+                          {% if current_user.is_authenticated %}
+                                {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                    <th  class="text-center" scope="col">Recibido</th>
+                                {% endif %}
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for archivo in informacion_observada %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ archivo.institucion }}</td>
+                                <td>{{ archivo.titulo }}</td>
+                                <td>{{ archivo.archivo }}</td>
+                                <td  class="text-center">{{ archivo.fecha }}</td>
+                                <td>{{ archivo.observacion }}</td>
+                                {% if current_user.is_authenticated %}
+                                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                    <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.recibir_corregido', id_archivo=archivo.id)}}"><i class="fa-solid fa-rotate-right" /></a></td>
+                                    {% endif %}
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="container mb-4">
-    <legend class="border-bottom mb-3">Información pendiente de validación</legend>
-    <div style="overflow: auto; max-height: 500px">
-        <table class="table" id="">
-        <thead class="table-dark">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Institución</th>
-              <th scope="col">Título</th>
-              <th scope="col">Archivo</th>
-              <th scope="col">Fecha</th>
-              <th scope="col">Revisa</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for archivo in informacion_por_validar %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ archivo.institucion }}</td>
-                    <td>{{ archivo.titulo }}</td>
-                    <td>{{ archivo.archivo }}</td>
-                    <td>{{ archivo.fecha }}</td>
-                    <td>{{ archivo.revisa }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </div>
-</div>
 
-<div class="container">
-    <legend class="border-bottom mb-3">Archivos observados</legend>
-        <div style="overflow: auto; max-height: 500px">
-        <table class="table">
-        <thead class="table-dark">
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Institución</th>
-              <th scope="col">Título</th>
-              <th scope="col">Archivo</th>
-              <th scope="col">Fecha</th>
-              <th scope="col">Observación</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for archivo in informacion_observada %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ archivo.institucion }}</td>
-                    <td>{{ archivo.titulo }}</td>
-                    <td>{{ archivo.archivo }}</td>
-                    <td>{{ archivo.fecha }}</td>
-                    <td>{{ archivo.observacion }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </div>
 
-</div>
+
+
 
 <script>
 $('#recepcionesPendientes').DataTable();
