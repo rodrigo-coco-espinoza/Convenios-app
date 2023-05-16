@@ -181,7 +181,7 @@
                                 <td>{{ archivo.observacion }}</td>
                                 {% if current_user.is_authenticated %}
                                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
-                                    <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.recibir_corregido', id_archivo=archivo.id)}}"><i class="fa-solid fa-triangle-exclamation" /></a></td>
+                                    <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.recibir_corregido', id_archivo=archivo.id)}}"><i class="fa-solid fa-rotate-right" /></a></td>
                                     {% endif %}
                                 {% endif %}
                             </tr>
