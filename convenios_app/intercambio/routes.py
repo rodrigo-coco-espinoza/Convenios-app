@@ -44,11 +44,9 @@ intercambio = Blueprint('intercambio', __name__)
 
 
 @intercambio.route('/recepcion_sftp', methods=['GET', 'POST'])
-@login_required
-@analista_only
 def recepcion_sftp():
     # Obtener las recepciones pendientes
-    recepciones_query = RecepcionesSFTP.query.filter(RecepcionesSFTP.recibido == 0).all()
+    recepciones_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 0, RecepcionesSFTP.validado == None)).all()
     recepciones_data = [
         {
             "recepcion_id": recepcion.id,
@@ -63,6 +61,7 @@ def recepcion_sftp():
     informacion_por_validar_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == None)).all()
     informacion_por_validar = [
         {
+            "id": archivo.id,
             "institucion": archivo.recepcion.convenio.institucion.sigla,
             "titulo": archivo.recepcion.nombre,
             "archivo": archivo.recepcion.archivo,
@@ -70,11 +69,13 @@ def recepcion_sftp():
             "revisa": archivo.recepcion.sd.sigla
         }
         for archivo in informacion_por_validar_query]
+    informacion_por_validar.sort(key=lambda dict: dict["revisa"])
 
     # Obtener archivos observados
     informacion_observada_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == 0)).all()
     informacion_observada = [
         {
+            "id": archivo.id,
             "institucion": archivo.recepcion.convenio.institucion.sigla,
             "titulo": archivo.recepcion.nombre,
             "archivo": archivo.recepcion.archivo,
@@ -84,20 +85,56 @@ def recepcion_sftp():
         for archivo in informacion_observada_query]
 
     if request.method == "POST":
-        archivos_recibidos = request.form.getlist("recibido_checkbox")
-        for archivo in archivos_recibidos:
-            recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
-            recepcion_por_editar.recibido = 1
-            recepcion_por_editar.id_autor_recibido = current_user.id
-            recepcion_por_editar.timestamp_recibido = datetime.today()
-        db.session.commit()
-
-        #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
+        # Enviar archivos a validación
+        if "pendientes" in request.form:
+            archivos_recibidos = request.form.getlist("recibido_checkbox")
+            for archivo in archivos_recibidos:
+                recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
+                recepcion_por_editar.recibido = 1
+                recepcion_por_editar.id_autor_recibido = current_user.id
+                recepcion_por_editar.timestamp_recibido = datetime.today()
+            db.session.commit()
+            flash("Archivos actualizados correctamente", "success")
+            #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
+        
+        # Aprobar archivos
+        if "aprobar" in request.form:
+            archivos_aprobados = request.form.getlist("aprobado_checkbox")
+            for archivo in archivos_aprobados:
+                archivo_por_aprobar = RecepcionesSFTP.query.get(archivo)
+                archivo_por_aprobar.validado = 1
+                archivo_por_aprobar.id_autor_validado = current_user.id
+                archivo_por_aprobar.timestamp_validado = datetime.today()
+            db.session.commit()
+            flash("Archivos actualizados correctamente", "success")
 
         return redirect(url_for("intercambio.recepcion_sftp"))
 
     return render_template("intercambio/recepcion_sftp.html", recepciones_data=recepciones_data,
                            informacion_por_validar=informacion_por_validar, informacion_observada=informacion_observada)
+
+
+
+@intercambio.route('/observar_archivo/<int:id_archivo>')
+@login_required
+def observar_archivo(id_archivo):
+    archivo_por_observar = RecepcionesSFTP.query.get(id_archivo)
+    archivo_por_observar.validado = 0
+    db.session.commit()
+    flash("Archivo actualizado correctamente", "success")
+    return redirect(url_for("intercambio.recepcion_sftp"))    
+
+@intercambio.route("/recibir_corregido/<int:id_archivo>")
+@login_required
+@analista_only
+def recibir_corregido(id_archivo):
+    archivo_corregido = RecepcionesSFTP.query.get(id_archivo)
+    archivo_corregido.validado = None
+    archivo_corregido.recibido = 1
+    db.session.commit()
+    flash("Archivo actualizado correctamente", "success")
+    return redirect(url_for("intercambio.recepcion_sftp"))
+
 
 
 @intercambio.route('/generar_recepciones_sftp_mes', methods=['GET', 'POST'])
@@ -459,7 +496,6 @@ def validador():
                 "rutPorTramos": archivo.rut_por_tramos(),
                 "validacionArchivo": archivo.validacion_archivo(),
         }
-        print(validacion_data)
         return render_template("intercambio/validador_resultados.html", validacion_data=validacion_data)
 
     return render_template("intercambio/validador.html", validador_form=validador_form)
