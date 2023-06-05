@@ -19,22 +19,23 @@ import locale
 from itertools import groupby
 import win32com.client as win32
 import pythoncom
+from copy import deepcopy
 
 from pprint import pprint
 
 MESES = {
-    "1": "enero",
-    "2": "febrero",
-    "3": "marzo",
-    "4": "abril",
-    "5": "mayo",
-    "6": "junio",
-    "7": "julio",
-    "8": "agosto",
-    "9": "septiembre",
-    "10": "octubre",
-    "11": "noviembre",
-    "12": "diciembre"
+    1: "enero",
+    2: "febrero",
+    3: "marzo",
+    4: "abril",
+    5: "mayo",
+    6: "junio",
+    7: "julio",
+    8: "agosto",
+    9: "septiembre",
+    10: "octubre",
+    11: "noviembre",
+    12: "diciembre"
 }
 
 
@@ -45,73 +46,149 @@ intercambio = Blueprint('intercambio', __name__)
 
 @intercambio.route('/recepcion_sftp', methods=['GET', 'POST'])
 def recepcion_sftp():
-    # Obtener las recepciones pendientes
-    recepciones_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 0, RecepcionesSFTP.validado == None)).all()
-    recepciones_data = [
-        {
-            "recepcion_id": recepcion.id,
-            "institucion": recepcion.recepcion.convenio.institucion.sigla,
-            "titulo": recepcion.recepcion.nombre,
-            "archivo": recepcion.recepcion.archivo,
-            "fecha": f"{datetime.strptime(str(recepcion.mes), '%m').strftime('%B')}/{recepcion.ano}",
-        }
-        for recepcion in recepciones_query]
+    # Obtener todas las recepciones de los últimos 3 años
+    inicio_periodo = datetime.now().year - 2
+    recepciones_query = RecepcionesSFTP.query.filter(RecepcionesSFTP.ano >= inicio_periodo).all()
 
-    # Obtener los archivos pendientes de validación
-    informacion_por_validar_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == None)).all()
-    informacion_por_validar = [
-        {
-            "id": archivo.id,
-            "institucion": archivo.recepcion.convenio.institucion.sigla,
-            "titulo": archivo.recepcion.nombre,
-            "archivo": archivo.recepcion.archivo,
-            "fecha": f"{datetime.strptime(str(archivo.mes), '%m').strftime('%B')}/{archivo.ano}",
-            "revisa": archivo.recepcion.sd.sigla
-        }
-        for archivo in informacion_por_validar_query]
-    informacion_por_validar.sort(key=lambda dict: dict["revisa"])
+    # Crear la estructura de los datos
+    data_structure = {
+        'pendientes': [],
+        'por_validar': [],
+        'observados': [],
+        'validados': []
+    }
+    
 
-    # Obtener archivos observados
-    informacion_observada_query = RecepcionesSFTP.query.filter(and_(RecepcionesSFTP.recibido == 1, RecepcionesSFTP.validado == 0)).all()
-    informacion_observada = [
-        {
-            "id": archivo.id,
-            "institucion": archivo.recepcion.convenio.institucion.sigla,
-            "titulo": archivo.recepcion.nombre,
-            "archivo": archivo.recepcion.archivo,
-            "fecha": f"{datetime.strptime(str(archivo.mes), '%m').strftime('%B')}/{archivo.ano}",
-            "observacion": f"{archivo.recepcion.sd.sigla}: {archivo.observacion}"
-        }
-        for archivo in informacion_observada_query]
+    recepciones_data = {str(ano): {str(mes.capitalize()): {}  for mes in MESES.values() } for ano in range(inicio_periodo, datetime.now().year + 1) }
 
-    if request.method == "POST":
-        # Enviar archivos a validación
-        if "pendientes" in request.form:
-            archivos_recibidos = request.form.getlist("recibido_checkbox")
-            for archivo in archivos_recibidos:
-                recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
-                recepcion_por_editar.recibido = 1
-                recepcion_por_editar.id_autor_recibido = current_user.id
-                recepcion_por_editar.timestamp_recibido = datetime.today()
-            db.session.commit()
-            flash("Archivos actualizados correctamente", "success")
-            #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
+    # Llenar con los datos
+    for recepcion in recepciones_query:
+        # Datos para llenar el diccionario
+        id_recepcion = recepcion.id
+        institucion = recepcion.recepcion.convenio.institucion.sigla
+        archivo = recepcion.recepcion.archivo
+        ano_recepcion = str(recepcion.ano)
+        mes_recepcion = str(MESES[recepcion.mes].capitalize())
+        titulo = recepcion.recepcion.nombre
+        link = "http://"
+        fecha = f"{datetime.strptime(str(recepcion.mes), '%m').strftime('%B')}/{recepcion.ano}"
+        sd_revisa = recepcion.recepcion.sd.sigla
+
+        if recepcion.validado == 1: 
+            # Agregar si ya existe la institución
+            try:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["validados"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha
+                })
+            # Añadir institución y agregar recepción
+            except KeyError:
+                 recepciones_data[ano_recepcion][mes_recepcion][institucion] = deepcopy(data_structure)
+                 recepciones_data[ano_recepcion][mes_recepcion][institucion]["validados"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha
+                })
+                                 
+        elif recepcion.recibido == 0 and recepcion.validado == None:
+            try:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["pendientes"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                })
+            except KeyError:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion] = deepcopy(data_structure)
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["pendientes"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                })
+
+        elif recepcion.recibido == 1 and recepcion.validado == None:
+            try:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["por_validar"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                    "revisa": sd_revisa
+                    })
+            except KeyError:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion] = deepcopy(data_structure)
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["por_validar"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                    "revisa": sd_revisa
+                    })
+                
+        elif recepcion.recibido == 1 and recepcion.validado == 0:
+            try:        
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["observados"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                    "observacion": f"{recepcion.recepcion.sd.sigla}: {recepcion.observacion}"              
+                })
+            except KeyError:
+                recepciones_data[ano_recepcion][mes_recepcion][institucion] = deepcopy(data_structure)
+                recepciones_data[ano_recepcion][mes_recepcion][institucion]["observados"].append({
+                    "id": id_recepcion,
+                    "institucion": institucion,
+                    "titulo": titulo,
+                    "archivo": archivo,
+                    "link": link,
+                    "fecha": fecha,
+                    "observacion": f"{recepcion.recepcion.sd.sigla}: {recepcion.observacion}"              
+                })
+    # if request.method == "POST":
+    #     # Enviar archivos a validación
+    #     if "pendientes" in request.form:
+    #         archivos_recibidos = request.form.getlist("recibido_checkbox")
+    #         for archivo in archivos_recibidos:
+    #             recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
+    #             recepcion_por_editar.recibido = 1
+    #             recepcion_por_editar.id_autor_recibido = current_user.id
+    #             recepcion_por_editar.timestamp_recibido = datetime.today()
+    #         db.session.commit()
+    #         flash("Archivos actualizados correctamente", "success")
+    #         #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
         
-        # Aprobar archivos
-        if "aprobar" in request.form:
-            archivos_aprobados = request.form.getlist("aprobado_checkbox")
-            for archivo in archivos_aprobados:
-                archivo_por_aprobar = RecepcionesSFTP.query.get(archivo)
-                archivo_por_aprobar.validado = 1
-                archivo_por_aprobar.id_autor_validado = current_user.id
-                archivo_por_aprobar.timestamp_validado = datetime.today()
-            db.session.commit()
-            flash("Archivos actualizados correctamente", "success")
+    # #     # Aprobar archivos
+    # #     if "aprobar" in request.form:
+    # #         archivos_aprobados = request.form.getlist("aprobado_checkbox")
+    # #         for archivo in archivos_aprobados:
+    # #             archivo_por_aprobar = RecepcionesSFTP.query.get(archivo)
+    # #             archivo_por_aprobar.validado = 1
+    # #             archivo_por_aprobar.id_autor_validado = current_user.id
+    # #             archivo_por_aprobar.timestamp_validado = datetime.today()
+    # #         db.session.commit()
+    # #         flash("Archivos actualizados correctamente", "success")
 
-        return redirect(url_for("intercambio.recepcion_sftp"))
-
-    return render_template("intercambio/recepcion_sftp.html", recepciones_data=recepciones_data,
-                           informacion_por_validar=informacion_por_validar, informacion_observada=informacion_observada)
+    # #     return redirect(url_for("intercambio.recepcion_sftp"))
+    return render_template("intercambio/recepcion_sftp.html", data_recepciones=recepciones_data)
 
 
 
