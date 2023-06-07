@@ -110,7 +110,6 @@ function changeEtiquetaInstitucion(selected){
     
     
   });
-
   // Cambiar color de la institución seleccionada
   selected.classList.remove("text-secondary");
   selected.classList.add("text-dark");

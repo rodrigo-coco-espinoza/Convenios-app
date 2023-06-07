@@ -9,7 +9,7 @@ from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.intercambio.forms import ValidadorForm
 from convenios_app.intercambio.utils import Archivo
-from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad
+from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad, SHAREPOINT_SITE, SHAREPOINT_DOC
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum, \
     convenio_cuenta, por_firmar, otros
@@ -70,7 +70,7 @@ def recepcion_sftp():
         ano_recepcion = str(recepcion.ano)
         mes_recepcion = str(MESES[recepcion.mes].capitalize())
         titulo = recepcion.recepcion.nombre
-        link = "http://"
+        link = f"{SHAREPOINT_SITE}/{SHAREPOINT_DOC}/{institucion}"
         fecha = f"{datetime.strptime(str(recepcion.mes), '%m').strftime('%B')}/{recepcion.ano}"
         sd_revisa = recepcion.recepcion.sd.sigla
 
@@ -163,31 +163,32 @@ def recepcion_sftp():
                     "fecha": fecha,
                     "observacion": f"{recepcion.recepcion.sd.sigla}: {recepcion.observacion}"              
                 })
-    # if request.method == "POST":
-    #     # Enviar archivos a validación
-    #     if "pendientes" in request.form:
-    #         archivos_recibidos = request.form.getlist("recibido_checkbox")
-    #         for archivo in archivos_recibidos:
-    #             recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
-    #             recepcion_por_editar.recibido = 1
-    #             recepcion_por_editar.id_autor_recibido = current_user.id
-    #             recepcion_por_editar.timestamp_recibido = datetime.today()
-    #         db.session.commit()
-    #         flash("Archivos actualizados correctamente", "success")
-    #         #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
-        
-    # #     # Aprobar archivos
-    # #     if "aprobar" in request.form:
-    # #         archivos_aprobados = request.form.getlist("aprobado_checkbox")
-    # #         for archivo in archivos_aprobados:
-    # #             archivo_por_aprobar = RecepcionesSFTP.query.get(archivo)
-    # #             archivo_por_aprobar.validado = 1
-    # #             archivo_por_aprobar.id_autor_validado = current_user.id
-    # #             archivo_por_aprobar.timestamp_validado = datetime.today()
-    # #         db.session.commit()
-    # #         flash("Archivos actualizados correctamente", "success")
 
-    # #     return redirect(url_for("intercambio.recepcion_sftp"))
+    if request.method == "POST":
+        # Enviar archivos a validación
+        if "pendientes" in request.form:
+            archivos_recibidos = request.form.getlist("recibido_checkbox")
+            for archivo in archivos_recibidos:
+                recepcion_por_editar = RecepcionesSFTP.query.get(archivo)
+                recepcion_por_editar.recibido = 1
+                recepcion_por_editar.id_autor_recibido = current_user.id
+                recepcion_por_editar.timestamp_recibido = datetime.today()
+            db.session.commit()
+            flash("Archivos actualizados correctamente", "success")
+            #TODO: ENVIAR CORREO A SUBDIRECCIONES PARA QUE REVISEN LA INFORMACIÓN
+        
+        # Aprobar archivos
+        if "aprobar" in request.form:
+            archivos_aprobados = request.form.getlist("aprobado_checkbox")
+            for archivo in archivos_aprobados:
+                archivo_por_aprobar = RecepcionesSFTP.query.get(archivo)
+                archivo_por_aprobar.validado = 1
+                archivo_por_aprobar.id_autor_validado = current_user.id
+                archivo_por_aprobar.timestamp_validado = datetime.today()
+            db.session.commit()
+            flash("Archivos actualizados correctamente", "success")
+
+        return redirect(url_for("intercambio.recepcion_sftp"))
     return render_template("intercambio/recepcion_sftp.html", data_recepciones=recepciones_data)
 
 

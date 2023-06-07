@@ -103,7 +103,205 @@
                         {% for institucion, data_institucion in data_mes.items()|sort(attribute='0') %}
                             <div class="">
                                 <a id="" class="etiqueta-institucion simple-link" href="#id_{{institucion}}_{{mes}}_{{ano}}" data-bs-toggle="collapse" aria-expanded="false" aria-controls="id_{{institucion}}_{{mes}}_{{ano}}"><h5 class="text-secondary">{{institucion}}</h5></a>    
-                                <div class="collapse" id="id_{{institucion}}_{{mes}}_{{ano}}">Data {{institucion}} {{mes}} {{ano}}</div>                     
+                                <div class="collapse" id="id_{{institucion}}_{{mes}}_{{ano}}">
+                                    <!-- PESTAÑAS -->
+                                    <nav>
+                                        <div class="nav nav-tabs" id="nav-tab-{{mes}}-{{ano}}" role="tablist">
+                                            <!-- Pestaña pendientes-->
+                                            <button class="nav-link {{ '' if current_user.permisos == 'Subdirección'  else 'active' }}" id="nav-tab-pendientes-{{institucion}}-{{mes}}-{{ano}}" data-bs-toggle="tab" data-bs-target="#nav-pendientes-{{institucion}}-{{mes}}-{{ano}}" type="button" role="tab" aria-controls="nav-pendientes-{{institucion}}-{{mes}}-{{ano}}" aria-selected="{{ 'false' if current_user.permisos == 'Subdirección'  else 'true' }}">Pendientes
+                                            </button>
+                                            <!-- Pestaña por validar -->
+                                            <button class="nav-link {{ 'active' if current_user.permisos == 'Subdirección'  else '' }}" id="nav-tab-porValidar-{{institucion}}-{{mes}}-{{ano}}" data-bs-toggle="tab" data-bs-target="#nav-porValidar-{{institucion}}-{{mes}}-{{ano}}" type="button" role="tab" aria-controls="nav-porValidar-{{institucion}}-{{mes}}-{{ano}}" aria-selected="{{ 'true' if current_user.permisos == 'Subdirección'  else 'false' }}">Por validar
+                                            </button>
+                                            <!-- Pestaña observados  -->
+                                            <button class="nav-link" id="nav-tab-observados-{{institucion}}-{{mes}}-{{ano}}" data-bs-toggle="tab" data-bs-target="#nav-observados-{{institucion}}-{{mes}}-{{ano}}" type="button" role="tab" aria-controls="nav-observados-{{institucion}}-{{mes}}-{{ano}}" aria-selected="false">Observados
+                                            </button>
+                                            <!-- Pestaña Validados  -->
+                                            <button class="nav-link" id="nav-tab-validados-{{institucion}}-{{mes}}-{{ano}}" data-bs-toggle="tab" data-bs-target="#nav-validados-{{institucion}}-{{mes}}-{{ano}}" type="button" role="tab" aria-controls="nav-validados-{{institucion}}-{{mes}}-{{ano}}" aria-selected="false">Validados
+                                            </button>                                      
+                                        </div>
+                                    </nav>
+                                    <!-- TABLAS -->
+                                    <div class="tab-content mb-5" id="nav-tab-content-{{institucion}}-{{mes}}-{{ano}}">
+
+                                        <!-- Tabla arhivos pendientes -->
+                                        <div class="tab-pane fade show {{ '' if current_user.permisos == 'Subdirección'  else 'active' }}" id="nav-pendientes-{{institucion}}-{{mes}}-{{ano}}" role="tabpanel" aria-labelledby="nav-tab-pendientes-{{institucion}}-{{mes}}-{{ano}}" tabindex="0">
+                                            <div>
+                                                <table class="table" id="recepciones-pendientes-{{institucion}}-{{mes}}-{{ano}}">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">Título entrega</th>
+                                                            <th scope="col">Nombre archivo</th>
+                                                            <th scope="col">Fecha</th>
+                                                            {% if current_user.is_authenticated %}
+                                                                <th class="text-center" scope="col">Ver carpeta</th>
+                                                            {% endif %}
+                                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                <th scope='col'></th>
+                                                            {% endif %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <form action="{{ url_for('intercambio.recepcion_sftp') }}" method="POST">
+                                                        {% for recepcion in data_institucion.pendientes %}
+                                                            <tr>
+                                                                <td>{{ loop.index }}</td>
+                                                                <td>{{ recepcion.titulo }}</td>
+                                                                <td>{{ recepcion.archivo }}</td>
+                                                                <td>{{ recepcion.fecha }}</td>
+                                                                {% if current_user.is_authenticated %}
+                                                                    <td class="text-center"><a class="simple-link" target="_blank" href="{{recepcion.link}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a></td>
+                                                                {% endif %}
+                                                                {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                    <td class="text-center"><input type="checkbox" name="recibido_checkbox" value="{{ recepcion.id }}"></td>
+                                                                {% endif %}
+                                                            </tr>
+                                                        {% endfor %}
+
+                                                    </tbody>
+                                                </table>
+                                                </div>
+                                                {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista'  %}
+                                                    <div class="text-center mb-3">
+                                                    <button name="pendientes" type='submit' class="btn btn-outline-success btn-sm">Enviar archivos a validación</button>
+                                                    </div>
+                                                {% endif %}
+                                                        </form>
+                                            </div>
+
+                                        <!-- Tabla arhivos por validar -->
+                                        <div class="tab-pane fade show {{ 'active' if current_user.permisos == 'Subdirección'  else '' }}" id="nav-porValidar-{{institucion}}-{{mes}}-{{ano}}" role="tabpanel" aria-labelledby="nav-tab-porValidar-{{institucion}}-{{mes}}-{{ano}}" tabindex="0">
+                                            <div>
+                                                <table class="table" id="recepciones-porValidar--{{institucion}}-{{mes}}-{{ano}}">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">Título entrega</th>
+                                                            <th scope="col">Nombre archivo</th>
+                                                            <th scope="col">Fecha</th>
+                                                            {% if current_user.is_authenticated %}
+                                                                <th class="text-center" scope="col">Ver carpeta</th>
+                                                            {% endif %}
+                                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                <th scope="col">Revisa</th>
+                                                            {% endif %}
+                                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Subdirección' %}
+                                                                <th class="text-center" scope="col">Aprueba</th>
+                                                                <th class="text-center" scope="col">Observa</th>
+                                                            {% endif %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <form action="{{ url_for('intercambio.recepcion_sftp') }}" method="POST">
+                                                        {% for recepcion in data_institucion.por_validar %}
+                                                        {% if current_user.is_authenticated %}
+                                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analistsa' or current_user.persona.equipo.sigla == recepcion.revisa %}
+                                                                <tr>
+                                                                    <td>{{ loop.index }}</td>
+                                                                    <td>{{ recepcion.titulo }}</td>
+                                                                    <td>{{ recepcion.archivo }}</td>
+                                                                    <td>{{ recepcion.fecha }}</td>
+                                                                    {% if current_user.is_authenticated %}
+                                                                        <td class="text-center"><a class="simple-link" target="_blank" href="{{recepcion.link}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a></td>
+                                                                    {% endif %}
+                                                                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                        <td class="text-center">{{ recepcion.revisa }}</td>
+                                                                    {% endif %}
+                                                                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Subdirección' %}
+                                                                        <td class="text-center"><input type="checkbox" name="aprobado_checkbox" value="{{ recepcion.id }}"></td>
+                                                                        <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.observar_archivo', id_archivo=recepcion.id) }}"><i class="fa-solid fa-triangle-exclamation" /></a></td>
+                                                                    {% endif %}
+                                                                </tr>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Subdirección' %}
+                                                <div class="text-center mb-4">
+                                                    <button name="aprobar" type=submit class="btn btn-outline-success btn-sm">Aprobar archivos</button>
+                                                </div>
+                                            {% endif %}
+                                                        </form>
+                                        </div>
+                                        <!-- Tabla arhivos observados -->
+                                        <div class="tab-pane fade show" id="nav-observados-{{institucion}}-{{mes}}-{{ano}}" role="tabpanel" aria-labelledby="nav-tab-observados-{{institucion}}-{{mes}}-{{ano}}" tabindex="0">
+                                            <div>
+                                                <table class="table" id="recepciones-observados-{{institucion}}-{{mes}}-{{ano}}">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">Título entrega</th>
+                                                            <th scope="col">Nombre archivo</th>
+                                                            <th scope="col">Fecha</th>
+                                                            {% if current_user.is_authenticated %}
+                                                                <th class="text-center" scope="col">Ver carpeta</th>
+                                                            {% endif %}
+                                                            <th scope"col">Observación</th>
+                                                            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                <th scope='col'></th>
+                                                            {% endif %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for recepcion in data_institucion.observados %}
+                                                            <tr>
+                                                                <td>{{ loop.index }}</td>
+                                                                <td>{{ recepcion.titulo }}</td>
+                                                                <td>{{ recepcion.archivo }}</td>
+                                                                <td>{{ recepcion.fecha }}</td>
+                                                                {% if current_user.is_authenticated %}
+                                                                    <td class="text-center"><a class="simple-link" target="_blank" href="{{recepcion.link}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a></td>
+                                                                {% endif %}
+                                                                <td>{{recepcion.observacion}}</td>
+                                                                {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                                                                    <td class="text-center"><a class="simple-link" href="{{ url_for('intercambio.recibir_corregido', id_archivo=recepcion.id)}}"><i class="fa-solid fa-rotate-right" /></a></td>
+                                                                {% endif %}
+                                                            </tr>
+                                                        {% endfor %}
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <!-- Tabla arhivos validados -->
+                                        <div class="tab-pane fade show" id="nav-validados-{{institucion}}-{{mes}}-{{ano}}" role="tabpanel" aria-labelledby="nav-tab-validados-{{institucion}}-{{mes}}-{{ano}}" tabindex="0">
+                                            <div>
+                                                <table class="table" id="recepciones-validados--{{institucion}}-{{mes}}-{{ano}}">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">Título entrega</th>
+                                                            <th scope="col">Nombre archivo</th>
+                                                            <th scope="col">Fecha</th>
+                                                            {% if current_user.is_authenticated %}
+                                                                <th class="text-center" scope="col">Ver carpeta</th>
+                                                            {% endif %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <form action="{{ url_for('intercambio.recepcion_sftp') }}" method="POST">
+                                                        {% for recepcion in data_institucion.validados %}
+                                                            <tr>
+                                                                <td>{{ loop.index }}</td>
+                                                                <td>{{ recepcion.titulo }}</td>
+                                                                <td>{{ recepcion.archivo }}</td>
+                                                                <td>{{ recepcion.fecha }}</td>
+                                                                {% if current_user.is_authenticated %}
+                                                                    <td class="text-center"><a class="simple-link" target="_blank" href="{{recepcion.link}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a></td>
+                                                                {% endif %}
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                </div>                     
                             </div>
 
                         {% endfor %}
