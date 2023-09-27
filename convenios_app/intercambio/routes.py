@@ -3,13 +3,13 @@ from flask import render_template, request, Blueprint, url_for, redirect, flash,
 from flask_login import current_user, login_required
 from convenios_app.models import (Convenio, Institucion, SdInvolucrada, BitacoraAnalista, TrayectoriaEtapa,
                                   TrayectoriaEquipo,
-                                  HitosConvenio, RecepcionConvenio, WSConvenio, EntregaConvenio, RecepcionesSFTP)
+                                  HitosConvenio, RecepcionConvenio, WSConvenio, EntregaConvenio, RecepcionesSFTP, RegistroEntregas)
 from convenios_app.users.utils import admin_only, analista_only
 from convenios_app import db
 from sqlalchemy import and_, or_
 from convenios_app.intercambio.forms import ValidadorForm
-from convenios_app.intercambio.utils import Archivo
-from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad, SHAREPOINT_SITE, SHAREPOINT_DOC
+from convenios_app.intercambio.utils import Archivo, separar_periodicidad
+from convenios_app.bitacoras.utils import dias_habiles, formato_periodicidad, SHAREPOINT_SITE, SHAREPOINT_DOC, obtener_iniciales
 from convenios_app.main.utils import generar_nombre_convenio, ID_EQUIPOS, COLORES_ETAPAS, COLORES_EQUIPOS
 from convenios_app.informes.utils import obtener_etapa_actual_dias, obtener_equipos_actual_dias, adendum, \
     convenio_cuenta, por_firmar, otros
@@ -403,9 +403,10 @@ def enviar_correos_ie():
     return redirect(url_for("intercambio.recepcion_sftp"))
 
 
-@intercambio.route("/entregas_ge")
+@intercambio.route("/entregas_ge", methods=["GET", "POST"])
 def entregas_ge():
-    entregas_ge = {
+    # Obtener los años registados en la base de datos
+    entregas_pendientes = {
         "enero": [],
         "febrero": [],
         "marzo": [],
@@ -419,145 +420,398 @@ def entregas_ge():
         "noviembre": [],
         "diciembre": []
     }
-    entregas_ge_query = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1,
-                                                          EntregaConvenio.metodo == "Gabiente Electrónico")).all()
-    for entrega in entregas_ge_query:
-        periodicidad = entrega.periodicidad.split("-")
-        if "1" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["enero"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "2" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["febrero"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "3" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["marzo"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "4" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["abril"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "5" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["mayo"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "6" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["junio"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "7" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["julio"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "8" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["agosto"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "9" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["septiembre"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "10" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["octubre"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "11" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["noviembre"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
-        if "12" in periodicidad or "Mensual" in periodicidad:
-            entregas_ge["diciembre"].append({
-                "institucion": entrega.convenio.institucion.sigla,
-                "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
-                "link_convenio": entrega.convenio.link_resolucion,
-                "entrega": entrega.nombre,
-                "archivo": entrega.archivo,
-                "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
-                "link_pt": entrega.convenio.institucion.link_protocolo
-            })
 
-    # Ordenar tablas
-    entregas_ge["enero"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["febrero"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["marzo"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["abril"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["mayo"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["junio"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["julio"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["agosto"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["septiembre"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["octubre"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["noviembre"].sort(key=lambda dict: dict["institucion"])
-    entregas_ge["diciembre"].sort(key=lambda dict: dict["institucion"])
-    return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_ge)
+    entregas_pendientes_query = RegistroEntregas.query.filter(and_(RegistroEntregas.entregado == 0, RegistroEntregas.gabinete == None)).all()
+    
+    # Completar datos con entregas pendientes
+    for entrega in entregas_pendientes_query: 
+        # Cambiar por match con python 3.10
+        if entrega.mes == 1:
+            entregas_pendientes["enero"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 2:
+            entregas_pendientes["febrero"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 3:
+            entregas_pendientes["marzo"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 4:
+            entregas_pendientes["abril"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 5:
+            entregas_pendientes["mayo"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 6:
+            entregas_pendientes["junio"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 7:
+            entregas_pendientes["julio"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 8:
+            entregas_pendientes["agosto"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 9:
+            entregas_pendientes["septiembre"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 10:
+            entregas_pendientes["octubre"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 11:
+            entregas_pendientes["noviembre"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                })
+        elif entrega.mes == 12:
+            entregas_pendientes["diciembre"].append(
+                {"id_entrega": entrega.id,
+                 "institucion": entrega.entrega.convenio.institucion.sigla,
+                 "ano": entrega.ano,
+                 "link_resolucion":  entrega.entrega.convenio.link_resolucion,
+                 "nombre": entrega.entrega.nombre,
+                 "archivo": entrega.entrega.archivo,
+                 "nomina": "C/Nom" if entrega.entrega.id_nomina else "S/Nom",
+                "encargado": obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre),
+                "link_pt": entrega.entrega.convenio.institucion.link_protocolo
+                }) 
+    
+    # Asignar entregas a GE
+    if request.method == "POST":
+        numero_ge = next((item for item in request.form.getlist("numero_ge") if item != ""), None)
+        entregas = request.form.getlist("entrega_asignada")
+        
+        for entrega in entregas:
+            asignar_ge = RegistroEntregas.query.get(entrega)
+            asignar_ge.gabinete = numero_ge
+        
+        db.session.commit()
+        flash(f"Se han asignado {len(entregas)} archivos al Gabinete Electrónico {numero_ge}", "success")
+        return redirect(url_for("intercambio.entregas_ge"))
+    return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_pendientes)
+
+@intercambio.route("/generar_entregas_ge", methods=["POST"]) 
+def generar_entregas_ge():
+    año = date.today().year
+    mes = request.form.get("mesSelect")
+    if mes == '0':
+        # Extraer entregas por generar
+        periodicidades_excluidas = ["A pedido", "Diario", "Semanal", "Ocurrencia"]
+
+        entregas_generadas = [entrega.id_entrega for entrega in RegistroEntregas.query.filter(RegistroEntregas.ano == año).all()]
+        entregas_por_generar = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1, EntregaConvenio.metodo == "Gabiente Electrónico", EntregaConvenio.id.not_in(entregas_generadas), EntregaConvenio.periodicidad.not_in(periodicidades_excluidas))).all()
+
+        num_entregas = 0
+
+        # Generar entregas de todo el año
+        for entrega in entregas_por_generar:
+            if entrega.periodicidad == "Mensual":
+                for i in range(1, 13):
+                    nueva_entrega = RegistroEntregas(
+                        id_entrega=entrega.id,
+                        ano=año,
+                        mes=i
+                    )
+                    num_entregas += 1
+                    db.session.add(nueva_entrega)
+            else:
+                meses_por_agregar = separar_periodicidad(entrega.periodicidad)
+                for m in meses_por_agregar:
+                    nueva_entrega = RegistroEntregas(
+                        id_entrega=entrega.id,
+                        ano=año,
+                        mes=m
+                    )
+                    num_entregas += 1
+                    db.session.add(nueva_entrega)
+        
+        if num_entregas > 0:
+            flash(f"Se han generado {num_entregas} nuevas entregas.", "success")
+        else:
+            flash(f"No hay entregas nuevas por generar", "warning")
+
+    else:
+        # Generar entregas del mes
+        entregas_generadas = [entrega.id_entrega for entrega in RegistroEntregas.query.filter(and_(RegistroEntregas.mes == mes, RegistroEntregas.ano == año)).all()]
+        if mes == "1":
+            # Restricciones especiales para enero
+            entregas_por_generar = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1, EntregaConvenio.metodo == "Gabiente Electrónico", EntregaConvenio.id.not_in(entregas_generadas), or_(EntregaConvenio.periodicidad == "Mensual", EntregaConvenio.periodicidad == "1", and_(EntregaConvenio.periodicidad.contains("1-"), ~EntregaConvenio.periodicidad.contains("11"))))).all()
+        elif mes == "2": 
+            # Restricciones especiales para febrero
+            entregas_por_generar = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1,
+                                                         EntregaConvenio.metodo == "Gabiente Electrónico", or_(EntregaConvenio.periodicidad == "2", EntregaConvenio.periodicidad.contains("-2"), EntregaConvenio.periodicidad.contains("2-"), EntregaConvenio.periodicidad == "Mensual"), EntregaConvenio.id.not_in(entregas_generadas))).all()
+            
+        else:
+            entregas_por_generar = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1, EntregaConvenio.metodo == "Gabiente Electrónico", or_(EntregaConvenio.periodicidad.contains(mes), EntregaConvenio.periodicidad == "Mensual"), EntregaConvenio.id.not_in(entregas_generadas))).all()
+
+        # Generar las entregas en la BD
+        for entrega in entregas_por_generar:
+            nueva_entrega = RegistroEntregas(
+                id_entrega=entrega.id,
+                ano=año,
+                mes=mes             
+            )
+            db.session.add(nueva_entrega)
+        if len(entregas_por_generar) > 0:
+            flash(f"Se han generado {len(entregas_por_generar)} nuevas entregas.", "success")
+        else:
+            flash(f"No hay entregas nuevas por generar", "warning")
+    
+    db.session.commit()
+   
+    return redirect(url_for("intercambio.entregas_ge"))
+
+# @intercambio.route("/entregas_ge")
+# def entregas_ge():
+#     entregas_ge = {
+#         "enero": [],
+#         "febrero": [],
+#         "marzo": [],
+#         "abril": [],
+#         "mayo": [],
+#         "junio": [],
+#         "julio": [],
+#         "agosto": [],
+#         "septiembre": [],
+#         "octubre": [],
+#         "noviembre": [],
+#         "diciembre": []
+#     }
+#     entregas_ge_query = EntregaConvenio.query.filter(and_(EntregaConvenio.estado == 1,
+#                                                           EntregaConvenio.metodo == "Gabiente Electrónico")).all()
+#     for entrega in entregas_ge_query:
+#         periodicidad = entrega.periodicidad.split("-")
+#         if "1" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["enero"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "encargado": entrega.convenio.coordinador_sii
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "2" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["febrero"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "3" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["marzo"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "4" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["abril"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "5" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["mayo"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "6" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["junio"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "7" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["julio"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "8" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["agosto"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "9" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["septiembre"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "10" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["octubre"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "11" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["noviembre"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+#         if "12" in periodicidad or "Mensual" in periodicidad:
+#             entregas_ge["diciembre"].append({
+#                 "institucion": entrega.convenio.institucion.sigla,
+#                 "convenio": entrega.convenio.nombre if entrega.convenio.tipo == "Convenio" else f"(Ad) {entrega.convenio.nombre}",
+#                 "link_convenio": entrega.convenio.link_resolucion,
+#                 "entrega": entrega.nombre,
+#                 "archivo": entrega.archivo,
+#                 "nomina": "Requiere nómina" if entrega.id_nomina else "Sin nómina",
+#                 "link_pt": entrega.convenio.institucion.link_protocolo
+#             })
+
+#     # Ordenar tablas
+#     entregas_ge["enero"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["febrero"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["marzo"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["abril"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["mayo"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["junio"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["julio"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["agosto"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["septiembre"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["octubre"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["noviembre"].sort(key=lambda dict: dict["institucion"])
+#     entregas_ge["diciembre"].sort(key=lambda dict: dict["institucion"])
+#     return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_ge)
 
 
 @intercambio.route("/validador", methods=["GET", "POST"])

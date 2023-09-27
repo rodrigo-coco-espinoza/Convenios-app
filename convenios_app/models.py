@@ -180,6 +180,26 @@ class NominaEntrega(db.Model):
     institucion = db.relationship('Institucion', foreign_keys=[id_institucion])
 
 
+class RegistroEntregas(db.Model):
+    """
+    Representa las entregas mensuales pendientes y realizadas.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    id_entrega = db.Column(db.Integer, db.ForeignKey('entrega_convenio.id'), nullable=False)
+    entrega = db.relationship('EntregaConvenio', foreign_keys=[id_entrega])
+
+    ano = db.Column(db.Integer, nullable=False)
+    mes = db.Column(db.Integer, nullable=False)
+
+    gabinete = db.Column(db.String(), nullable=True)
+
+    entregado = db.Column(db.Boolean, nullable=False, default=0)
+    id_autor_entregado = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    autor_entregado = db.relationship("User", foreign_keys=[id_autor_entregado])
+    timestamp_entregado = db.Column(db.DateTime, nullable=True, default=datetime.today())
+
+
 class HitosConvenio(db.Model):
     """
     Registra los del proceso convenio

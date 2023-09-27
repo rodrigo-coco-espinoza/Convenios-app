@@ -7,6 +7,14 @@ from sqlalchemy import and_, or_
 import pandas as pd
 
 
+def separar_periodicidad(str_meses):
+    if '-' in str_meses or str_meses.isnumeric():
+        meses_num = str_meses.split('-')
+        periodo = []
+        for num in meses_num:
+            periodo.append(int(num))
+        return periodo
+
 class Archivo:
     """
     Crea un objeto archivo con la información en un DataFrame. Los métodos se utilizan para generar las filas de las distintas tablas.
