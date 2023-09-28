@@ -405,6 +405,7 @@ def enviar_correos_ie():
 
 @intercambio.route("/entregas_ge", methods=["GET", "POST"])
 def entregas_ge():
+    # ENTREGAS PENDIENTES POR GE
     # Obtener los años registados en la base de datos
     entregas_pendientes = {
         "enero": [],
@@ -571,11 +572,32 @@ def entregas_ge():
                 "link_pt": entrega.entrega.convenio.institucion.link_protocolo
                 }) 
     
+    # Ordenar entregas
+    for mes, datos in entregas_pendientes.items():
+        datos.sort(key=lambda x: x["institucion"])
+
     # Asignar entregas a GE
     if request.method == "POST":
         numero_ge = next((item for item in request.form.getlist("numero_ge") if item != ""), None)
         entregas = request.form.getlist("entrega_asignada")
-        
+
+        # Comprobar que las entregas pertenzcan a una sola institución
+        if db.session.query(Convenio.id_institucion).join(EntregaConvenio).join(RegistroEntregas).filter(RegistroEntregas.id.in_(entregas)).distinct().count() > 1:
+            
+            flash("No se ha asignado el GE: ha seleccionado archivos de diferentes instituciones", "danger")
+            return redirect(url_for("intercambio.entregas_ge"))
+
+        # Si se agrega una entrega a un GE existente, comprobar que sea de la misma institución
+        ge_generado = RegistroEntregas.query.filter(RegistroEntregas.gabinete == numero_ge).first()
+        if ge_generado:
+            for entrega in entregas:
+                entrega_a_comprobar = RegistroEntregas.query.get(entrega)
+                if entrega_a_comprobar.entrega.convenio.id_institucion != ge_generado.entrega.convenio.id_institucion:
+                    flash("No se ha asigando el GE. Ha seleccionado un archivo pertenenciente a otra institución", "danger")
+                    return redirect(url_for("intercambio.entregas_ge"))
+
+
+        # Asignar GE a las entregas
         for entrega in entregas:
             asignar_ge = RegistroEntregas.query.get(entrega)
             asignar_ge.gabinete = numero_ge
@@ -583,7 +605,63 @@ def entregas_ge():
         db.session.commit()
         flash(f"Se han asignado {len(entregas)} archivos al Gabinete Electrónico {numero_ge}", "success")
         return redirect(url_for("intercambio.entregas_ge"))
-    return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_pendientes)
+    
+    # GABINETES ELECTRÓNICOS ABIERTOS
+    # Obtener gabinetes electrónicos abiertos
+    ge_query = db.session.query(RegistroEntregas.gabinete).filter(and_(RegistroEntregas.entregado == 0, RegistroEntregas.gabinete != None)).distinct().all()
+    
+    # Diccionario con los ge y sus archivos
+    ge_abiertos = {nro_ge[0]: {"archivos": []} for nro_ge in ge_query}
+
+    # Obtener todas las entregas que tengan un GE asignado
+    entregas_con_ge_query = RegistroEntregas.query.filter(and_(RegistroEntregas.entregado == 0, RegistroEntregas.gabinete != None)).all()
+
+    for entrega in entregas_con_ge_query:
+        # Agregar institución
+        if "institucion" not in ge_abiertos[entrega.gabinete]:
+            ge_abiertos[entrega.gabinete]["institucion"] = entrega.entrega.convenio.institucion.sigla
+        # Agregar encargado
+        if "encargado" not in ge_abiertos[entrega.gabinete]:
+            ge_abiertos[entrega.gabinete]["encargado"] = obtener_iniciales(entrega.entrega.convenio.coord_sii.nombre)
+        # Agregar link PT
+        if "link_sharepoint" not in ge_abiertos[entrega.gabinete]:
+            ge_abiertos[entrega.gabinete]["link_sharepoint"] = f"{SHAREPOINT_SITE}/{SHAREPOINT_DOC}/{entrega.entrega.convenio.institucion.sigla}"
+        
+        # Agregar datos de la entrega
+        ge_abiertos[entrega.gabinete]["archivos"].append({
+            "id_archivo": entrega.id,
+            "nombre_entrega": entrega.entrega.nombre,
+            "nombre_archivo": entrega.entrega.archivo,
+            })
+
+
+
+    return render_template("intercambio/entregas_ge.html", entregas_ge=entregas_pendientes, ge_abiertos=ge_abiertos)
+
+
+@intercambio.route("/eliminar_entrega_ge/<int:id_entrega>")
+def eliminar_entrega_ge(id_entrega):
+    # Buscar entrega en la BBDD y eliminar el número de GE
+
+    entrega = RegistroEntregas.query.get(id_entrega)
+    flash(f"Se ha eliminado la entrega '{entrega.entrega.archivo}' del GE{entrega.gabinete}", "success")
+    entrega.gabinete = None
+    db.session.commit()
+
+    return redirect(url_for("intercambio.entregas_ge"))
+
+@intercambio.route("/entregar_ge/<int:nro_ge>")
+def entregar_ge(nro_ge):
+    # Buscar entregas asignadas al GE y cambiar estado a enviado
+    entregas = RegistroEntregas.query.filter(RegistroEntregas.gabinete == nro_ge).all()
+
+    for entrega in entregas:
+        entrega.entregado = 1
+    db.session.commit()
+
+    flash(f"Se han enviado {len(entregas)} archivos en el GE{nro_ge}", "success")
+    return redirect(url_for("intercambio.entregas_ge"))
+
 
 @intercambio.route("/generar_entregas_ge", methods=["POST"]) 
 def generar_entregas_ge():
