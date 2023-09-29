@@ -632,6 +632,7 @@ def entregas_ge():
             "id_archivo": entrega.id,
             "nombre_entrega": entrega.entrega.nombre,
             "nombre_archivo": entrega.entrega.archivo,
+            "mes_entrega": f"{MESES[entrega.mes]}/{entrega.ano}"
             })
 
 

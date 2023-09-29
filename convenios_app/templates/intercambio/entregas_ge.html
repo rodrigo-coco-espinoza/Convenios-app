@@ -431,8 +431,9 @@
           {% for archivo in data.archivos %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td>{{ archivo.nombre_entrega }}</td>
+              <td>{{ archivo.nombre_entrega }}</td>            
               <td>{{ archivo.nombre_archivo }}</td>
+              <td>{{ archivo.mes_entrega }}</td>
               {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
               <td><a class="float-end" href="{{ url_for('intercambio.eliminar_entrega_ge', id_entrega=archivo.id_archivo) }}"><i class="gray fas fa-trash"></i></a></td>
               {% endif %}
