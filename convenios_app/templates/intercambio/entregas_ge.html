@@ -6,253 +6,443 @@
   changeActive('#entregasGE')
 </script>
 
+<!-- Formulario para generar entregas -->
+
+{% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+<div class="card mb-5 shadow">
+    <div class="card-body">
+        <form action="{{ url_for('intercambio.generar_entregas_ge') }}" method="POST" class="mb-5">
+            <div class="form-group">
+                <p>Seleccione para generar las entregas por GE del año en curso.</p>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <select class="form-select" name="mesSelect">
+                            <option value="0">Anual</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 px-0">
+                        <button type="submit" class="btn btn-primary ms-0" name="generarEntregas">Generar</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endif %}
+
 
 <div class="container">
     <h3 class=" text-center text-uppercase mt-0 mb-4">
-      Calendario de entregas por Gabinete Electrónico <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_entregas_ge') }}"><i class="fa-solid fa-file-excel"></i></a>
+      Entregas pendientes por Gabinete Electrónico <a class="simple-link push-right pe-1" href="{{ url_for('descargas.descargar_entregas_ge') }}"><i class="fa-solid fa-file-excel"></i></a>
     </h3>
-    <div class="timeline timeline-left mx-lg-10">
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#enero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="enero">Enero</a></div>
-        <div class="container mt-3 collapse" id="enero">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.enero %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}" class="">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+    <form novalidate method="POST">
+      <div class="timeline timeline-left mx-lg-10">
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#enero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="enero">Enero</a></div>
+          <div class="container mt-3 collapse" id="enero">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.enero %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#febrero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="febrero">Febrero</a></div>
+          <div class="container mt-3 collapse" id="febrero">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.febrero %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#marzo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="marzo">Marzo</a></div>
+          <div class="container mt-3 collapse" id="marzo">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.marzo %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#abril" data-bs-toggle="collapse" aria-expanded="false" aria-controls="abril">Abril</a></div>
+          <div class="container mt-3 collapse" id="abril">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.abril %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#mayo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="mayo">Mayo</a></div>
+          <div class="container mt-3 collapse" id="mayo">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.mayo %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#junio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="junio">Junio</a></div>
+          <div class="container mt-3 collapse" id="junio">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.junio %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#julio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="julio">Julio</a></div>
+          <div class="container mt-3 collapse" id="julio">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.julio %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#agosto" data-bs-toggle="collapse" aria-expanded="false" aria-controls="agosto">Agosto</a></div>
+          <div class="container mt-3 collapse" id="agosto">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.agosto %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#septiembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="septiembre">Septiembre</a></div>
+          <div class="container mt-3 collapse" id="septiembre">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.septiembre %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#octubre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="octubre">Octubre</a></div>
+          <div class="container mt-3 collapse" id="octubre">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.octubre %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#noviembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="noviembre">Noviembre</a></div>
+          <div class="container mt-3 collapse" id="noviembre">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.noviembre %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="timeline-breaker"><a class="simple-link" href="#diciembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="diciembre">Diciembre</a></div>
+          <div class="container mt-3 collapse" id="diciembre">
+            <table class="table table-striped">
+              <tbody>
+                {% for entrega in entregas_ge.diciembre %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ entrega.institucion }}</td>
+                    <td>{{ entrega.ano }}</td>
+                    <td>{{ entrega.nombre }}</td>
+                    <td>{{ entrega.archivo }}</td>
+                    <td>{{ entrega.nomina }}</td>
+                    <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
+                    <td>{{ entrega.encargado }}</td>
+                    {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+                      <td class="text-center"><input type="checkbox" name="entrega_asignada" value="{{ entrega.id_entrega }}"></td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <div class="text-center mb-4">
+                <input name="numero_ge" class="form-control-sm" type="text" placeholder="Ingrese número de GE">
+                <button name="asignar_ge" type="submit" class="btn btn-outline-success btn-sm">Asignar GE</button>
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#febrero" data-bs-toggle="collapse" aria-expanded="false" aria-controls="febrero">Febrero</a></div>
-        <div class="container mt-3 collapse" id="febrero">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.febrero %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#marzo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="marzo">Marzo</a></div>
-        <div class="container mt-3 collapse" id="marzo">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.marzo %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#abril" data-bs-toggle="collapse" aria-expanded="false" aria-controls="abril">Abril</a></div>
-        <div class="container mt-3 collapse" id="abril">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.abril %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#mayo" data-bs-toggle="collapse" aria-expanded="false" aria-controls="mayo">Mayo</a></div>
-        <div class="container mt-3 collapse" id="mayo">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.mayo %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#junio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="junio">Junio</a></div>
-        <div class="container mt-3 collapse" id="junio">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.junio %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#julio" data-bs-toggle="collapse" aria-expanded="false" aria-controls="julio">Julio</a></div>
-        <div class="container mt-3 collapse" id="julio">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.julio %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#agosto" data-bs-toggle="collapse" aria-expanded="false" aria-controls="agosto">Agosto</a></div>
-        <div class="container mt-3 collapse" id="agosto">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.agosto %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#septiembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="septiembre">Septiembre</a></div>
-        <div class="container mt-3 collapse" id="septiembre">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.septiembre %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#octubre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="octubre">Octubre</a></div>
-        <div class="container mt-3 collapse" id="octubre">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.octubre %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#noviembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="noviembre">Noviembre</a></div>
-        <div class="container mt-3 collapse" id="noviembre">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.noviembre %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="timeline-breaker"><a class="simple-link" href="#diciembre" data-bs-toggle="collapse" aria-expanded="false" aria-controls="diciembre">Diciembre</a></div>
-        <div class="container mt-3 collapse" id="diciembre">
-          <table class="table">
-            <tbody>
-              {% for entrega in entregas_ge.diciembre %}
-                <tr>
-                  <td>{{ loop.index }}</td>
-                  <td>{{ entrega.institucion }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_convenio }}">{{ entrega.convenio }}</a></td>
-                  <td>{{ entrega.entrega }}</td>
-                  <td>{{ entrega.archivo }}</td>
-                  <td>{{ entrega.nomina }}</td>
-                  <td><a target="_blank" href="{{ entrega.link_pt }}">PT</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    </form>
+</div>
+
+<div class="container">
+    <h3 class=" text-center text-uppercase mt-0 mb-4">
+      Gabientes Electrónicos por enviar <a class="simple-link push-right pe-1" href="#"><i class="fa-solid fa-file-excel"></i></a>
+    </h3>
+    {% for gabinete, data in ge_abiertos.items() %}
+    <div class="mb-4">
+      <h5>{{ data.institucion }} GE{{ gabinete }} ({{ data.encargado }}) <a class="simple-link" target="_blank" href="{{data.link_sharepoint}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a>
+        {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+        <a class="float-end" href="{{ url_for("intercambio.entregar_ge", nro_ge=gabinete) }}"><button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-check"></i></button></a>
+        {% endif %}
+        </h5>
+      <table class="table table-striped">
+        <tbody>
+          {% for archivo in data.archivos %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ archivo.nombre_entrega }}</td>            
+              <td>{{ archivo.nombre_archivo }}</td>
+              <td>{{ archivo.mes_entrega }}</td>
+              {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
+              <td><a class="float-end" href="{{ url_for('intercambio.eliminar_entrega_ge', id_entrega=archivo.id_archivo) }}"><i class="gray fas fa-trash"></i></a></td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% endfor %}
 </div>
 
 
