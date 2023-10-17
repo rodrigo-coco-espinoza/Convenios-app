@@ -421,7 +421,7 @@
     </h3>
     {% for gabinete, data in ge_abiertos.items() %}
     <div class="mb-4">
-      <h5>{{ data.institucion }} GE{{ gabinete }} ({{ data.encargado }}) <a class="simple-link" target="_blank" href="{{data.link_sharepoint}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a>
+      <h5>{{ data.institucion }} {{ gabinete }} ({{ data.encargado }}) <a class="simple-link" target="_blank" href="{{data.link_sharepoint}}"><img src="{{ url_for('static', filename='sharepoint.png') }}"></a>
         {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
         <a class="float-end" href="{{ url_for("intercambio.entregar_ge", nro_ge=gabinete) }}"><button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-check"></i></button></a>
         {% endif %}
