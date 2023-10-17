@@ -645,13 +645,13 @@ def eliminar_entrega_ge(id_entrega):
     # Buscar entrega en la BBDD y eliminar el número de GE
 
     entrega = RegistroEntregas.query.get(id_entrega)
-    flash(f"Se ha eliminado la entrega '{entrega.entrega.archivo}' del GE{entrega.gabinete}", "success")
+    flash(f"Se ha eliminado la entrega '{entrega.entrega.archivo}' del gabinete {entrega.gabinete}", "success")
     entrega.gabinete = None
     db.session.commit()
 
     return redirect(url_for("intercambio.entregas_ge"))
 
-@intercambio.route("/entregar_ge/<int:nro_ge>")
+@intercambio.route("/entregar_ge/<string:nro_ge>")
 def entregar_ge(nro_ge):
     # Buscar entregas asignadas al GE y cambiar estado a enviado
     entregas = RegistroEntregas.query.filter(RegistroEntregas.gabinete == nro_ge).all()
@@ -660,7 +660,7 @@ def entregar_ge(nro_ge):
         entrega.entregado = 1
     db.session.commit()
 
-    flash(f"Se han enviado {len(entregas)} archivos en el GE{nro_ge}", "success")
+    flash(f"Se han enviado {len(entregas)} archivos en el gabinete {nro_ge}", "success")
     return redirect(url_for("intercambio.entregas_ge"))
 
 
