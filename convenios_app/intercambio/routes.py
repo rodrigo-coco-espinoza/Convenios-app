@@ -357,7 +357,7 @@ def enviar_correos_ie():
                 else:
                     HAY_atrasadas = True
                     for archivo in archivos:
-                        item = f"<li>{ archivo.recepcion.archivo } ({ archivo.recepcion.metodo}, { MESES[str(archivo.mes)] }"
+                        item = f"<li>{ archivo.recepcion.archivo } ({ archivo.recepcion.metodo}, { MESES[archivo.mes] }"
                         if archivo.validado == 0:
                             item += f", <span style='color: red;'>observado:</span> { archivo.observacion })</li>"
                         else:
