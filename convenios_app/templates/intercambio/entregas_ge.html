@@ -62,7 +62,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -93,7 +99,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -123,7 +135,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -153,7 +171,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -183,7 +207,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -213,7 +243,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -243,7 +279,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -273,7 +315,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -303,7 +351,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -333,7 +387,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -363,7 +423,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -393,7 +459,13 @@
                     <td>{{ entrega.ano }}</td>
                     <td>{{ entrega.nombre }}</td>
                     <td>{{ entrega.archivo }}</td>
-                    <td>{{ entrega.nomina }}</td>
+                    <td>
+                      {% if entrega.nomina == "S/Nom" %}
+                        <b>{{ entrega.nomina }} </b>
+                      {% else %}
+                        {{ entrega.nomina }}
+                      {% endif %}
+                    </td>
                     <td><a target="_blank" href="{{ entrega.link_pt }}" class="">PT</a></td>
                     <td>{{ entrega.encargado }}</td>
                     {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
@@ -431,7 +503,7 @@
           {% for archivo in data.archivos %}
             <tr>
               <td>{{ loop.index }}</td>
-              <td>{{ archivo.nombre_entrega }}</td>            
+              <td>{{ archivo.nombre_entrega }}</td>
               <td>{{ archivo.nombre_archivo }}</td>
               <td>{{ archivo.mes_entrega }}</td>
               {% if current_user.permisos == 'Admin' or current_user.permisos == 'Analista' %}
